@@ -32,7 +32,8 @@ fun LobbyScreen(
         // Titre avec bouton retour
         Row(
             modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
             IconButton(onClick = onBackClicked) {
                 Icon(
