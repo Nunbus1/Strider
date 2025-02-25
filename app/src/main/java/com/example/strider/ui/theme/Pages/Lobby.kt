@@ -2,13 +2,19 @@ package com.example.strider.ui.theme.Pages
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -37,18 +43,26 @@ fun LobbyScreen(
         ) {
             IconButton(onClick = onBackClicked) {
                 Icon(
-                    painter = painterResource(R.drawable.logo),
-                    contentDescription = "Back"
+                    imageVector = androidx.compose.material.icons.Icons.Default.ArrowBack,
+                    contentDescription = "Back",
+                    modifier = Modifier.size(32.dp).clickable { onBackClicked() }
                 )
             }
             Text(
                 text = "Strider",
                 style = MaterialTheme.typography.headlineLarge,
+                fontSize = 60.sp,
                 fontWeight = FontWeight.Bold
+
+            )
+            Box(
+                modifier = Modifier
+                    .size(50.dp)
+                    .background(Color.Gray, CircleShape)
             )
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(32.dp))
 
         // Encadré "Lobby"
         Card(
@@ -58,25 +72,25 @@ fun LobbyScreen(
         ) {
             Text(
                 text = "Lobby",
-                fontSize = 20.sp,
+                fontSize = 40.sp,
                 color = Color.Blue,
                 modifier = Modifier.padding(8.dp)
             )
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(48.dp))
 
         // Séparation avec "Runners"
         Divider(color = Color.Gray, thickness = 1.dp)
         Text(
             text = "Runners",
-            fontSize = 18.sp,
+            fontSize = 50.sp,
             fontWeight = FontWeight.Medium,
             modifier = Modifier.padding(vertical = 8.dp)
         )
         Divider(color = Color.Gray, thickness = 1.dp)
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(32.dp))
 
         // Liste des joueurs
         val players = listOf(
@@ -115,18 +129,20 @@ fun PlayerCard(imageRes: Int, pseudo: String) {
             painter = painterResource(imageRes),
             contentDescription = "Profile Picture",
             modifier = Modifier
-                .size(50.dp)
+                .size(80.dp)
                 .clip(RoundedCornerShape(25.dp))
         )
         Spacer(modifier = Modifier.width(16.dp))
         Card(
-            shape = RoundedCornerShape(8.dp),
-            border = BorderStroke(1.dp, Color.Gray),
-            modifier = Modifier.weight(1f)
+            modifier = Modifier
+                .padding(5.dp)
+                .fillMaxWidth()
+                .shadow(8.dp, shape = RoundedCornerShape(16.dp))
+                .padding(5.dp)
         ) {
             Text(
                 text = pseudo,
-                fontSize = 16.sp,
+                fontSize = 32.sp,
                 fontWeight = FontWeight.Medium,
                 modifier = Modifier.padding(8.dp)
             )

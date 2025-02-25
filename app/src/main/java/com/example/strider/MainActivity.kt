@@ -12,8 +12,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
 import com.example.strider.ui.theme.StriderTheme
 import com.example.strider.ui.theme.Pages.FinishScreen
+import com.example.strider.ui.theme.Pages.HomeScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -23,7 +26,7 @@ class MainActivity : ComponentActivity() {
             StriderTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     Box(modifier = Modifier.padding(innerPadding)) {
-                        FinishScreen()
+
                     }
                 }
             }
@@ -46,3 +49,4 @@ fun GreetingPreview() {
         Greeting("Android")
     }
 }
+

@@ -3,11 +3,13 @@ package com.example.strider.ui.theme.Pages
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -48,6 +50,13 @@ fun HomeScreen(
             modifier = Modifier.size(150.dp)
         )
         Spacer(modifier = Modifier.height(16.dp))
+        Image(
+            painter = painterResource(R.drawable.logo),
+            contentDescription = "Profile Picture",
+            modifier = Modifier
+                .size(120.dp)
+                .clip(RoundedCornerShape(25.dp))
+        )
         TextField(
             value = pseudo,
             onValueChange = { pseudo = it },
@@ -67,6 +76,7 @@ fun HomeScreen(
                 modifier = Modifier.fillMaxWidth(0.7f)
             ) {
                 Text("Create")
+
             }
             Button(
                 onClick = onJoinClicked,
