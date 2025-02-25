@@ -42,11 +42,11 @@ fun HomeScreen(
             color = MaterialTheme.colorScheme.primary
         )
         Spacer(modifier = Modifier.height(16.dp))
-        /*Image(
+        Image(
             painter = painterResource(R.drawable.logo), // Remplace avec ton logo
             contentDescription = "Logo",
             modifier = Modifier.size(150.dp)
-        )*/
+        )
         Spacer(modifier = Modifier.height(16.dp))
         TextField(
             value = pseudo,
