@@ -23,11 +23,14 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.strider.R
+import com.example.strider.ui.theme.gradientPrimaryColors
+import com.example.strider.StriderScreen
+
 
 @Composable
 fun CreateScreen(
     onBackClicked: () -> Unit,
-    onStartClicked: () -> Unit,
+    onCreateClicked: () -> Unit,
     modifier: Modifier = Modifier
 ) {var description by remember { mutableStateOf("dada") }
 
@@ -59,18 +62,14 @@ fun CreateScreen(
         Spacer(modifier = Modifier.height(16.dp))
 
         // Encadré "menu"
-        Card(
-            shape = RoundedCornerShape(8.dp),
-            border = BorderStroke(2.dp, Color.Blue),
-            modifier = Modifier.padding(horizontal = 32.dp)
-        ) {
+
             Text(
                 text = "menu",
                 fontSize = 20.sp,
                 color = Color.Blue,
                 modifier = Modifier.padding(8.dp)
             )
-        }
+
 
         Spacer(modifier = Modifier.height(24.dp))
 
@@ -94,9 +93,8 @@ fun CreateScreen(
             verticalAlignment = Alignment.CenterVertically
         ){
             Button(
-                onClick = onStartClicked,
-                modifier = Modifier
-                    ,
+                onClick = {  },
+                modifier = Modifier,
                 colors = ButtonDefaults.buttonColors(
                     Color.Transparent
                 ),
@@ -104,7 +102,7 @@ fun CreateScreen(
                 shape = RoundedCornerShape(23.dp),
             ){Box(modifier = Modifier
                 .background(
-                    brush = Brush.linearGradient(gradientColors)).
+                    brush = Brush.linearGradient(gradientPrimaryColors)).
                 padding(10.dp),
                 contentAlignment = Alignment.Center
             ){
@@ -125,9 +123,8 @@ fun CreateScreen(
                 )
             }
             Button(
-                onClick = onStartClicked,
-                modifier = Modifier
-                    ,
+                onClick = {  },
+                modifier = Modifier,
                 colors = ButtonDefaults.buttonColors(
                     Color.Transparent
                 ),
@@ -135,7 +132,7 @@ fun CreateScreen(
                 shape = RoundedCornerShape(23.dp),
             ){Box(modifier = Modifier
                 .background(
-                    brush = Brush.linearGradient(gradientColors)).
+                    brush = Brush.linearGradient(gradientPrimaryColors)).
                 padding(10.dp),
                 contentAlignment = Alignment.Center
             ){
@@ -172,7 +169,7 @@ fun CreateScreen(
 
         ) {
             Button(
-                onClick = onStartClicked,
+                onClick = onCreateClicked,
                 modifier = Modifier.fillMaxWidth(0.7f)
                     .align(Alignment.BottomCenter)
                     //.padding(15.dp,15.dp)
@@ -186,7 +183,7 @@ fun CreateScreen(
                 shape = RoundedCornerShape(23.dp),
             ){Box(modifier = Modifier.fillMaxWidth()
                 .background(
-                    brush = Brush.linearGradient(gradientColors))
+                    brush = Brush.linearGradient(gradientPrimaryColors))
                 .padding(20.dp)
 
                 ,
@@ -207,6 +204,6 @@ fun CreateScreen(
 fun CreateScreenPreview() {
     CreateScreen(
         onBackClicked = {},
-        onStartClicked = {}
+        onCreateClicked = {}
     )
 }

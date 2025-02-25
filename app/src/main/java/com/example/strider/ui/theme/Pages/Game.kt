@@ -67,6 +67,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.VerticalAlignmentLine
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.dimensionResource
@@ -81,9 +82,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import com.example.strider.R
+import com.example.strider.ui.theme.gradientPrimaryColors
 import kotlin.math.round
 
-val gradientColors = listOf(Color.Blue,Color.Cyan )
+//val gradientColors = listOf(Color.Blue,Color.Cyan )
 
 data class Player(
     val iconUrl: Int,
@@ -91,11 +93,11 @@ data class Player(
 )
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MainScreen(modifier:Modifier = Modifier) {
+fun GameScreen(modifier:Modifier = Modifier) {
     var presses by remember { mutableIntStateOf(0) }
     var ListeScores by remember { mutableStateOf(listOf(0f)) }
 
-    ListeScores = listOf(15f, 12f, 10f,5f)
+    ListeScores = listOf(15f, 12f, 10f,11f)
     val player1 = Player(1,"test")
     val player2 = Player(1,"test")
     val player3 = Player(1,"test")
@@ -103,12 +105,15 @@ fun MainScreen(modifier:Modifier = Modifier) {
 var ListePlayer = listOf(player1,player2,player3,player4)
 
     Column (modifier = modifier
-        .fillMaxSize(),
+        .fillMaxSize()
+        .background(colorScheme.primary)
+        .zIndex(-2f)
+        ,
         //horizontalAlignment = Alignment.CenterHorizontally,
         //verticalArrangement = Arrangement.Center
         ) {
         TopAppBar(modifier=modifier
-            .background(brush = Brush.linearGradient(colors = gradientColors)),
+            .background(brush = Brush.linearGradient(colors = gradientPrimaryColors)),
 
             title = {
                 Text(
@@ -116,7 +121,7 @@ var ListePlayer = listOf(player1,player2,player3,player4)
                     textAlign = TextAlign.Center,
                     maxLines = 1,
                     text = stringResource(R.string.app_name),
-                    style = MaterialTheme.typography.headlineLarge,
+                    style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold
                 )
             },
@@ -135,22 +140,23 @@ var ListePlayer = listOf(player1,player2,player3,player4)
             modifier = Modifier
                 .fillMaxWidth()
                 .fillMaxHeight(0.9f)
-                .padding(40.dp)
-                .background(color = Color.LightGray,
+                .padding(45.dp)
+                .background(color = Color.White,
                     shape = MaterialTheme.shapes.medium)
                 ,
             contentAlignment = Alignment.BottomCenter,
 
         ) {
             Row(modifier = modifier.align(Alignment.BottomCenter)
-                //.background(Color.Gray)
+                .fillMaxWidth()
                 .padding(8.dp),
                 verticalAlignment = Alignment.Bottom, // Align children vertically to the center
-                horizontalArrangement = Arrangement.Center,
+                horizontalArrangement = Arrangement.SpaceEvenly,
+
             ) {
                 for (score in ListeScores) {
-                    PlayerScoreStat(score, 17f)
-                    Spacer(modifier = Modifier.weight(10f))
+                    PlayerScoreStat(score, 15f)
+                    //Spacer(modifier = Modifier.weight(5f))
                 }
             }
 
@@ -173,7 +179,7 @@ var ListePlayer = listOf(player1,player2,player3,player4)
             ){Box(modifier = Modifier
                 .fillMaxWidth()
                 .background(
-                    brush = Brush.linearGradient(gradientColors)
+                    brush = Brush.linearGradient(gradientPrimaryColors)
                 )
                 .padding(20.dp)
 
@@ -191,7 +197,8 @@ var ListePlayer = listOf(player1,player2,player3,player4)
 
 @Composable
 fun PlayerScoreStat(distance: Float, distanceMax: Float,modifier: Modifier = Modifier) {
-Column (
+Column (modifier = Modifier//.fillMaxWidth(0.3f)
+ ,
     horizontalAlignment = Alignment.CenterHorizontally
         ,
 
@@ -201,24 +208,28 @@ Column (
         contentDescription = "Player Icon",
         modifier = Modifier
             .padding(bottom = 10.dp)
-            .size(60.dp)
+            .size(50.dp)
             .clip(CircleShape)
             .background(Color.Cyan)
                )
     Box(
         modifier = Modifier
             .clip(RoundedCornerShape(10))
+
             .fillMaxHeight(distance / distanceMax)
             .background(
-                brush = Brush.linearGradient(colors = gradientColors),
+                brush = Brush.linearGradient(colors = gradientPrimaryColors),
             ),
         //contentAlignment = Alignment.BottomCenter,
     ) {
 
         Text(
             text = distance.toString(),
-            style = typography.headlineMedium,
+            style = typography.bodySmall,
             modifier = Modifier.padding(8.dp)
+                .graphicsLayer {
+                    rotationZ = 90f
+                }
         )
 
     }
@@ -234,9 +245,11 @@ fun PlayerHorizontalBar(players: List<Player>, modifier: Modifier) {
             contentAlignment = Alignment.TopEnd,
             ) {
             Column(modifier = Modifier
-                .background(color = Color.Gray,
-                    shape = MaterialTheme.shapes.medium)
-                .padding(5.dp),
+                //.background(color = colorScheme.secondary,
+                //    shape = MaterialTheme.shapes.medium)
+                .padding(5.dp)
+                //.shadow(10.dp,shape = MaterialTheme.shapes.medium))
+                    ,
                 horizontalAlignment = Alignment.End,
             ) {
                 for (player in players) {
@@ -251,6 +264,7 @@ fun PlayerIconWithPseudo(player: Player) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier.padding(vertical = 2.dp)
+
     ) {
         Column (
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -266,7 +280,7 @@ fun PlayerIconWithPseudo(player: Player) {
             //Spacer(modifier = Modifier.height(-15.dp))
             Text(
                 text = player.pseudo,
-                style = TextStyle(color = Color.Black, fontSize = 16.sp)
+                style = TextStyle(color = colorScheme.onPrimaryContainer, fontSize = 16.sp)
             )
         }
     }
@@ -276,5 +290,5 @@ fun PlayerIconWithPseudo(player: Player) {
 @Preview(showBackground = true)
 @Composable
 fun PreviewMainScreen(){
-    MainScreen()
+    GameScreen()
 }

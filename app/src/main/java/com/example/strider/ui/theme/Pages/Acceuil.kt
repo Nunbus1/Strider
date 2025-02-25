@@ -18,7 +18,7 @@ import androidx.compose.ui.unit.sp
 import com.example.strider.R
 
 @Composable
-fun HomeScreen(
+fun AccueilScreen(
     onCreateClicked: () -> Unit,
     onJoinClicked: () -> Unit,
     modifier: Modifier = Modifier
@@ -81,7 +81,7 @@ fun HomeScreen(
 @Preview(showBackground = true)
 @Composable
 fun HomeScreenPreview() {
-    HomeScreen(
+    AccueilScreen(
         onCreateClicked = {},
         onJoinClicked = {}
     )
