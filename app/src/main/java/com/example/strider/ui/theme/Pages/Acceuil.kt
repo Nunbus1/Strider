@@ -54,7 +54,7 @@ fun HomeScreen(
         )
         Spacer(modifier = Modifier.height(16.dp))
         Image(
-            painter = painterResource(R.drawable.logo),
+            painter = painterResource(R.drawable.beaute),
             contentDescription = "Profile Picture",
             modifier = Modifier
                 .size(120.dp)

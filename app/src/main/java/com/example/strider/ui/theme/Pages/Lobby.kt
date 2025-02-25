@@ -69,6 +69,7 @@ fun LobbyScreen(
             shape = RoundedCornerShape(8.dp),
             border = BorderStroke(2.dp, Color.Blue),
             modifier = Modifier.padding(horizontal = 32.dp)
+
         ) {
             Text(
                 text = "Lobby",
@@ -94,10 +95,10 @@ fun LobbyScreen(
 
         // Liste des joueurs
         val players = listOf(
-            Pair(R.drawable.logo, "PlayerOne"),
-            Pair(R.drawable.logo, "Speedster"),
-            Pair(R.drawable.logo, "Shadow"),
-            Pair(R.drawable.logo, "Blaze")
+            Pair(R.drawable.beaute, "PlayerOne"),
+            Pair(R.drawable.beaute, "Speedster"),
+            Pair(R.drawable.beaute, "Shadow"),
+            Pair(R.drawable.beaute, "Blaze")
         )
 
         players.forEach { (imageRes, pseudo) ->
@@ -110,7 +111,13 @@ fun LobbyScreen(
         // Bouton Start
         Button(
             onClick = onStartClicked,
-            modifier = Modifier.fillMaxWidth(0.7f)
+            colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
+            modifier = Modifier
+                .background(
+                    Brush.horizontalGradient(colors = listOf(Color(0xFF22A6FF), Color(0xFF0044FF))),
+                    shape = CircleShape
+                )
+                .width(150.dp)
         ) {
             Text("Start")
         }
