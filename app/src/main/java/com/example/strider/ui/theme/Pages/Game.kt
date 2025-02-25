@@ -5,12 +5,16 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.absoluteOffset
+import androidx.compose.foundation.layout.absolutePadding
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
@@ -31,11 +35,14 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.ui.res.painterResource
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.MaterialTheme.shapes
 import androidx.compose.material3.MaterialTheme.typography
@@ -57,6 +64,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.VerticalAlignmentLine
@@ -65,6 +73,7 @@ import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -72,6 +81,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import com.example.strider.R
+import kotlin.math.round
 
 val gradientColors = listOf(Color.Blue,Color.Cyan )
 
@@ -105,39 +115,74 @@ var ListePlayer = listOf(player1,player2,player3,player4)
                     modifier = Modifier.fillMaxWidth(),
                     textAlign = TextAlign.Center,
                     maxLines = 1,
-                    text = stringResource(R.string.app_name)
+                    text = stringResource(R.string.app_name),
+                    style = MaterialTheme.typography.headlineLarge,
+                    fontWeight = FontWeight.Bold
                 )
+            },
+            navigationIcon = {
+
+                Icon(modifier = Modifier.size(50.dp),
+                    painter = painterResource(R.drawable.logo), // Use your desired icon
+                    contentDescription = "Menu Icon",
+
+                    )
             }
 
         )
 
         Box(
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
                 .fillMaxHeight(0.9f)
-                .padding(15.dp),
-            contentAlignment = Alignment.BottomCenter
+                .padding(40.dp)
+                .background(color = Color.LightGray,
+                    shape = MaterialTheme.shapes.medium)
+                ,
+            contentAlignment = Alignment.BottomCenter,
+
         ) {
-            Row(modifier = modifier.align(Alignment.BottomCenter),
+            Row(modifier = modifier.align(Alignment.BottomCenter)
+                //.background(Color.Gray)
+                .padding(8.dp),
                 verticalAlignment = Alignment.Bottom, // Align children vertically to the center
-                horizontalArrangement = Arrangement.Center
+                horizontalArrangement = Arrangement.Center,
             ) {
                 for (score in ListeScores) {
                     PlayerScoreStat(score, 17f)
+                    Spacer(modifier = Modifier.weight(10f))
                 }
             }
 
         }
 
-        BottomAppBar(
+        Box(modifier= Modifier.fillMaxWidth(),
+            contentAlignment = (Alignment.BottomCenter)
         ) {
-            Button(modifier = Modifier.fillMaxWidth(),
-                onClick = { }) {
-                Text(
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    textAlign = TextAlign.Center,
-                    text = "Pause",
+            Button(
+                onClick = { } ,
+                modifier = Modifier
+                    .fillMaxWidth(0.7f)
+                    .shadow(8.dp, shape = RoundedCornerShape(23.dp)),
+                colors = ButtonDefaults.buttonColors(
+                    Color.Transparent
+                ),
+
+                contentPadding = PaddingValues(),
+                shape = RoundedCornerShape(23.dp),
+            ){Box(modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    brush = Brush.linearGradient(gradientColors)
                 )
+                .padding(20.dp)
+
+                ,
+                contentAlignment = Alignment.Center
+            ){
+                Text("Pause")
+            }
+
             }
         }
     }
@@ -146,16 +191,30 @@ var ListePlayer = listOf(player1,player2,player3,player4)
 
 @Composable
 fun PlayerScoreStat(distance: Float, distanceMax: Float,modifier: Modifier = Modifier) {
+Column (
+    horizontalAlignment = Alignment.CenterHorizontally
+        ,
 
+    ) {
+    Image(
+        painter = painterResource(R.drawable.beaute),
+        contentDescription = "Player Icon",
+        modifier = Modifier
+            .padding(bottom = 10.dp)
+            .size(60.dp)
+            .clip(CircleShape)
+            .background(Color.Cyan)
+               )
     Box(
         modifier = Modifier
             .clip(RoundedCornerShape(10))
-            .fillMaxHeight(distance/distanceMax)
+            .fillMaxHeight(distance / distanceMax)
             .background(
                 brush = Brush.linearGradient(colors = gradientColors),
             ),
-    //contentAlignment = Alignment.BottomCenter,
+        //contentAlignment = Alignment.BottomCenter,
     ) {
+
         Text(
             text = distance.toString(),
             style = typography.headlineMedium,
@@ -163,18 +222,22 @@ fun PlayerScoreStat(distance: Float, distanceMax: Float,modifier: Modifier = Mod
         )
 
     }
-
+}
 }
 @Composable
 fun PlayerHorizontalBar(players: List<Player>, modifier: Modifier) {
         Box(
             modifier = Modifier
-                .fillMaxSize(),
+                .fillMaxSize()
+                .padding(top=70.dp, end = 0.dp)
+                ,
             contentAlignment = Alignment.TopEnd,
             ) {
             Column(modifier = Modifier
-                .background(Color.Cyan),
-                horizontalAlignment = Alignment.End
+                .background(color = Color.Gray,
+                    shape = MaterialTheme.shapes.medium)
+                .padding(5.dp),
+                horizontalAlignment = Alignment.End,
             ) {
                 for (player in players) {
                     PlayerIconWithPseudo(player)
@@ -187,21 +250,25 @@ fun PlayerHorizontalBar(players: List<Player>, modifier: Modifier) {
 fun PlayerIconWithPseudo(player: Player) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.padding(vertical = 8.dp)
+        modifier = Modifier.padding(vertical = 2.dp)
     ) {
-        /*Image(
-            painter = painterResource(player.iconUrl),
-            contentDescription = "Player Icon",
-            modifier = Modifier
-                .size(40.dp)
-                .clip(CircleShape)
-                .background(Color.White)
-        )*/
-        Spacer(modifier = Modifier.width(8.dp))
-        Text(
-            text = player.pseudo,
-            style = TextStyle(color = Color.White, fontSize = 16.sp)
-        )
+        Column (
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Image(
+                painter = painterResource(R.drawable.beaute),
+                contentDescription = "Player Icon",
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(CircleShape)
+                    .background(Color.Cyan)
+            )
+            //Spacer(modifier = Modifier.height(-15.dp))
+            Text(
+                text = player.pseudo,
+                style = TextStyle(color = Color.Black, fontSize = 16.sp)
+            )
+        }
     }
 }
 
