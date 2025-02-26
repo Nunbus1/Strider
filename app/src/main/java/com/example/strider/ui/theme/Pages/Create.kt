@@ -38,13 +38,15 @@ fun CreateScreen(
         modifier = modifier
             .fillMaxSize()
             .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.SpaceBetween
     ) {
         // Titre avec bouton retour
+
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
+            //horizontalArrangement = Arrangement.Absolute.SpaceEvenly
         ) {
             IconButton(onClick = onBackClicked) {
                 Icon(
@@ -165,6 +167,7 @@ fun CreateScreen(
                     // Bouton Start
         Box(
             modifier = Modifier.fillMaxSize()
+
             ,
 
         ) {

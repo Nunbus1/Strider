@@ -118,7 +118,7 @@ var ListePlayer = listOf(player1,player2,player3,player4)
 
                 title = {
                     Text(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = modifier.fillMaxWidth(),
                         textAlign = TextAlign.Center,
                         maxLines = 1,
                         text = stringResource(R.string.app_name),
@@ -139,7 +139,7 @@ var ListePlayer = listOf(player1,player2,player3,player4)
             )
 
             Box(
-                modifier = Modifier
+                modifier = modifier
                     .fillMaxSize()
                     .padding(45.dp)
                     .background(
@@ -166,7 +166,7 @@ var ListePlayer = listOf(player1,player2,player3,player4)
             }
 
             Box(
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxSize()
                     .padding(bottom = 50.dp),
                 contentAlignment = (Alignment.BottomCenter)
             ) {
@@ -189,7 +189,7 @@ var ListePlayer = listOf(player1,player2,player3,player4)
                                 brush = Brush.linearGradient(gradientPrimaryColors)
                             )
                             .padding(20.dp),
-                        contentAlignment = Alignment.Center
+                        contentAlignment = Alignment.BottomCenter
                     ) {
                         Text("Pause")
                     }
@@ -203,10 +203,12 @@ var ListePlayer = listOf(player1,player2,player3,player4)
 
 @Composable
 fun PlayerScoreStat(distance: Float, distanceMax: Float,modifier: Modifier = Modifier) {
-Column (modifier = Modifier//.fillMaxWidth(0.3f)
+Column (modifier = Modifier.fillMaxHeight()
+    .height(600.dp)
  ,
-    horizontalAlignment = Alignment.CenterHorizontally
-        ,
+    horizontalAlignment = Alignment.CenterHorizontally,
+    verticalArrangement = Arrangement.Bottom,
+
 
     ) {
     Image(
