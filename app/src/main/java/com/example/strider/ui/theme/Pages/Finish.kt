@@ -2,46 +2,57 @@ package com.example.strider.ui.theme.Pages
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Paint
-import androidx.compose.ui.graphics.PaintingStyle
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.strider.ui.theme.StriderTheme
-import androidx.compose.foundation.gestures.rememberScrollableState
-import androidx.compose.foundation.gestures.scrollable
-import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import kotlin.random.Random
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.geometry.Size
 
 
 @Composable
 fun FinishScreen() {
     var showSpeedState by remember { mutableStateOf(false) }
+    //val meIndex = Random.nextInt(12)
+    val meIndex = 4
+    var selectedPlayers by remember { mutableStateOf(setOf(meIndex)) }
 
     Column(
         modifier = Modifier
@@ -54,12 +65,22 @@ fun FinishScreen() {
         ResultSection(playerName = "Bob", resultMessage = if (showSpeedState) "The fastest" else "Win this match")
         Spacer(modifier = Modifier.height(10.dp))
         if (showSpeedState) {
-            SpeedBarPlot()
+            SpeedGraph(selectedPlayers)
         } else {
             Podium()
         }
         Spacer(modifier = Modifier.height(10.dp))
-        PlayerRanking(showSpeedState)
+        PlayerRanking(
+            showSpeedState,
+            selectedPlayers,
+            onPlayerClick = { playerId ->
+                selectedPlayers = if (selectedPlayers.contains(playerId))
+                    selectedPlayers - playerId
+                else
+                    selectedPlayers + playerId
+            },
+            meIndex = meIndex
+        )
         Spacer(modifier = Modifier.height(10.dp))
         ActionButtons { showSpeedState = true }
     }
@@ -250,8 +271,8 @@ fun Podium() {
 }
 
 @Composable
-fun PlayerRanking(showSpeed: Boolean) {
-    val meIndex = Random.nextInt(12)
+fun PlayerRanking(showSpeed: Boolean, selectedPlayers: Set<Int>, onPlayerClick: (Int) -> Unit, meIndex: Int) {
+    //val meIndex = Random.nextInt(12)
     val players = List(12) { if (it == meIndex) "Player ${it + 1} (Me)" else "Player ${it + 1}" }
     val speeds = List(12) { Random.nextInt(5, 20) } // Vitesse aléatoire entre 5 et 20 km/h
 
@@ -277,11 +298,13 @@ fun PlayerRanking(showSpeed: Boolean) {
             ) {
                 group.forEachIndexed { localIndex, player ->
                     val speed = speeds[globalIndex * 5 + localIndex]
+                    val playerId = globalIndex * 5 + localIndex
                     Box(
                         modifier = Modifier
                             .padding(5.dp)
                             .fillMaxWidth()
                             .shadow(8.dp, shape = RoundedCornerShape(16.dp))
+                            .clickable { onPlayerClick(playerId) }
                             .background(
                                 when {
                                     player.contains("(Me)") -> meGradient // Bleu pour "Me"
@@ -292,6 +315,7 @@ fun PlayerRanking(showSpeed: Boolean) {
                                 },
                                 shape = CircleShape
                             )
+                            .border(2.dp, if (selectedPlayers.contains(playerId)) Color.Black else Color.Transparent, CircleShape)
                             .padding(5.dp)
                     ) {
                         Text(
@@ -308,51 +332,107 @@ fun PlayerRanking(showSpeed: Boolean) {
 }
 
 @Composable
-fun SpeedBarPlot() {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(250.dp)
-            .padding(10.dp)
-            .shadow(8.dp, shape = RoundedCornerShape(16.dp)) // Ajout de l'ombre pour un effet de relief
-            .background(
-                brush = Brush.verticalGradient(
-                    colors = listOf(Color(0xFFE8E8E8), Color(0xFFD0D0D0))
-                ),
-                shape = RoundedCornerShape(16.dp)
-            )
-            .padding(10.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+fun SpeedGraph(selectedPlayers: Set<Int>) {
+    val players = 12
+    val timeSteps = 16
+    val speedData = List(players) { List(timeSteps) { Random.nextInt(1, 25).toFloat() } }
+
+    Canvas(modifier = Modifier
+        .fillMaxWidth()
+        .height(250.dp)
+        .padding(10.dp)
+        .background(
+            brush = Brush.verticalGradient(
+                colors = listOf(Color(0xFFE8E8E8), Color(0xFFD0D0D0))
+            ),
+            shape = RoundedCornerShape(16.dp)
+        )
+        .padding(10.dp)
     ) {
-        val speeds = List(5) { Random.nextInt(5, 20) }
-        speeds.forEachIndexed { index, speed ->
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 9.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(text = "Player ${index + 1}", fontSize = 20.sp, color = Color.Black)
-                Spacer(modifier = Modifier.width(8.dp))
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth(0.8f)
-                        .height(24.dp)
-                        .background(
-                            Brush.horizontalGradient(colors = listOf(Color(0xFF22DCD9), Color(0xFF4398AF))),
-                            shape = RoundedCornerShape(12.dp)
-                        )
-                )
+        val graphWidth = size.width - 50f
+        val graphHeight = (size.height - 50f)
+        val stepX = graphWidth / (timeSteps - 1)
+        val stepY = graphHeight / 15f
+        val originX = 20f
+        val originY = size.height - 20f
+
+
+
+        for (i in 0 until timeSteps step 1) {
+            drawContext.canvas.nativeCanvas.drawText(
+                "$i", originX + i * stepX - 10, originY + 22f, android.graphics.Paint().apply {
+                    textSize = 30f
+                    color = android.graphics.Color.BLACK
+                }
+            )
+        }
+        for (i in 0..30 step 5) {
+            drawContext.canvas.nativeCanvas.drawText(
+                "$i", originX - 40f, originY - i * stepY / 2 + 10, android.graphics.Paint().apply {
+                    textSize = 30f
+                    color = android.graphics.Color.BLACK
+                }
+            )
+        }
+
+        for (i in 0..timeSteps) {
+            val x = originX + i * stepX
+            drawLine(Color.White, Offset(x, originY), Offset(x, originY - graphHeight), strokeWidth = 2f)
+        }
+        for (i in 0..30 step 5) {
+            val y = originY - i * stepY / 2
+            drawLine(Color.White, Offset(originX, y), Offset(originX + graphWidth, y), strokeWidth = 2f)
+        }
+
+        drawLine(Color.Black, Offset(originX, originY), Offset(originX, originY - graphHeight), strokeWidth = 3f)
+        drawLine(Color.Black, Offset(originX, originY), Offset(originX + graphWidth, originY), strokeWidth = 3f)
+
+        drawContext.canvas.nativeCanvas.apply {
+            drawText(
+                "Time", originX + graphWidth / 2 , originY - graphHeight - 20f,
+                android.graphics.Paint().apply {
+                    textSize = 30f
+                    textAlign = android.graphics.Paint.Align.CENTER
+                    color = android.graphics.Color.BLACK
+                }
+            )
+
+            save()
+            rotate(90f, originX + graphWidth + 40f, originY - graphHeight / 2)
+            drawText(
+                "Speed", originX + graphWidth + 40f, originY - graphHeight / 2 + 15,
+                android.graphics.Paint().apply {
+                    textSize = 30f
+                    textAlign = android.graphics.Paint.Align.CENTER
+                    color = android.graphics.Color.BLACK
+                }
+            )
+            restore()
+        }
+
+        selectedPlayers.forEach { playerId ->
+            val speeds = speedData[playerId]
+            val path = Path().apply {
+                moveTo(originX, originY - speeds[0] * stepY / 2)
+                for (i in 1 until timeSteps) {
+                    lineTo(originX + i * stepX, originY - speeds[i] * stepY / 2)
+                }
+            }
+            drawPath(path, gradientBrush, style = Stroke(width = 3f))
+            speeds.forEachIndexed { i, speed ->
+                drawCircle(Color.Black, 4f, Offset(originX + i * stepX, originY - speed * stepY / 2))
             }
         }
     }
 }
 
 
+
 @Composable
 fun ActionButtons(onNextClicked: () -> Unit) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceEvenly
     ) {
         Button(
