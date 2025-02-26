@@ -62,6 +62,7 @@ fun FinishScreen(
             .background(MaterialTheme.colorScheme.background),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        Spacer(modifier = Modifier.height(30.dp))
         HeaderSection(onBackClicked = { showSpeedState = false})
         Spacer(modifier = Modifier.height(10.dp))
         ResultSection(playerName = "Bob", resultMessage = if (showSpeedState) "The fastest" else "Win this match")
