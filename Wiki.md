@@ -5,7 +5,7 @@ Pour utiliser Strider, cette configuration est recommandé :
 - Appareil ciblé : Portable
 - Modèle de test : Medium Phone API 35
 - Version de test : Android 15.0 ("VanillalceCream") 
-- Taille de l'écran : 
+- Taille de l'écran : 1080x2400
 
 ---
 
