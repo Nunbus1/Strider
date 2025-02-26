@@ -81,9 +81,9 @@ fun AccueilScreen(
             contentDescription = "Logo",
             modifier = Modifier.size(150.dp)
         )
-        Spacer(modifier = Modifier.height(40.dp))
-        ProfilePicture()
         Spacer(modifier = Modifier.height(20.dp))
+        ProfilePicture()
+        Spacer(modifier = Modifier.height(10.dp))
         TextField(
             value = pseudo,
             onValueChange = { pseudo = it },
@@ -96,13 +96,14 @@ fun AccueilScreen(
                 .fillMaxWidth()
                 .padding(16.dp)
         )
-        Spacer(modifier = Modifier.height(16.dp))
+
         Column(
             modifier = Modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             if (!isJoining) {
+                
                 Button(
                     onClick = onCreateClicked,
                     colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
