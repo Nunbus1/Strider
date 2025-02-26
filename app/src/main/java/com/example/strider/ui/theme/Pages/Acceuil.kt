@@ -30,6 +30,7 @@ fun AccueilScreen(
     modifier: Modifier = Modifier
 ) {
     var pseudo by remember { mutableStateOf("Pseudo") }
+    var code by remember { mutableStateOf("")}
     var isJoining by remember { mutableStateOf(false) }
 
     Column(
@@ -86,13 +87,11 @@ fun AccueilScreen(
             if (isJoining) {
                 // Zone de texte + bouton "Join"
                 OutlinedTextField(
-                    value = pseudo,
-                    onValueChange = { pseudo = it },
-                    label = { Text("Enter your pseudo") },
+                    value = code,
+                    onValueChange = { code = it },
+                    label = { Text("Enter your code") },
                     modifier = Modifier.width(200.dp)
                 )
-
-                Spacer(modifier = Modifier.height(8.dp))
 
                 Button(
                     onClick = {
@@ -100,7 +99,13 @@ fun AccueilScreen(
                             onJoinClicked(pseudo)
                         }
                     },
-                    modifier = Modifier.width(150.dp)
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
+                    modifier = Modifier
+                        .background(
+                            Brush.horizontalGradient(colors = listOf(Color(0xFFFF4444), Color(0xFFFF2266))),
+                            shape = CircleShape
+                        )
+                        .width(150.dp)
                 ) {
                     Text("Join")
                 }
