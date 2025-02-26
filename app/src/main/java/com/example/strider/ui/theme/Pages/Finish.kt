@@ -20,6 +20,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -40,16 +41,21 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.strider.R
 import com.example.strider.ui.theme.StriderTheme
 import kotlin.random.Random
-
+import com.example.strider.ui.theme.StriderTheme
+import com.example.strider.ui.theme.gradientPrimaryColors
+import com.example.strider.ui.theme.gradientSecondaryColor
 
 @Composable
 fun FinishScreen(
-    onContinueClicked: () -> Unit
+    onContinueClicked: () -> Unit,
+    onHomeClicked: () -> Unit
 ) {
     var showSpeedState by remember { mutableStateOf(false) }
     //val meIndex = Random.nextInt(12)
@@ -63,7 +69,11 @@ fun FinishScreen(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Spacer(modifier = Modifier.height(30.dp))
-        HeaderSection(onBackClicked = { showSpeedState = false})
+        HeaderSection(
+            showSpeedState = showSpeedState,
+            onBackClicked = { showSpeedState = false },
+            onHomeClicked = onHomeClicked // Passe la navigation vers Acceuil
+        )
         Spacer(modifier = Modifier.height(10.dp))
         ResultSection(playerName = "Bob", resultMessage = if (showSpeedState) "The fastest" else "Win this match")
         Spacer(modifier = Modifier.height(10.dp))
@@ -94,7 +104,7 @@ val gradientBrush = Brush.verticalGradient(
 )
 
 @Composable
-fun HeaderSection(onBackClicked: () -> Unit) {
+fun HeaderSection(showSpeedState: Boolean, onBackClicked: () -> Unit, onHomeClicked: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -103,15 +113,22 @@ fun HeaderSection(onBackClicked: () -> Unit) {
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Icon(
-            imageVector = androidx.compose.material.icons.Icons.Default.ArrowBack,
-            contentDescription = "Back",
-            modifier = Modifier.size(32.dp).clickable { onBackClicked() }
+            imageVector = if (showSpeedState)
+                androidx.compose.material.icons.Icons.Default.ArrowBack
+            else
+                androidx.compose.material.icons.Icons.Default.Home, // Home quand showSpeedState est false
+            contentDescription = if (showSpeedState) "Back" else "Home",
+            modifier = Modifier
+                .size(32.dp)
+                .clickable { if (showSpeedState) onBackClicked() else onHomeClicked() } // Navigation dynamique
         )
+
         Text(
-            text = "Strider",
-            fontSize = 75.sp,
+            text = stringResource(R.string.app_name),
+            fontSize = 50.sp,
             color = Color.Black
         )
+
         Box(
             modifier = Modifier
                 .size(40.dp)
@@ -344,6 +361,7 @@ fun SpeedGraph(selectedPlayers: Set<Int>) {
         .fillMaxWidth()
         .height(250.dp)
         .padding(10.dp)
+        .shadow(8.dp, shape = RoundedCornerShape(16.dp))
         .background(
             brush = Brush.verticalGradient(
                 colors = listOf(Color(0xFFE8E8E8), Color(0xFFD0D0D0))
@@ -470,6 +488,6 @@ fun ActionButtons(onNextClicked: () -> Unit,onContinueClicked:() -> Unit) {
 @Composable
 fun FinishScreenPreview() {
     StriderTheme {
-        FinishScreen({})
+        FinishScreen({}, {})
     }
 }
