@@ -3,8 +3,11 @@ package com.example.strider.ui.theme.Pages
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -39,53 +42,69 @@ fun CreateScreen(
             .fillMaxSize()
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.SpaceBetween
+        //verticalArrangement = Arrangement.SpaceBetween
     ) {
         // Titre avec bouton retour
 
+        Spacer(modifier = Modifier.height(30.dp))
+        // Titre avec bouton retour
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
-            //horizontalArrangement = Arrangement.Absolute.SpaceEvenly
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
             IconButton(onClick = onBackClicked) {
                 Icon(
-                    painter = painterResource(R.drawable.logo),
-                    contentDescription = "Back"
+                    imageVector = androidx.compose.material.icons.Icons.Default.ArrowBack,
+                    contentDescription = "Back",
+                    modifier = Modifier.size(32.dp).clickable { onBackClicked() }
                 )
             }
             Text(
                 text = "Strider",
                 style = MaterialTheme.typography.headlineLarge,
+                fontSize = 60.sp,
                 fontWeight = FontWeight.Bold
+
+            )
+            Box(
+                modifier = Modifier
+                    .size(50.dp)
+                    .background(Color.Gray, CircleShape)
             )
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(32.dp))
 
-        // Encadré "menu"
+        // Encadré "Lobby"
+        Card(
+            shape = RoundedCornerShape(8.dp),
+            border = BorderStroke(2.dp, Color.Blue),
+            modifier = Modifier.padding(horizontal = 32.dp)
 
+        ) {
             Text(
-                text = "menu",
-                fontSize = 20.sp,
+                text = "Menu",
+                fontSize = 40.sp,
                 color = Color.Blue,
                 modifier = Modifier.padding(8.dp)
             )
+        }
 
-
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(48.dp))
 
         // Séparation avec "Runners"
         Divider(color = Color.Gray, thickness = 1.dp)
         Text(
-            text = "settings",
-            fontSize = 18.sp,
+            text = "Settings",
+            fontSize = 50.sp,
             fontWeight = FontWeight.Medium,
             modifier = Modifier.padding(vertical = 8.dp)
         )
         Divider(color = Color.Gray, thickness = 1.dp)
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(32.dp))
+
         Text(
             text = "GameMode",
             fontSize = 20.sp,
@@ -144,26 +163,16 @@ fun CreateScreen(
             }
         }
 
-        Text(
-            text = "description",
-            fontSize = 20.sp,
-            modifier = Modifier.padding(8.dp)
-        )
 
         Spacer(modifier = Modifier.height(24.dp))
-
-        Text(
-            text = "Enter your text:",
-
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        TextField(
-            value = description,
-            onValueChange = { newText -> description = newText },
-            label = { Text("Your input") },
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true
-        )
+        Card(modifier = Modifier.padding(10.dp)
+            .fillMaxWidth(0.7f)) {
+            Text(
+                text = "description mode de jeu",
+                modifier=Modifier.padding(10.dp),
+                )
+        }
+        Spacer(modifier = Modifier.height(24.dp))
                     // Bouton Start
         Box(
             modifier = Modifier.fillMaxSize()
