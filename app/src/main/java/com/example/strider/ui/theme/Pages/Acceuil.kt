@@ -1,6 +1,7 @@
 package com.example.strider.ui.theme.Pages
 
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -35,6 +36,11 @@ fun AccueilScreen(
     var pseudo by remember { mutableStateOf("Pseudo") }
     var code by remember { mutableStateOf("")}
     var isJoining by remember { mutableStateOf(false) }
+
+    // Gérer le bouton retour du téléphone
+    BackHandler(isJoining) {
+        isJoining = false
+    }
 
     Column(
         modifier = modifier
@@ -78,18 +84,25 @@ fun AccueilScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Button(
-                onClick = onCreateClicked,
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
-                modifier = Modifier
-                    .background(
-                        Brush.horizontalGradient(colors = listOf(Color(0xFF22A6FF), Color(0xFF0044FF))),
-                        shape = CircleShape
-                    )
-                    .width(150.dp)
-            ) {
-                Text("Create")
+            if (!isJoining) {
+                Button(
+                    onClick = onCreateClicked,
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
+                    modifier = Modifier
+                        .background(
+                            Brush.horizontalGradient(
+                                colors = listOf(
+                                    Color(0xFF22A6FF),
+                                    Color(0xFF0044FF)
+                                )
+                            ),
+                            shape = CircleShape
+                        )
+                        .width(150.dp)
+                ) {
+                    Text("Create")
 
+                }
             }
             if (isJoining) {
                 // Zone de texte + bouton "Join"
