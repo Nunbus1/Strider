@@ -97,11 +97,11 @@ Box(modifier = Modifier
                 onStartClicked = {navController.navigate(StriderScreen.Game.name)}
             )
         }
-        //Finish
         composable(route = StriderScreen.Finish.name) {
             val context = LocalContext.current
             FinishScreen(
-                onContinueClicked = {navController.navigate(StriderScreen.Game.name)}
+                onContinueClicked = { navController.navigate(StriderScreen.Game.name) },
+                onHomeClicked = { navController.navigate(StriderScreen.Accueil.name) }
             )
         }
     }
