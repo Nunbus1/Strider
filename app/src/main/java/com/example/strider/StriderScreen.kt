@@ -33,6 +33,7 @@ import com.example.strider.ui.theme.Pages.GameScreen
 import com.example.strider.ui.theme.Pages.CreateScreen
 import com.example.strider.ui.theme.Pages.AccueilScreen
 import com.example.strider.ui.theme.Pages.LobbyScreen
+import com.example.strider.ui.theme.Pages.FinishScreen
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.compose.composable
 
@@ -42,7 +43,8 @@ enum class StriderScreen() {
     Accueil,
     Create,
     Game,
-    Lobby
+    Lobby,
+    Finish
 }
 @Composable
 fun StriderApp(
@@ -55,7 +57,8 @@ fun StriderApp(
     val currentScreen = StriderScreen.valueOf(
         backStackEntry?.destination?.route ?: StriderScreen.Accueil.name
     )
-Box(){
+Box(modifier = Modifier
+    .fillMaxSize()){
     NavHost(
         navController = navController,
         startDestination = StriderScreen.Accueil.name,
@@ -63,6 +66,7 @@ Box(){
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
     ) {
+        //Accueil
         composable(route = StriderScreen.Accueil.name) {
             val context = LocalContext.current
             AccueilScreen(
@@ -70,7 +74,7 @@ Box(){
                 onCreateClicked = { navController.navigate(StriderScreen.Create.name) }
             )
         }
-
+        //Create
         composable(route = StriderScreen.Create.name) {
             val context = LocalContext.current
             CreateScreen(
@@ -78,12 +82,26 @@ Box(){
                 onCreateClicked = { navController.navigate(StriderScreen.Lobby.name) }
             )
         }
-
-        composable(route = StriderScreen.Accueil.name) {
+        //Game
+        composable(route = StriderScreen.Game.name) {
             val context = LocalContext.current
-            AccueilScreen(
-                onJoinClicked = { navController.navigate(StriderScreen.Lobby.name) },
-                onCreateClicked = { navController.navigate(StriderScreen.Create.name) }
+            GameScreen(
+                onPauseClicked = {navController.navigate(StriderScreen.Finish.name)}
+            )
+        }
+        //Lobby
+        composable(route = StriderScreen.Lobby.name) {
+            val context = LocalContext.current
+            LobbyScreen(
+                onBackClicked = {navController.navigate(StriderScreen.Accueil.name)},
+                onStartClicked = {navController.navigate(StriderScreen.Game.name)}
+            )
+        }
+        //Finish
+        composable(route = StriderScreen.Finish.name) {
+            val context = LocalContext.current
+            FinishScreen(
+                onContinueClicked = {navController.navigate(StriderScreen.Game.name)}
             )
         }
     }

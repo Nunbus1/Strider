@@ -48,7 +48,9 @@ import kotlin.random.Random
 
 
 @Composable
-fun FinishScreen() {
+fun FinishScreen(
+    onContinueClicked: () -> Unit
+) {
     var showSpeedState by remember { mutableStateOf(false) }
     //val meIndex = Random.nextInt(12)
     val meIndex = 4
@@ -82,7 +84,7 @@ fun FinishScreen() {
             meIndex = meIndex
         )
         Spacer(modifier = Modifier.height(10.dp))
-        ActionButtons { showSpeedState = true }
+        ActionButtons({ showSpeedState = true},onContinueClicked)
     }
 }
 
@@ -429,14 +431,14 @@ fun SpeedGraph(selectedPlayers: Set<Int>) {
 
 
 @Composable
-fun ActionButtons(onNextClicked: () -> Unit) {
+fun ActionButtons(onNextClicked: () -> Unit,onContinueClicked:() -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceEvenly
     ) {
         Button(
-            onClick = { /* Action Continue */ },
+            onClick =  onContinueClicked,
             colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
             modifier = Modifier
                 .background(
@@ -467,6 +469,6 @@ fun ActionButtons(onNextClicked: () -> Unit) {
 @Composable
 fun FinishScreenPreview() {
     StriderTheme {
-        FinishScreen()
+        FinishScreen({})
     }
 }
