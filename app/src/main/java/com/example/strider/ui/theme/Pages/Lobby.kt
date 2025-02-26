@@ -35,6 +35,7 @@ fun LobbyScreen(
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        Spacer(modifier = Modifier.height(30.dp))
         // Titre avec bouton retour
         Row(
             modifier = Modifier.fillMaxWidth(),
