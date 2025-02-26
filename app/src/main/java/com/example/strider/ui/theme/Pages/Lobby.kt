@@ -80,8 +80,14 @@ fun LobbyScreen(
             )
         }
 
-        Spacer(modifier = Modifier.height(48.dp))
-
+        Spacer(modifier = Modifier.height(12.dp))
+        Text(
+            text = "Code : A3FG9",
+            fontSize = 20.sp,
+            color = Color.Black,
+            modifier = Modifier.padding(8.dp)
+        )
+        Spacer(modifier = Modifier.height(12.dp))
         // Séparation avec "Runners"
         Divider(color = Color.Gray, thickness = 1.dp)
         Text(
