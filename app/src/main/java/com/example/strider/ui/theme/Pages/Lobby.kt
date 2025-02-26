@@ -80,19 +80,19 @@ fun LobbyScreen(
             )
         }
 
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(8.dp))
         Text(
             text = "Code : A3FG9",
             fontSize = 20.sp,
             color = Color.Black,
             modifier = Modifier.padding(8.dp)
         )
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(8.dp))
         // Séparation avec "Runners"
         Divider(color = Color.Gray, thickness = 1.dp)
         Text(
             text = "Runners",
-            fontSize = 50.sp,
+            fontSize = 40.sp,
             fontWeight = FontWeight.Medium,
             modifier = Modifier.padding(vertical = 8.dp)
         )
@@ -143,7 +143,7 @@ fun PlayerCard(imageRes: Int, pseudo: String) {
             painter = painterResource(imageRes),
             contentDescription = "Profile Picture",
             modifier = Modifier
-                .size(80.dp)
+                .size(60.dp)
                 .clip(RoundedCornerShape(25.dp))
         )
         Spacer(modifier = Modifier.width(16.dp))
@@ -156,7 +156,7 @@ fun PlayerCard(imageRes: Int, pseudo: String) {
         ) {
             Text(
                 text = pseudo,
-                fontSize = 32.sp,
+                fontSize = 20.sp,
                 fontWeight = FontWeight.Medium,
                 modifier = Modifier.padding(8.dp)
             )
