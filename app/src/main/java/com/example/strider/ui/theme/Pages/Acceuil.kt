@@ -14,9 +14,11 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
@@ -41,6 +43,21 @@ fun AccueilScreen(
     BackHandler(isJoining) {
         isJoining = false
     }
+    val image = painterResource(R.drawable.fond)
+
+    /*Box(
+        modifier = Modifier
+            .fillMaxSize()
+    ) {
+        Image(
+            painter = image,
+            contentDescription = null,
+            modifier = Modifier
+                .fillMaxSize()
+                .alpha(0.5f), // Ajuste l'opacité (0.0 = totalement transparent, 1.0 = opaque)
+            contentScale = ContentScale.Crop // Permet d'éviter la déformation
+        )
+    }*/
 
     Column(
         modifier = modifier
@@ -64,8 +81,9 @@ fun AccueilScreen(
             contentDescription = "Logo",
             modifier = Modifier.size(150.dp)
         )
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(40.dp))
         ProfilePicture()
+        Spacer(modifier = Modifier.height(20.dp))
         TextField(
             value = pseudo,
             onValueChange = { pseudo = it },
