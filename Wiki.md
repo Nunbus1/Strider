@@ -19,7 +19,6 @@ Pour utiliser Strider, cette configuration est recommandé :
 - Page de la partie en cours avec entête, graphique de progression, et ordre de placement des joueurs et bouton "Pause"
 - Page de Finish avec entête, podium, texte de victoire, podium avec photos des gagnants, liste des vainqueurs et deux boutons "Continue" et "Next"
 - Navigation entre les pages 
-- Mise en page avec le choix de notre palette de couleurs et de notre typographie 
 
 ### 🔄 Fonctionnalités en cours / à venir  
 - Gestion des pseudos dans un vrai système de session  
@@ -29,7 +28,7 @@ Pour utiliser Strider, cette configuration est recommandé :
 - Récupération des données de course
 - Génération d’un code de partie
 - Vérification de l'existence du code pour rejoindre la partie
-
+- Mise en page avec le choix de notre palette de couleurs et de notre typographie 
 
 ---
 
