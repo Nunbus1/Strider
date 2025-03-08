@@ -199,7 +199,8 @@ fun CreateScreen(
 
 
 
-@Preview(showBackground = true)
+@Preview(showBackground = true,
+    device="spec:width=1344dp,height=2992dp,dpi=489")
 @Composable
 fun CreateScreenPreview() {
     CreateScreen(
