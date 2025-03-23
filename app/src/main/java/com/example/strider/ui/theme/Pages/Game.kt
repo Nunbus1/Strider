@@ -94,7 +94,7 @@ data class Player(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GameScreen(modifier:Modifier = Modifier,
-               onPauseClicked: () -> Unit) {
+               onPauseClicked:() -> Unit) {
     var presses by remember { mutableIntStateOf(0) }
     var ListeScores by remember { mutableStateOf(listOf(0f)) }
 
@@ -105,99 +105,110 @@ fun GameScreen(modifier:Modifier = Modifier,
     val player4 = Player(1,"test")
 var ListePlayer = listOf(player1,player2,player3,player4)
 
-    Column (modifier = modifier
-        .fillMaxSize()
-        .background(colorScheme.primary)
-        .zIndex(-2f)
-        ,
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.SpaceBetween
-
+        Column(
+            modifier = modifier
+                .fillMaxSize()
+                .background(colorScheme.primary)
+                .zIndex(-2f),
+            verticalArrangement = Arrangement.SpaceBetween
         ) {
-        TopAppBar(modifier=modifier
-            .background(brush = Brush.linearGradient(colors = gradientPrimaryColors)),
+            TopAppBar(modifier = Modifier
+                .background(brush = Brush.linearGradient(colors = gradientPrimaryColors))
+                ,
 
-            title = {
-                Text(
-                    modifier = Modifier.fillMaxWidth(),
-                    textAlign = TextAlign.Center,
-                    maxLines = 1,
-                    text = stringResource(R.string.app_name),
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold
-                )
-            },
-            navigationIcon = {
-
-                Icon(modifier = Modifier.size(50.dp),
-                    painter = painterResource(R.drawable.logo), // Use your desired icon
-                    contentDescription = "Menu Icon",
-
+                title = {
+                    Text(
+                        modifier = modifier.fillMaxWidth(),
+                        textAlign = TextAlign.Center,
+                        maxLines = 1,
+                        text = stringResource(R.string.app_name),
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold
                     )
+                },
+                navigationIcon = {
+
+                    Icon(
+                        modifier = Modifier.size(50.dp),
+                        painter = painterResource(R.drawable.logo), // Use your desired icon
+                        contentDescription = "Menu Icon",
+
+                        )
+                }
+
+            )
+
+            Box(
+                modifier = modifier
+                    .fillMaxSize()
+                    .padding(45.dp)
+                    .background(
+                        color = Color.White,
+                        shape = MaterialTheme.shapes.medium
+                    ),
+                contentAlignment = Alignment.BottomCenter,
+
+                ) {
+                Row(
+                    modifier = modifier.align(Alignment.BottomCenter)
+                        .fillMaxSize()
+                        .padding(8.dp),
+                    verticalAlignment = Alignment.Bottom, // Align children vertically to the center
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+
+                    ) {
+                    for (score in ListeScores) {
+                        PlayerScoreStat(score, 15f)
+                        //Spacer(modifier = Modifier.weight(5f))
+                    }
+                }
+
             }
 
-        )
-
-
-            Row(modifier = modifier//.align(Alignment.BottomCenter)
-                .fillMaxWidth()
-                .padding(8.dp)
-                .fillMaxHeight(0.7f)
-                //.height(200.dp)
-                    ,
-                verticalAlignment = Alignment.Bottom, // Align children vertically to the center
-                horizontalArrangement = Arrangement.SpaceAround,
-
+            Box(
+                modifier = Modifier.fillMaxSize()
+                    .padding(bottom = 50.dp),
+                contentAlignment = (Alignment.BottomCenter)
             ) {
-                for (score in ListeScores) {
-                    PlayerScoreStat(score, 15f)
-                    //Spacer(modifier = Modifier.weight(5f))
+                Button(
+                    onClick = onPauseClicked,
+                    modifier = Modifier
+                        .fillMaxWidth(0.7f)
+                        .shadow(8.dp, shape = RoundedCornerShape(23.dp)),
+                    colors = ButtonDefaults.buttonColors(
+                        Color.Transparent
+                    ),
+
+                    contentPadding = PaddingValues(),
+                    shape = RoundedCornerShape(23.dp),
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(
+                                brush = Brush.linearGradient(gradientPrimaryColors)
+                            )
+                            .padding(20.dp),
+                        contentAlignment = Alignment.BottomCenter
+                    ) {
+                        Text("Pause")
+                    }
+
                 }
             }
-
-
-
-
-        Box(modifier= Modifier.fillMaxWidth()
-            .padding(bottom = 16.dp),
-            contentAlignment = (Alignment.BottomCenter)
-        ) {
-            Button(
-                onClick = onPauseClicked ,
-                modifier = Modifier
-                    .fillMaxWidth(0.7f)
-                    .shadow(8.dp, shape = RoundedCornerShape(23.dp)),
-                colors = ButtonDefaults.buttonColors(
-                    Color.Transparent
-                ),
-
-                contentPadding = PaddingValues(),
-                shape = RoundedCornerShape(23.dp),
-            ){Box(modifier = Modifier
-                .fillMaxWidth()
-                .background(
-                    brush = Brush.linearGradient(gradientPrimaryColors)
-                )
-                .padding(20.dp)
-
-                ,
-                contentAlignment = Alignment.Center
-            ){
-                Text("Pause")
-            }
-
-            }
         }
-    }
-    //PlayerHorizontalBar(players = ListePlayer, modifier = Modifier)
+
+    PlayerHorizontalBar(players = ListePlayer, modifier = Modifier)
 }
 
 @Composable
 fun PlayerScoreStat(distance: Float, distanceMax: Float,modifier: Modifier = Modifier) {
-Column (modifier = Modifier//.fillMaxWidth(0.3f)
+Column (modifier = Modifier.fillMaxHeight()
+    .height(600.dp)
  ,
-    horizontalAlignment = Alignment.CenterHorizontally
-        ,
+    horizontalAlignment = Alignment.CenterHorizontally,
+    verticalArrangement = Arrangement.Bottom,
+
 
     ) {
     Image(
@@ -287,5 +298,5 @@ fun PlayerIconWithPseudo(player: Player) {
 @Preview(showBackground = true)
 @Composable
 fun PreviewMainScreen(){
-    GameScreen( onPauseClicked={})
+    GameScreen(onPauseClicked = {})
 }
