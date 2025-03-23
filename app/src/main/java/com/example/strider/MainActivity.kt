@@ -63,10 +63,12 @@ class MainActivity : ComponentActivity(), SensorEventListener {
                 }
 
             }
-            StepTrackerApp(
+            /*StepTrackerApp(
                 stepCount = stepCount.intValue,
                 isSensorAvailable = stepSensor != null
-            )
+            )*/
+            //stepCounterViewModel = ViewModelProvider(this).get(StepCounterViewModel::class.java)
+
             StriderTheme {
                 StriderApp()
             }
@@ -94,22 +96,15 @@ class MainActivity : ComponentActivity(), SensorEventListener {
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
 }
 
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
+
 
 @Preview(showBackground = true)
 @Composable
 fun GreetingPreview() {
     StriderTheme {
-        Greeting("Android")
     }
 }
-
+/*
 @Composable
 fun StepTrackerApp(stepCount: Int, isSensorAvailable: Boolean) {
     MaterialTheme {
@@ -134,3 +129,4 @@ fun StepTrackerApp(stepCount: Int, isSensorAvailable: Boolean) {
         }
     }
 }
+*/

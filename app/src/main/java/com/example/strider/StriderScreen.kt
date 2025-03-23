@@ -33,6 +33,7 @@ import com.example.strider.ui.theme.Pages.GameScreen
 import com.example.strider.ui.theme.Pages.CreateScreen
 import com.example.strider.ui.theme.Pages.AccueilScreen
 import com.example.strider.ui.theme.Pages.LobbyScreen
+import com.example.strider.ui.theme.Pages.FinishScreen
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.compose.composable
 
@@ -42,7 +43,8 @@ enum class StriderScreen() {
     Accueil,
     Create,
     Game,
-    Lobby
+    Lobby,
+    Finish
 }
 @Composable
 fun StriderApp(
@@ -79,11 +81,26 @@ Box(){
             )
         }
 
-        composable(route = StriderScreen.Accueil.name) {
+        composable(route = StriderScreen.Lobby.name) {
             val context = LocalContext.current
-            AccueilScreen(
-                onJoinClicked = { navController.navigate(StriderScreen.Lobby.name) },
-                onCreateClicked = { navController.navigate(StriderScreen.Create.name) }
+            LobbyScreen(
+                onBackClicked = { navController.navigate(StriderScreen.Accueil.name) },
+                onStartClicked = { navController.navigate(StriderScreen.Game.name) }
+
+            )
+        }
+
+        composable(route = StriderScreen.Game.name) {
+            val context = LocalContext.current
+            GameScreen(
+                onPauseClicked = { navController.navigate(StriderScreen.Finish.name) }
+            )
+        }
+
+        composable(route = StriderScreen.Finish.name) {
+            val context = LocalContext.current
+            FinishScreen(
+                onBackClicked = { navController.navigate(StriderScreen.Lobby.name) }
             )
         }
     }

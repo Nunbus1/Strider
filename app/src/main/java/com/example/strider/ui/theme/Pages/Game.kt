@@ -93,7 +93,8 @@ data class Player(
 )
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun GameScreen(modifier:Modifier = Modifier) {
+fun GameScreen(modifier:Modifier = Modifier,
+               onPauseClicked: () -> Unit) {
     var presses by remember { mutableIntStateOf(0) }
     var ListeScores by remember { mutableStateOf(listOf(0f)) }
 
@@ -109,8 +110,9 @@ var ListePlayer = listOf(player1,player2,player3,player4)
         .background(colorScheme.primary)
         .zIndex(-2f)
         ,
-        //horizontalAlignment = Alignment.CenterHorizontally,
-        //verticalArrangement = Arrangement.Center
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.SpaceBetween
+
         ) {
         TopAppBar(modifier=modifier
             .background(brush = Brush.linearGradient(colors = gradientPrimaryColors)),
@@ -136,22 +138,15 @@ var ListePlayer = listOf(player1,player2,player3,player4)
 
         )
 
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .fillMaxHeight(0.9f)
-                .padding(45.dp)
-                .background(color = Color.White,
-                    shape = MaterialTheme.shapes.medium)
-                ,
-            contentAlignment = Alignment.BottomCenter,
 
-        ) {
-            Row(modifier = modifier.align(Alignment.BottomCenter)
+            Row(modifier = modifier//.align(Alignment.BottomCenter)
                 .fillMaxWidth()
-                .padding(8.dp),
+                .padding(8.dp)
+                .fillMaxHeight(0.7f)
+                //.height(200.dp)
+                    ,
                 verticalAlignment = Alignment.Bottom, // Align children vertically to the center
-                horizontalArrangement = Arrangement.SpaceEvenly,
+                horizontalArrangement = Arrangement.SpaceAround,
 
             ) {
                 for (score in ListeScores) {
@@ -160,13 +155,15 @@ var ListePlayer = listOf(player1,player2,player3,player4)
                 }
             }
 
-        }
 
-        Box(modifier= Modifier.fillMaxWidth(),
+
+
+        Box(modifier= Modifier.fillMaxWidth()
+            .padding(bottom = 16.dp),
             contentAlignment = (Alignment.BottomCenter)
         ) {
             Button(
-                onClick = { } ,
+                onClick = onPauseClicked ,
                 modifier = Modifier
                     .fillMaxWidth(0.7f)
                     .shadow(8.dp, shape = RoundedCornerShape(23.dp)),
@@ -192,7 +189,7 @@ var ListePlayer = listOf(player1,player2,player3,player4)
             }
         }
     }
-    PlayerHorizontalBar(players = ListePlayer, modifier = Modifier)
+    //PlayerHorizontalBar(players = ListePlayer, modifier = Modifier)
 }
 
 @Composable
@@ -290,5 +287,5 @@ fun PlayerIconWithPseudo(player: Player) {
 @Preview(showBackground = true)
 @Composable
 fun PreviewMainScreen(){
-    GameScreen()
+    GameScreen( onPauseClicked={})
 }
