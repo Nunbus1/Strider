@@ -2,6 +2,7 @@ package com.example.strider.ui.theme.Pages
 import android.app.Activity
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -110,6 +111,7 @@ var ListePlayer = listOf(player1,player2,player3,player4)
                 .fillMaxSize()
                 .background(colorScheme.primary)
                 .zIndex(-2f),
+            horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.SpaceBetween
         ) {
             TopAppBar(modifier = Modifier
@@ -138,21 +140,21 @@ var ListePlayer = listOf(player1,player2,player3,player4)
 
             )
 
-            Box(
-                modifier = modifier
-                    .fillMaxSize()
-                    .padding(45.dp)
-                    .background(
-                        color = Color.White,
-                        shape = MaterialTheme.shapes.medium
-                    ),
-                contentAlignment = Alignment.BottomCenter,
 
-                ) {
                 Row(
-                    modifier = modifier.align(Alignment.BottomCenter)
-                        .fillMaxSize()
-                        .padding(8.dp),
+                    modifier = modifier
+                        .fillMaxSize(0.8f)
+
+                        .border(10.dp,color =Color.Black, shape = RoundedCornerShape(20.dp))
+                        .shadow(
+                            elevation = 10.dp,
+                            shape = RoundedCornerShape(20.dp)
+                        )
+                        .background(Color.Gray, shape = RoundedCornerShape(20.dp))
+
+                        .padding(18.dp)
+                    ,
+
                     verticalAlignment = Alignment.Bottom, // Align children vertically to the center
                     horizontalArrangement = Arrangement.SpaceEvenly,
 
@@ -163,7 +165,7 @@ var ListePlayer = listOf(player1,player2,player3,player4)
                     }
                 }
 
-            }
+
 
             Box(
                 modifier = Modifier.fillMaxSize()
@@ -198,7 +200,7 @@ var ListePlayer = listOf(player1,player2,player3,player4)
             }
         }
 
-    PlayerHorizontalBar(players = ListePlayer, modifier = Modifier)
+    //PlayerHorizontalBar(players = ListePlayer, modifier = Modifier)
 }
 
 @Composable

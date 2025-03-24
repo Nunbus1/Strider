@@ -42,7 +42,7 @@ fun CreateScreen(
             .fillMaxSize()
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        //verticalArrangement = Arrangement.SpaceBetween
+        verticalArrangement = Arrangement.SpaceBetween
     ) {
         // Titre avec bouton retour
 
@@ -110,25 +110,27 @@ fun CreateScreen(
             fontSize = 20.sp,
             modifier = Modifier.padding(8.dp)
         )
-        Row (
+        Row(
             verticalAlignment = Alignment.CenterVertically
-        ){
+        ) {
             Button(
-                onClick = {  },
+                onClick = { },
                 modifier = Modifier,
                 colors = ButtonDefaults.buttonColors(
                     Color.Transparent
                 ),
                 contentPadding = PaddingValues(),
                 shape = RoundedCornerShape(23.dp),
-            ){Box(modifier = Modifier
-                .background(
-                    brush = Brush.linearGradient(gradientPrimaryColors)).
-                padding(10.dp),
-                contentAlignment = Alignment.Center
-            ){
-                Text("<")
-            }
+            ) {
+                Box(
+                    modifier = Modifier
+                        .background(
+                            brush = Brush.linearGradient(gradientPrimaryColors)
+                        ).padding(10.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("<")
+                }
 
             }
             Card(
@@ -144,69 +146,76 @@ fun CreateScreen(
                 )
             }
             Button(
-                onClick = {  },
+                onClick = { },
                 modifier = Modifier,
                 colors = ButtonDefaults.buttonColors(
                     Color.Transparent
                 ),
                 contentPadding = PaddingValues(),
                 shape = RoundedCornerShape(23.dp),
-            ){Box(modifier = Modifier
-                .background(
-                    brush = Brush.linearGradient(gradientPrimaryColors)).
-                padding(10.dp),
-                contentAlignment = Alignment.Center
-            ){
-                Text(">")
-            }
+            ) {
+                Box(
+                    modifier = Modifier
+                        .background(
+                            brush = Brush.linearGradient(gradientPrimaryColors)
+                        ).padding(10.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(">")
+                }
 
             }
         }
 
 
         Spacer(modifier = Modifier.height(24.dp))
-        Card(modifier = Modifier.padding(10.dp)
-            .fillMaxWidth(0.7f)) {
+        Card(
+            modifier = Modifier.padding(10.dp)
+                .fillMaxWidth(0.7f)
+        ) {
             Text(
                 text = "description mode de jeu",
-                modifier=Modifier.padding(10.dp),
-                )
+                modifier = Modifier.padding(10.dp),
+            )
         }
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(2000.dp))
+    }
                     // Bouton Start
-        Box(
-            modifier = Modifier.fillMaxSize()
-
-            ,
-
-        ) {
-            Button(
-                onClick = onCreateClicked,
-                modifier = Modifier.fillMaxWidth(0.7f)
-                    .align(Alignment.BottomCenter)
+    Box(
+        modifier = Modifier.fillMaxSize()
+            .padding(bottom = 50.dp),
+        contentAlignment = (Alignment.BottomCenter)
+        ,
+        )
+    {
+        Button(
+            onClick = onCreateClicked,
+            modifier = Modifier.fillMaxWidth(0.7f)
+                .align(Alignment.BottomCenter)
                     //.padding(15.dp,15.dp)
-                    .shadow(8.dp, shape = RoundedCornerShape(23.dp))
+                .shadow(8.dp, shape = RoundedCornerShape(23.dp))
                 ,
-                colors = ButtonDefaults.buttonColors(
-                    Color.Transparent
-                ),
-
-                contentPadding = PaddingValues(),
-                shape = RoundedCornerShape(23.dp),
-            ){Box(modifier = Modifier.fillMaxWidth()
+            colors = ButtonDefaults.buttonColors(
+                Color.Transparent
+            ),
+            contentPadding = PaddingValues(),
+            shape = RoundedCornerShape(23.dp),
+            )
+        {
+            Box(modifier = Modifier.fillMaxWidth()
                 .background(
                     brush = Brush.linearGradient(gradientPrimaryColors))
                 .padding(20.dp)
 
                 ,
                 contentAlignment = Alignment.Center
-            ){
+            )
+            {
                 Text("Create")
             }
-
             }
-        }
     }
+
 }
 
 

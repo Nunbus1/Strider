@@ -1,7 +1,11 @@
 package com.example.strider.ui.theme.Pages
 
 
+import android.graphics.Bitmap
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.result.launch
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -16,8 +20,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -33,6 +39,7 @@ import com.example.strider.R
 fun AccueilScreen(
     onCreateClicked: () -> Unit,
     onJoinClicked: (String) -> Unit,
+
     modifier: Modifier = Modifier
 ) {
     var pseudo by remember { mutableStateOf("Pseudo") }
@@ -43,7 +50,7 @@ fun AccueilScreen(
     BackHandler(isJoining) {
         isJoining = false
     }
-    val image = painterResource(R.drawable.fond)
+    //val image = painterResource(R.drawable.fond)
 
     /*Box(
         modifier = Modifier
@@ -168,40 +175,67 @@ fun AccueilScreen(
                     Text("Join")
                 }
             }
-        }
 
+        }
     }
 }
+
 @Composable
-fun ProfilePicture(modifier: Modifier = Modifier) {
+fun ProfilePicture() {
+    var bitmap by remember { mutableStateOf<Bitmap?>(null) }
+
+    val takePictureLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicturePreview()
+    ) { result: Bitmap? ->
+        bitmap = result
+    }
+
     Box(
-        modifier = modifier.size(120.dp)
-    ) {
+        //modifier = modifier.size(120.dp)
+
+        ) {
+
         Image(
+
             painter = painterResource(R.drawable.beaute),
             contentDescription = "Profile Picture",
             modifier = Modifier
                 .size(120.dp)
-                .clip(RoundedCornerShape(25.dp))
-        )
+                //.clip(RoundedCornerShape(25.dp))
+                .shadow(8.dp, shape = CircleShape)
+                .background(shape = CircleShape, color = Color.White),
 
-        // Icône "+" en bas à droite
-        Box(
-            modifier = Modifier
-                .size(32.dp)
-                .align(Alignment.BottomEnd)
-                .background(Color.White, shape = CircleShape),
-            contentAlignment = Alignment.Center
-        ) {
+            )
+        bitmap?.let {
+            Image(bitmap = it.asImageBitmap(), contentDescription = "Captured photo",modifier = Modifier
+                .size(120.dp)
+                //.clip(RoundedCornerShape(25.dp))
+                .shadow(8.dp, shape = CircleShape)
+                .background(shape = CircleShape, color = Color.White),
+            )
+        }
+        IconButton(modifier = Modifier
+            .size(36.dp)
+            .background(Color.White, shape = CircleShape)
+            .align(Alignment.BottomEnd),
+            onClick = { takePictureLauncher.launch() }) {
+
             Icon(
                 imageVector = androidx.compose.material.icons.Icons.Default.Add,
                 contentDescription = "Add",
                 tint = Color.Black,
-                modifier = Modifier.size(24.dp)
+                modifier = Modifier.size(14.dp)
             )
+            //Text("Take Photo")
         }
+        Spacer(modifier = Modifier.height(16.dp))
+
+
     }
 }
+
+
+
 @Preview(showBackground = true)
 @Composable
 fun HomeScreenPreview() {

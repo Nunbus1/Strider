@@ -63,10 +63,10 @@ class MainActivity : ComponentActivity(), SensorEventListener {
                 }
 
             }
-            /*StepTrackerApp(
+            StepTrackerApp(
                 stepCount = stepCount.intValue,
                 isSensorAvailable = stepSensor != null
-            )*/
+            )
             //stepCounterViewModel = ViewModelProvider(this).get(StepCounterViewModel::class.java)
 
             StriderTheme {
@@ -104,7 +104,7 @@ fun GreetingPreview() {
     StriderTheme {
     }
 }
-/*
+
 @Composable
 fun StepTrackerApp(stepCount: Int, isSensorAvailable: Boolean) {
     MaterialTheme {
@@ -129,4 +129,3 @@ fun StepTrackerApp(stepCount: Int, isSensorAvailable: Boolean) {
         }
     }
 }
-*/
