@@ -1,5 +1,6 @@
 package com.example.strider.ui.theme.Pages
 
+import ViewModels.ImageViewModel
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -33,6 +34,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -54,6 +56,7 @@ import com.example.strider.ui.theme.gradientSecondaryColor
 
 @Composable
 fun FinishScreen(
+    imageViewModel: ImageViewModel?,
     onContinueClicked: () -> Unit,
     onHomeClicked: () -> Unit
 ) {
@@ -73,6 +76,7 @@ fun FinishScreen(
             showSpeedState = showSpeedState,
             onBackClicked = { showSpeedState = false },
             onHomeClicked = onHomeClicked // Passe la navigation vers Acceuil
+            ,imageViewModel = imageViewModel
         )
         Spacer(modifier = Modifier.height(10.dp))
         ResultSection(playerName = "Bob", resultMessage = if (showSpeedState) "The fastest" else "Win this match")
@@ -104,7 +108,7 @@ val gradientBrush = Brush.verticalGradient(
 )
 
 @Composable
-fun HeaderSection(showSpeedState: Boolean, onBackClicked: () -> Unit, onHomeClicked: () -> Unit) {
+fun HeaderSection(showSpeedState: Boolean, onBackClicked: () -> Unit, onHomeClicked: () -> Unit,imageViewModel : ImageViewModel?) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -129,11 +133,8 @@ fun HeaderSection(showSpeedState: Boolean, onBackClicked: () -> Unit, onHomeClic
             color = Color.Black
         )
 
-        Box(
-            modifier = Modifier
-                .size(40.dp)
-                .background(Color.Gray, CircleShape)
-        )
+        ProfilePicture(modifier = Modifier.size(75.dp)
+            .clip(CircleShape), imageViewModel = imageViewModel)
     }
 }
 
@@ -488,6 +489,8 @@ fun ActionButtons(onNextClicked: () -> Unit,onContinueClicked:() -> Unit) {
 @Composable
 fun FinishScreenPreview() {
     StriderTheme {
-        FinishScreen({}, {})
+
+        FinishScreen(
+            imageViewModel = null,{}, {})
     }
 }

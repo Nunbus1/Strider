@@ -1,5 +1,6 @@
 package com.example.strider.ui.theme.Pages
 
+import ViewModels.ImageViewModel
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -25,6 +26,7 @@ import com.example.strider.R
 
 @Composable
 fun LobbyScreen(
+    imageViewModel: ImageViewModel?,
     onBackClicked: () -> Unit,
     onStartClicked: () -> Unit,
     modifier: Modifier = Modifier
@@ -56,11 +58,8 @@ fun LobbyScreen(
                 fontWeight = FontWeight.Bold
 
             )
-            Box(
-                modifier = Modifier
-                    .size(50.dp)
-                    .background(Color.Gray, CircleShape)
-            )
+            ProfilePicture(modifier = Modifier.size(75.dp)
+                .clip(CircleShape), imageViewModel = imageViewModel)
         }
 
         Spacer(modifier = Modifier.height(32.dp))
@@ -139,13 +138,8 @@ fun PlayerCard(imageRes: Int, pseudo: String) {
             .padding(horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Image(
-            painter = painterResource(imageRes),
-            contentDescription = "Profile Picture",
-            modifier = Modifier
-                .size(60.dp)
-                .clip(RoundedCornerShape(25.dp))
-        )
+        ProfilePicture(modifier = Modifier.size(60.dp)
+            .clip(CircleShape), imageViewModel = null)
         Spacer(modifier = Modifier.width(16.dp))
         Card(
             modifier = Modifier
@@ -168,6 +162,7 @@ fun PlayerCard(imageRes: Int, pseudo: String) {
 @Composable
 fun LobbyScreenPreview() {
     LobbyScreen(
+        imageViewModel = null,
         onBackClicked = {},
         onStartClicked = {}
     )

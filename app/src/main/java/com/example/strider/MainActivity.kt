@@ -34,6 +34,8 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import com.example.strider.ui.theme.StriderTheme
 import android.Manifest
+import ViewModels.ImageViewModel
+import androidx.lifecycle.ViewModelProvider
 
 
 class MainActivity : ComponentActivity(), SensorEventListener {
@@ -41,14 +43,18 @@ class MainActivity : ComponentActivity(), SensorEventListener {
     private lateinit var sensorManager: SensorManager
     private var stepSensor: Sensor? = null
     private val stepCount = mutableIntStateOf(0)
-
+    lateinit var imageView: ImageViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         sensorManager = getSystemService(SENSOR_SERVICE) as SensorManager
         stepSensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_DETECTOR)
+        val imageViewModel = ViewModelProvider(this).get(ImageViewModel::class.java)
+
         enableEdgeToEdge()
         setContent {
+
+
             val permissionLauncher = rememberLauncherForActivityResult(
                 ActivityResultContracts.RequestPermission()
             ) { }
@@ -70,8 +76,10 @@ class MainActivity : ComponentActivity(), SensorEventListener {
             //stepCounterViewModel = ViewModelProvider(this).get(StepCounterViewModel::class.java)
 
             StriderTheme {
-                StriderApp()
+                StriderApp(imageViewModel)
             }
+
+
         }
     }
 

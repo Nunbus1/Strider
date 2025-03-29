@@ -1,5 +1,6 @@
 package com.example.strider.ui.theme.Pages
 
+import ViewModels.ImageViewModel
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -31,7 +32,7 @@ import com.example.strider.StriderScreen
 
 
 @Composable
-fun CreateScreen(
+fun CreateScreen( imageViewModel: ImageViewModel?,
     onBackClicked: () -> Unit,
     onCreateClicked: () -> Unit,
     modifier: Modifier = Modifier
@@ -67,11 +68,7 @@ fun CreateScreen(
                 fontWeight = FontWeight.Bold
 
             )
-            Box(
-                modifier = Modifier
-                    .size(50.dp)
-                    .background(Color.Gray, CircleShape)
-            )
+            ProfilePicture(modifier = Modifier.size(75.dp), imageViewModel = imageViewModel)
         }
 
         Spacer(modifier = Modifier.height(32.dp))
@@ -225,6 +222,7 @@ fun CreateScreen(
 @Composable
 fun CreateScreenPreview() {
     CreateScreen(
+        imageViewModel = null,
         onBackClicked = {},
         onCreateClicked = {}
     )

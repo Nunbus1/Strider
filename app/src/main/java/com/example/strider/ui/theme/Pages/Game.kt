@@ -1,5 +1,7 @@
 package com.example.strider.ui.theme.Pages
+import ViewModels.ImageViewModel
 import android.app.Activity
+import android.graphics.Bitmap
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -94,8 +96,10 @@ data class Player(
 )
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun GameScreen(modifier:Modifier = Modifier,
-               onPauseClicked:() -> Unit) {
+fun GameScreen(
+    imageViewModel: ImageViewModel?,
+    modifier:Modifier = Modifier,
+    onPauseClicked:() -> Unit, pictureProfil : Bitmap?) {
     var presses by remember { mutableIntStateOf(0) }
     var ListeScores by remember { mutableStateOf(listOf(0f)) }
 
@@ -213,7 +217,7 @@ Column (modifier = Modifier.fillMaxHeight()
 
 
     ) {
-    Image(
+    /*Image(
         painter = painterResource(R.drawable.beaute),
         contentDescription = "Player Icon",
         modifier = Modifier
@@ -221,7 +225,12 @@ Column (modifier = Modifier.fillMaxHeight()
             .size(50.dp)
             .clip(CircleShape)
             .background(Color.Cyan)
-               )
+               )*/
+    ProfilePicture(modifier= Modifier
+        .padding(bottom = 10.dp)
+        .size(50.dp)
+        .clip(CircleShape)
+        .background(Color.Cyan), imageViewModel = null)
     Box(
         modifier = Modifier
             .clip(RoundedCornerShape(10))
@@ -300,5 +309,7 @@ fun PlayerIconWithPseudo(player: Player) {
 @Preview(showBackground = true)
 @Composable
 fun PreviewMainScreen(){
-    GameScreen(onPauseClicked = {})
+    GameScreen(
+        imageViewModel = null,
+        onPauseClicked = {}, pictureProfil = null)
 }

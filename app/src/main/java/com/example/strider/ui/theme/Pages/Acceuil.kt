@@ -34,14 +34,26 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.strider.R
+import ViewModels.ImageViewModel
+import java.io.File
+import java.io.FileOutputStream
+import java.nio.file.Paths
+import android.content.Context
+import android.graphics.BitmapFactory
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.painter.BitmapPainter
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.imageResource
+
 
 @Composable
-fun AccueilScreen(
+fun AccueilScreen(imageViewModel : ImageViewModel? ,
     onCreateClicked: () -> Unit,
     onJoinClicked: (String) -> Unit,
 
     modifier: Modifier = Modifier
 ) {
+
     var pseudo by remember { mutableStateOf("Pseudo") }
     var code by remember { mutableStateOf("")}
     var isJoining by remember { mutableStateOf(false) }
@@ -89,7 +101,7 @@ fun AccueilScreen(
             modifier = Modifier.size(150.dp)
         )
         Spacer(modifier = Modifier.height(20.dp))
-        ProfilePicture()
+        TakeProfilePicture( imageViewModel)
         Spacer(modifier = Modifier.height(10.dp))
         TextField(
             value = pseudo,
@@ -181,7 +193,7 @@ fun AccueilScreen(
 }
 
 @Composable
-fun ProfilePicture() {
+fun TakeProfilePicture(imageViewModel : ImageViewModel?) {
     var bitmap by remember { mutableStateOf<Bitmap?>(null) }
 
     val takePictureLauncher = rememberLauncherForActivityResult(
@@ -209,16 +221,26 @@ fun ProfilePicture() {
         bitmap?.let {
             Image(bitmap = it.asImageBitmap(), contentDescription = "Captured photo",modifier = Modifier
                 .size(120.dp)
-                //.clip(RoundedCornerShape(25.dp))
+                .background(shape = CircleShape, color = Color.White)
                 .shadow(8.dp, shape = CircleShape)
-                .background(shape = CircleShape, color = Color.White),
-            )
+                ,
+                contentScale = ContentScale.Crop,
+                )
+            // Save the image to a file
+            val context = LocalContext.current
+
+            val internalDir = context.filesDir
+            val photoFile = File(internalDir,"temp_photo.jpg")
+
+            bitmap?.compress(Bitmap.CompressFormat.JPEG, 100, FileOutputStream(photoFile))
+            imageViewModel?.updateImagePath(photoFile.absolutePath)
         }
         IconButton(modifier = Modifier
             .size(36.dp)
             .background(Color.White, shape = CircleShape)
             .align(Alignment.BottomEnd),
-            onClick = { takePictureLauncher.launch() }) {
+            onClick = { takePictureLauncher.launch()
+            }) {
 
             Icon(
                 imageVector = androidx.compose.material.icons.Icons.Default.Add,
@@ -234,12 +256,50 @@ fun ProfilePicture() {
     }
 }
 
+@Composable
+fun ProfilePicture(modifier: Modifier, imageViewModel : ImageViewModel?) {
+    //var bitmap by remember { mutableStateOf<Bitmap?>(null) }
+    Box(
+        modifier = modifier
+
+    ) {
+
+        Image(
+
+            painter = painterResource(R.drawable.beaute),
+            contentDescription = "Profile Picture",
+            modifier = Modifier
+                //.clip(RoundedCornerShape(25.dp))
+                .background(shape = CircleShape, color = Color.White),
+
+            )
+        imageViewModel?.imagePath?.let {
+                path ->
+            val bitmap = BitmapFactory.decodeFile(path)
+
+            // val context = LocalContext.current
+            //val internalDir = context.filesDir
+            //val photoFile = File(internalDir,imageViewModel?.imagePath?)
+
+            Image(bitmap = bitmap.asImageBitmap(), contentDescription = "Captured photo",modifier = Modifier
+                .size(120.dp)
+                .background(shape = CircleShape, color = Color.White)
+                .shadow(8.dp, shape = CircleShape)
+                ,
+                contentScale = ContentScale.Crop,
+            )
+        }
+
+
+    }
+}
+
 
 
 @Preview(showBackground = true)
 @Composable
 fun HomeScreenPreview() {
-    AccueilScreen(
+    AccueilScreen(imageViewModel = null,
         onCreateClicked = {},
         onJoinClicked = {}
     )

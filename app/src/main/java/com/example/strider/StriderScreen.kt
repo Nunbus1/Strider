@@ -1,5 +1,6 @@
 package com.example.strider
 
+import ViewModels.ImageViewModel
 import androidx.annotation.StringRes
 import android.content.Context
 import android.content.Intent
@@ -47,8 +48,8 @@ enum class StriderScreen() {
     Finish
 }
 @Composable
-fun StriderApp(
-    navController: NavHostController = rememberNavController()
+fun StriderApp(imageViewModel : ImageViewModel,
+               navController: NavHostController = rememberNavController()
 
 ) {
     // Get current back stack entry
@@ -69,7 +70,7 @@ Box(modifier = Modifier
         //Accueil
         composable(route = StriderScreen.Accueil.name) {
             val context = LocalContext.current
-            AccueilScreen(
+            AccueilScreen(imageViewModel,
                 onJoinClicked = { navController.navigate(StriderScreen.Lobby.name) },
                 onCreateClicked = { navController.navigate(StriderScreen.Create.name) }
             )
@@ -77,7 +78,7 @@ Box(modifier = Modifier
         //Create
         composable(route = StriderScreen.Create.name) {
             val context = LocalContext.current
-            CreateScreen(
+            CreateScreen(imageViewModel,
                 onBackClicked = { navController.navigate(StriderScreen.Accueil.name) },
                 onCreateClicked = { navController.navigate(StriderScreen.Lobby.name) }
             )
@@ -86,13 +87,15 @@ Box(modifier = Modifier
         composable(route = StriderScreen.Game.name) {
             val context = LocalContext.current
             GameScreen(
-                onPauseClicked = {navController.navigate(StriderScreen.Finish.name)}
+                imageViewModel,
+                onPauseClicked = {navController.navigate(StriderScreen.Finish.name)}, pictureProfil = null
             )
         }
         //Lobby
         composable(route = StriderScreen.Lobby.name) {
             val context = LocalContext.current
             LobbyScreen(
+                imageViewModel,
                 onBackClicked = {navController.navigate(StriderScreen.Accueil.name)},
                 onStartClicked = {navController.navigate(StriderScreen.Game.name)}
             )
@@ -100,6 +103,7 @@ Box(modifier = Modifier
         composable(route = StriderScreen.Finish.name) {
             val context = LocalContext.current
             FinishScreen(
+                imageViewModel,
                 onContinueClicked = { navController.navigate(StriderScreen.Game.name) },
                 onHomeClicked = { navController.navigate(StriderScreen.Accueil.name) }
             )
