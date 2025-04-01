@@ -2,6 +2,7 @@ package com.example.strider.ui.theme.Pages
 import ViewModels.ImageViewModel
 import android.app.Activity
 import android.graphics.Bitmap
+import android.location.Location
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -17,6 +18,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imeNestedScroll
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
@@ -85,7 +87,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import com.example.strider.R
+import com.example.strider.ui.theme.StriderTheme
 import com.example.strider.ui.theme.gradientPrimaryColors
+import com.google.android.gms.location.LocationResult
 import kotlin.math.round
 
 //val gradientColors = listOf(Color.Blue,Color.Cyan )
@@ -98,6 +102,7 @@ data class Player(
 @Composable
 fun GameScreen(
     imageViewModel: ImageViewModel?,
+    player: DataClass.Player,
     modifier:Modifier = Modifier,
     onPauseClicked:() -> Unit, pictureProfil : Bitmap?) {
     var presses by remember { mutableIntStateOf(0) }
@@ -163,8 +168,10 @@ var ListePlayer = listOf(player1,player2,player3,player4)
                     horizontalArrangement = Arrangement.SpaceEvenly,
 
                     ) {
+                    PlayerScoreStat(player.distance, imageViewModel = imageViewModel, distanceMax = 15f, isHost = player.isHost)
+
                     for (score in ListeScores) {
-                        PlayerScoreStat(score, 15f)
+                        PlayerScoreStat(score, imageViewModel = imageViewModel, distanceMax = 15f)
                         //Spacer(modifier = Modifier.weight(5f))
                     }
                 }
@@ -208,7 +215,7 @@ var ListePlayer = listOf(player1,player2,player3,player4)
 }
 
 @Composable
-fun PlayerScoreStat(distance: Float, distanceMax: Float,modifier: Modifier = Modifier) {
+fun PlayerScoreStat(distance: Float, distanceMax: Float,imageViewModel: ImageViewModel?, modifier: Modifier = Modifier,isHost: Boolean = false) {
 Column (modifier = Modifier.fillMaxHeight()
     .height(600.dp)
  ,
@@ -217,20 +224,12 @@ Column (modifier = Modifier.fillMaxHeight()
 
 
     ) {
-    /*Image(
-        painter = painterResource(R.drawable.beaute),
-        contentDescription = "Player Icon",
-        modifier = Modifier
-            .padding(bottom = 10.dp)
-            .size(50.dp)
-            .clip(CircleShape)
-            .background(Color.Cyan)
-               )*/
+
     ProfilePicture(modifier= Modifier
         .padding(bottom = 10.dp)
         .size(50.dp)
         .clip(CircleShape)
-        .background(Color.Cyan), imageViewModel = null)
+        , imageViewModel = imageViewModel,isHost= isHost)
     Box(
         modifier = Modifier
             .clip(RoundedCornerShape(10))
@@ -294,7 +293,6 @@ fun PlayerIconWithPseudo(player: Player) {
                 modifier = Modifier
                     .size(40.dp)
                     .clip(CircleShape)
-                    .background(Color.Cyan)
             )
             //Spacer(modifier = Modifier.height(-15.dp))
             Text(
@@ -309,7 +307,27 @@ fun PlayerIconWithPseudo(player: Player) {
 @Preview(showBackground = true)
 @Composable
 fun PreviewMainScreen(){
-    GameScreen(
-        imageViewModel = null,
-        onPauseClicked = {}, pictureProfil = null)
+    val testplayer = DataClass.Player( 1,"fec",false, LocationResult.create(listOf(
+        Location("provider").apply {
+            latitude = 40.7128 // Example: New York City
+            longitude = -74.0060
+            accuracy = 10f
+        },
+        Location("provider").apply {
+            latitude = 34.0522 // Example: Los Angeles
+            longitude = -118.2437
+            accuracy = 15f
+        },
+        Location("provider").apply {
+            latitude = 51.5074 // Example: London
+            longitude = -0.1278
+            accuracy = 12f
+        })),0f)
+    StriderTheme {
+        GameScreen(
+            imageViewModel = null,
+            player = testplayer,
+            onPauseClicked = {}, pictureProfil = null
+        )
+    }
 }

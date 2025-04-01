@@ -40,19 +40,23 @@ import java.io.FileOutputStream
 import java.nio.file.Paths
 import android.content.Context
 import android.graphics.BitmapFactory
+import android.location.Location
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.imageResource
+import com.google.android.gms.location.LocationResult
 
 
 @Composable
 fun AccueilScreen(imageViewModel : ImageViewModel? ,
-    onCreateClicked: () -> Unit,
-    onJoinClicked: (String) -> Unit,
-
-    modifier: Modifier = Modifier
+                  player : DataClass.Player,
+                  onCreateClicked: () -> Unit,
+                  onJoinClicked: (String) -> Unit,
+                  modifier: Modifier = Modifier
 ) {
+    player.isHost=false
+
 
     var pseudo by remember { mutableStateOf("Pseudo") }
     var code by remember { mutableStateOf("")}
@@ -159,6 +163,7 @@ fun AccueilScreen(imageViewModel : ImageViewModel? ,
                 Button(
                     onClick = {
                         if (pseudo.isNotBlank()) {
+                            player.pseudo = pseudo
                             onJoinClicked(pseudo)
                         }
                     },
@@ -257,11 +262,10 @@ fun TakeProfilePicture(imageViewModel : ImageViewModel?) {
 }
 
 @Composable
-fun ProfilePicture(modifier: Modifier, imageViewModel : ImageViewModel?) {
+fun ProfilePicture(modifier: Modifier, imageViewModel : ImageViewModel?,isHost: Boolean = false) {
     //var bitmap by remember { mutableStateOf<Bitmap?>(null) }
     Box(
         modifier = modifier
-
     ) {
 
         Image(
@@ -269,9 +273,7 @@ fun ProfilePicture(modifier: Modifier, imageViewModel : ImageViewModel?) {
             painter = painterResource(R.drawable.beaute),
             contentDescription = "Profile Picture",
             modifier = Modifier
-                //.clip(RoundedCornerShape(25.dp))
                 .background(shape = CircleShape, color = Color.White),
-
             )
         imageViewModel?.imagePath?.let {
                 path ->
@@ -284,9 +286,20 @@ fun ProfilePicture(modifier: Modifier, imageViewModel : ImageViewModel?) {
             Image(bitmap = bitmap.asImageBitmap(), contentDescription = "Captured photo",modifier = Modifier
                 .size(120.dp)
                 .background(shape = CircleShape, color = Color.White)
+                .clip(CircleShape)
                 .shadow(8.dp, shape = CircleShape)
                 ,
                 contentScale = ContentScale.Crop,
+            )
+
+
+        }
+        if(isHost){
+            Image(
+
+                painter = painterResource(R.drawable.crown),
+                contentDescription = "Profile Picture Crown",
+                modifier = Modifier.fillMaxSize(0.2f).background(Color.Transparent)
             )
         }
 
@@ -299,7 +312,25 @@ fun ProfilePicture(modifier: Modifier, imageViewModel : ImageViewModel?) {
 @Preview(showBackground = true)
 @Composable
 fun HomeScreenPreview() {
+    val testplayer = DataClass.Player( 1,"fec",false, LocationResult.create(listOf(
+        Location("provider").apply {
+            latitude = 40.7128 // Example: New York City
+            longitude = -74.0060
+            accuracy = 10f
+        },
+        Location("provider").apply {
+            latitude = 34.0522 // Example: Los Angeles
+            longitude = -118.2437
+            accuracy = 15f
+        },
+        Location("provider").apply {
+            latitude = 51.5074 // Example: London
+            longitude = -0.1278
+            accuracy = 12f
+        })),0f)
+
     AccueilScreen(imageViewModel = null,
+        player = testplayer,
         onCreateClicked = {},
         onJoinClicked = {}
     )

@@ -1,5 +1,6 @@
 package com.example.strider
 
+import DataClass.Player
 import android.content.pm.PackageManager
 import android.hardware.Sensor
 import android.hardware.SensorEvent
@@ -53,6 +54,7 @@ class MainActivity : ComponentActivity(), SensorEventListener {
     private var stepSensor: Sensor? = null
     private val stepCount = mutableIntStateOf(0)
     lateinit var imageView: ImageViewModel
+    lateinit var player: Player
     private lateinit var locationCallback : LocationCallback
     private lateinit var locationRequest : LocationRequest
 
@@ -63,8 +65,7 @@ class MainActivity : ComponentActivity(), SensorEventListener {
         stepSensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_DETECTOR)
         imageView = ViewModelProvider(this).get(ImageViewModel::class.java)
         fusedLocationClient = LocationServices .getFusedLocationProviderClient (this)
-
-
+player=DataClass.Player(2,"",false,null,0f)
 
         //gestion permission localisation
         val locationPermissionRequest = registerForActivityResult (
@@ -94,9 +95,8 @@ class MainActivity : ComponentActivity(), SensorEventListener {
             override fun onLocationResult (locationResult : LocationResult) {
                 super.onLocationResult(locationResult)
                 locationResult ?: return
-                for (location in locationResult .locations ){
-
-                }
+                player.locationResult=locationResult
+                player.calculateTotalDistance()
 
 
             }
@@ -126,7 +126,7 @@ class MainActivity : ComponentActivity(), SensorEventListener {
             //stepCounterViewModel = ViewModelProvider(this).get(StepCounterViewModel::class.java)
 
             StriderTheme {
-                StriderApp(imageView)
+                StriderApp(imageView,player)
             }
 
 

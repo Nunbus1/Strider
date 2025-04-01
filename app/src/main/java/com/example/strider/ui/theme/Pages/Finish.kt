@@ -1,6 +1,7 @@
 package com.example.strider.ui.theme.Pages
 
 import ViewModels.ImageViewModel
+import android.location.Location
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -53,10 +54,12 @@ import kotlin.random.Random
 import com.example.strider.ui.theme.StriderTheme
 import com.example.strider.ui.theme.gradientPrimaryColors
 import com.example.strider.ui.theme.gradientSecondaryColor
+import com.google.android.gms.location.LocationResult
 
 @Composable
 fun FinishScreen(
     imageViewModel: ImageViewModel?,
+    player: DataClass.Player,
     onContinueClicked: () -> Unit,
     onHomeClicked: () -> Unit
 ) {
@@ -488,9 +491,26 @@ fun ActionButtons(onNextClicked: () -> Unit,onContinueClicked:() -> Unit) {
 @Preview(showBackground = true)
 @Composable
 fun FinishScreenPreview() {
+    val testplayer = DataClass.Player( 1,"fec",false, LocationResult.create(listOf(
+        Location("provider").apply {
+            latitude = 40.7128 // Example: New York City
+            longitude = -74.0060
+            accuracy = 10f
+        },
+        Location("provider").apply {
+            latitude = 34.0522 // Example: Los Angeles
+            longitude = -118.2437
+            accuracy = 15f
+        },
+        Location("provider").apply {
+            latitude = 51.5074 // Example: London
+            longitude = -0.1278
+            accuracy = 12f
+        })),0f)
     StriderTheme {
 
         FinishScreen(
-            imageViewModel = null,{}, {})
+            imageViewModel = null,
+            player = testplayer,{}, {})
     }
 }

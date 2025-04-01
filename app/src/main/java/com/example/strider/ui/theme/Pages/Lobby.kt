@@ -1,6 +1,7 @@
 package com.example.strider.ui.theme.Pages
 
 import ViewModels.ImageViewModel
+import android.location.Location
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -23,10 +24,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.strider.R
+import com.google.android.gms.location.LocationResult
 
 @Composable
 fun LobbyScreen(
     imageViewModel: ImageViewModel?,
+    player: DataClass.Player,
     onBackClicked: () -> Unit,
     onStartClicked: () -> Unit,
     modifier: Modifier = Modifier
@@ -101,12 +104,13 @@ fun LobbyScreen(
 
         // Liste des joueurs
         val players = listOf(
-            Pair(R.drawable.beaute, "PlayerOne"),
+            //PLayer(R.drawable.beaute, "PlayerOne"),
             Pair(R.drawable.beaute, "Speedster"),
             Pair(R.drawable.beaute, "Shadow"),
             Pair(R.drawable.beaute, "Blaze")
         )
-
+        PlayerCard(R.drawable.beaute, player.pseudo)
+        Spacer(modifier = Modifier.height(8.dp))
         players.forEach { (imageRes, pseudo) ->
             PlayerCard(imageRes, pseudo)
             Spacer(modifier = Modifier.height(8.dp))
@@ -161,8 +165,25 @@ fun PlayerCard(imageRes: Int, pseudo: String) {
 @Preview(showBackground = true)
 @Composable
 fun LobbyScreenPreview() {
+    val testplayer = DataClass.Player( 1,"fec",false, LocationResult.create(listOf(
+        Location("provider").apply {
+            latitude = 40.7128 // Example: New York City
+            longitude = -74.0060
+            accuracy = 10f
+        },
+        Location("provider").apply {
+            latitude = 34.0522 // Example: Los Angeles
+            longitude = -118.2437
+            accuracy = 15f
+        },
+        Location("provider").apply {
+            latitude = 51.5074 // Example: London
+            longitude = -0.1278
+            accuracy = 12f
+        })),0f)
     LobbyScreen(
         imageViewModel = null,
+        player = testplayer,
         onBackClicked = {},
         onStartClicked = {}
     )
