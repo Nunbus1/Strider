@@ -35,22 +35,72 @@ import androidx.core.content.ContextCompat
 import com.example.strider.ui.theme.StriderTheme
 import android.Manifest
 import ViewModels.ImageViewModel
+import android.content.Intent
+import android.os.Looper
+import androidx.core.app.ActivityCompat
 import androidx.lifecycle.ViewModelProvider
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationCallback
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationResult
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.Priority
 
 
 class MainActivity : ComponentActivity(), SensorEventListener {
-
+    private lateinit var fusedLocationClient : FusedLocationProviderClient
     private lateinit var sensorManager: SensorManager
     private var stepSensor: Sensor? = null
     private val stepCount = mutableIntStateOf(0)
     lateinit var imageView: ImageViewModel
+    private lateinit var locationCallback : LocationCallback
+    private lateinit var locationRequest : LocationRequest
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         sensorManager = getSystemService(SENSOR_SERVICE) as SensorManager
         stepSensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_DETECTOR)
-        val imageViewModel = ViewModelProvider(this).get(ImageViewModel::class.java)
+        imageView = ViewModelProvider(this).get(ImageViewModel::class.java)
+        fusedLocationClient = LocationServices .getFusedLocationProviderClient (this)
 
+
+
+        //gestion permission localisation
+        val locationPermissionRequest = registerForActivityResult (
+            ActivityResultContracts .RequestMultiplePermissions ()
+        ) { permissions ->
+            when {
+                permissions .getOrDefault (Manifest .permission .ACCESS_FINE_LOCATION , false) ->
+                {
+                    // Precise location access granted.
+                }
+                permissions .getOrDefault (Manifest .permission .ACCESS_COARSE_LOCATION , false)
+                    -> {
+                    // Only approximate location access granted.
+                } else -> {
+                // No location access granted.
+            }
+            }
+        }
+        locationPermissionRequest .launch(arrayOf(
+            Manifest .permission .ACCESS_FINE_LOCATION ,
+            Manifest .permission .ACCESS_COARSE_LOCATION ))
+
+        //localisation
+
+        locationRequest= LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY,500).build()
+        locationCallback = object : LocationCallback () {
+            override fun onLocationResult (locationResult : LocationResult) {
+                super.onLocationResult(locationResult)
+                locationResult ?: return
+                for (location in locationResult .locations ){
+
+                }
+
+
+            }
+        }
         enableEdgeToEdge()
         setContent {
 
@@ -76,7 +126,7 @@ class MainActivity : ComponentActivity(), SensorEventListener {
             //stepCounterViewModel = ViewModelProvider(this).get(StepCounterViewModel::class.java)
 
             StriderTheme {
-                StriderApp(imageViewModel)
+                StriderApp(imageView)
             }
 
 
@@ -88,6 +138,7 @@ class MainActivity : ComponentActivity(), SensorEventListener {
         if (stepSensor != null) {
             sensorManager.registerListener(this, stepSensor, SensorManager.SENSOR_DELAY_NORMAL)
         }
+
     }
 
     override fun onPause() {
