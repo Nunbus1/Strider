@@ -1,5 +1,6 @@
 package com.example.strider.ui.theme.Pages
 
+import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -7,6 +8,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -20,14 +22,18 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.findViewTreeLifecycleOwner
 import com.example.strider.R
 import com.example.strider.ui.theme.gradientPrimaryColors
 import com.example.strider.StriderScreen
+import com.google.firebase.database.FirebaseDatabase
+import androidx.lifecycle.lifecycleScope
 
 
 @Composable
@@ -178,29 +184,77 @@ fun CreateScreen(
                 modifier = Modifier.padding(10.dp),
             )
         }
+        Spacer(modifier = Modifier.height(100.dp))
+        // Bouton Start
+        Box(
+            modifier = Modifier.fillMaxSize()
+                .padding(bottom = 50.dp),
+            contentAlignment = (Alignment.BottomCenter)
+            ,
+        )
+        {
+            val firestoreClient = FirestoreClient()
+            var room = Room(
+                name = "test 2",
+                code = "test_2@gmail.com",
+            )
+            Button(onClick = {
+
+                /* lifecycleScope.launch {
+                     firestoreClient.insertRoom(room).collect { id ->
+                         room = room.copy(id = id ?: "")
+                     }
+                 }*/
+            },modifier = Modifier.fillMaxWidth(0.7f)
+                .align(Alignment.BottomCenter)
+                //.padding(15.dp,15.dp)
+                .shadow(8.dp, shape = RoundedCornerShape(23.dp))
+                ,
+                colors = ButtonDefaults.buttonColors(
+                    Color.Transparent
+                ),
+                contentPadding = PaddingValues(),
+                shape = RoundedCornerShape(23.dp),)
+
+            {
+                Box(modifier = Modifier.fillMaxWidth()
+                    .background(
+                        brush = Brush.linearGradient(gradientPrimaryColors))
+                    .padding(20.dp)
+
+                    ,
+                    contentAlignment = Alignment.Center
+                )
+                {
+                    Text(generateRandomCode(6))
+                }
+            }
+
+
+        }
         Spacer(modifier = Modifier.height(2000.dp))
     }
-                    // Bouton Start
+    // Bouton Start
     Box(
         modifier = Modifier.fillMaxSize()
             .padding(bottom = 50.dp),
         contentAlignment = (Alignment.BottomCenter)
         ,
-        )
+    )
     {
         Button(
             onClick = onCreateClicked,
             modifier = Modifier.fillMaxWidth(0.7f)
                 .align(Alignment.BottomCenter)
-                    //.padding(15.dp,15.dp)
+                //.padding(15.dp,15.dp)
                 .shadow(8.dp, shape = RoundedCornerShape(23.dp))
-                ,
+            ,
             colors = ButtonDefaults.buttonColors(
                 Color.Transparent
             ),
             contentPadding = PaddingValues(),
             shape = RoundedCornerShape(23.dp),
-            )
+        )
         {
             Box(modifier = Modifier.fillMaxWidth()
                 .background(
@@ -213,11 +267,34 @@ fun CreateScreen(
             {
                 Text("Create")
             }
-            }
+        }
+
     }
+
+
+}
+fun createGameCode(database: FirebaseDatabase, onSuccess: (String) -> Unit, onFailure: (Exception) -> Unit) {
+
+    val firestoreClient = FirestoreClient()
+
+     var room = Room(
+        name = "test 2",
+        code = "test_2@gmail.com",
+    )
+    /*lifecycleScope.launch {
+        firestoreClient.insertRoom(room).collect { id ->
+            room = room.copy(id = id ?: "")
+        }
+    }*/
 
 }
 
+fun generateRandomCode(length: Int): String {
+    val chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+    return (1..length)
+        .map { chars.random() }
+        .joinToString("")
+}
 
 
 @Preview(showBackground = true,

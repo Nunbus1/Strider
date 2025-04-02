@@ -2,6 +2,7 @@ package com.example.strider.ui.theme.Pages
 
 
 import android.graphics.Bitmap
+import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -34,37 +35,24 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.strider.R
-
+import com.google.firebase.Firebase
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.firestore
 @Composable
 fun AccueilScreen(
     onCreateClicked: () -> Unit,
     onJoinClicked: (String) -> Unit,
-
     modifier: Modifier = Modifier
 ) {
     var pseudo by remember { mutableStateOf("Pseudo") }
-    var code by remember { mutableStateOf("")}
+    var code by remember { mutableStateOf("") }
     var isJoining by remember { mutableStateOf(false) }
+    val db = Firebase.firestore
 
     // Gérer le bouton retour du téléphone
     BackHandler(isJoining) {
         isJoining = false
     }
-    //val image = painterResource(R.drawable.fond)
-
-    /*Box(
-        modifier = Modifier
-            .fillMaxSize()
-    ) {
-        Image(
-            painter = image,
-            contentDescription = null,
-            modifier = Modifier
-                .fillMaxSize()
-                .alpha(0.5f), // Ajuste l'opacité (0.0 = totalement transparent, 1.0 = opaque)
-            contentScale = ContentScale.Crop // Permet d'éviter la déformation
-        )
-    }*/
 
     Column(
         modifier = modifier
@@ -74,23 +62,28 @@ fun AccueilScreen(
         verticalArrangement = Arrangement.Center
     ) {
         Text(
-            modifier = Modifier
-                .padding(8.dp),
+            modifier = Modifier.padding(8.dp),
             text = stringResource(R.string.app_name),
             fontSize = 100.sp,
             lineHeight = 116.sp,
             style = MaterialTheme.typography.headlineLarge,
             color = MaterialTheme.colorScheme.primary
         )
+
         Spacer(modifier = Modifier.height(16.dp))
+
         Image(
             painter = painterResource(R.drawable.logo), // Remplace avec ton logo
             contentDescription = "Logo",
             modifier = Modifier.size(150.dp)
         )
+
         Spacer(modifier = Modifier.height(20.dp))
+
         ProfilePicture()
+
         Spacer(modifier = Modifier.height(10.dp))
+
         TextField(
             value = pseudo,
             onValueChange = { pseudo = it },
@@ -109,29 +102,26 @@ fun AccueilScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            if (!isJoining) {
-                
-                Button(
-                    onClick = onCreateClicked,
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
-                    modifier = Modifier
-                        .background(
-                            Brush.horizontalGradient(
-                                colors = listOf(
-                                    Color(0xFF22A6FF),
-                                    Color(0xFF0044FF)
-                                )
-                            ),
-                            shape = CircleShape
-                        )
-                        .width(150.dp)
-                ) {
-                    Text("Create")
-
-                }
+            // Bouton "Create" réintégré
+            Button(
+                onClick = onCreateClicked,
+                colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
+                modifier = Modifier
+                    .background(
+                        Brush.horizontalGradient(
+                            colors = listOf(
+                                Color(0xFF22A6FF),
+                                Color(0xFF0044FF)
+                            )
+                        ),
+                        shape = CircleShape
+                    )
+                    .width(150.dp)
+            ) {
+                Text("Create")
             }
+
             if (isJoining) {
-                // Zone de texte + bouton "Join"
                 OutlinedTextField(
                     value = code,
                     onValueChange = { code = it },
@@ -140,14 +130,13 @@ fun AccueilScreen(
                         keyboardType = KeyboardType.Text,
                         imeAction = ImeAction.Done
                     ),
-
                     modifier = Modifier.width(200.dp)
                 )
 
                 Button(
                     onClick = {
                         if (pseudo.isNotBlank()) {
-                            onJoinClicked(pseudo)
+                            joinGame(code, onJoinClicked)
                         }
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
@@ -161,7 +150,6 @@ fun AccueilScreen(
                     Text("Join")
                 }
             } else {
-                // Bouton initial "Join"
                 Button(
                     onClick = { isJoining = true },
                     colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
@@ -175,10 +163,30 @@ fun AccueilScreen(
                     Text("Join")
                 }
             }
-
         }
     }
 }
+
+fun joinGame(code: String, onJoinClicked: (String) -> Unit) {
+    val db = Firebase.firestore
+     var user = Room(
+        name = "test 2",
+        code = "TEST",
+    )
+    db.collection("games").document(code).get()
+        .addOnSuccessListener { document ->
+            if (document.exists()) {
+                Log.d("Firebase", "Code valide : $code, on rejoint la partie.")
+                onJoinClicked(code)
+            } else {
+                Log.e("Firebase", "Code invalide : $code.")
+            }
+        }
+        .addOnFailureListener { e ->
+            Log.e("Firebase", "Erreur de connexion à Firebase : ", e)
+        }
+}
+
 
 @Composable
 fun ProfilePicture() {

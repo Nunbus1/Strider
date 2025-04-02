@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "999451407744",
+    "project_id": "strider-4bead",
+    "storage_bucket": "strider-4bead.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:999451407744:android:9b55c562ca738b14957d65",
+        "android_client_info": {
+          "package_name": "com.example.strider"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAKKx7Ymn1HQCl4-zg6mHeqin_i0ivfvkc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
