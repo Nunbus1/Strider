@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -61,7 +62,7 @@ fun CreateScreen(
         ) {
             IconButton(onClick = onBackClicked) {
                 Icon(
-                    imageVector = androidx.compose.material.icons.Icons.Default.ArrowBack,
+                    imageVector = androidx.compose.material.icons.Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "Back",
                     modifier = Modifier.size(32.dp).clickable { onBackClicked() }
                 )
@@ -100,14 +101,14 @@ fun CreateScreen(
         Spacer(modifier = Modifier.height(48.dp))
 
         // Séparation avec "Runners"
-        Divider(color = Color.Gray, thickness = 1.dp)
+        HorizontalDivider(color = Color.Gray, thickness = 1.dp)
         Text(
             text = "Settings",
             fontSize = 50.sp,
             fontWeight = FontWeight.Medium,
             modifier = Modifier.padding(vertical = 8.dp)
         )
-        Divider(color = Color.Gray, thickness = 1.dp)
+        HorizontalDivider(color = Color.Gray, thickness = 1.dp)
 
         Spacer(modifier = Modifier.height(32.dp))
 
