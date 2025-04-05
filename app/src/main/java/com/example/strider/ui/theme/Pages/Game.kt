@@ -185,7 +185,7 @@ var ListePlayer = listOf(player1,player2,player3,player4)
                     .padding(bottom = 50.dp),
                 contentAlignment = (Alignment.BottomCenter)
             ) {
-                LocationScreen(context = LocalContext.current)
+                LocationScreen(context = LocalContext.current, player=player)
             }
             Box(
                 modifier = Modifier.fillMaxSize()
@@ -316,7 +316,7 @@ fun PlayerIconWithPseudo(player: Player) {
 @Preview(showBackground = true)
 @Composable
 fun PreviewMainScreen(){
-    val testplayer = DataClass.Player( 1,"fec",false, LocationResult.create(listOf(
+    val testplayer = DataClass.Player( 1,"fec",false,  mutableListOf<Location>(
         Location("provider").apply {
             latitude = 40.7128 // Example: New York City
             longitude = -74.0060
@@ -331,7 +331,7 @@ fun PreviewMainScreen(){
             latitude = 51.5074 // Example: London
             longitude = -0.1278
             accuracy = 12f
-        })),0f,null)
+        }),0f)
     StriderTheme {
         GameScreen(
             imageViewModel = null,

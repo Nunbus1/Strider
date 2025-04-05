@@ -312,7 +312,7 @@ fun ProfilePicture(modifier: Modifier, imageViewModel : ImageViewModel?,isHost: 
 @Preview(showBackground = true)
 @Composable
 fun HomeScreenPreview() {
-    val testplayer = DataClass.Player( 1,"fec",false, LocationResult.create(listOf(
+    val testplayer = DataClass.Player( 1,"fec",false,  mutableListOf<Location>(
         Location("provider").apply {
             latitude = 40.7128 // Example: New York City
             longitude = -74.0060
@@ -327,7 +327,7 @@ fun HomeScreenPreview() {
             latitude = 51.5074 // Example: London
             longitude = -0.1278
             accuracy = 12f
-        })),0f,null)
+        }),0f)
 
     AccueilScreen(imageViewModel = null,
         player = testplayer,

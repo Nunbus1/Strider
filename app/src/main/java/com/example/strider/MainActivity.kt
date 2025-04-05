@@ -22,11 +22,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -34,12 +32,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.strider.ui.theme.StriderTheme
-import android.Manifest
 import ViewModels.ImageViewModel
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
-import android.content.SharedPreferences
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.ViewModelProvider
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -67,22 +63,27 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.runBlocking
 
 val Context.dataStore by preferencesDataStore(name = "location_prefs")
-
+object PlayerManager {
+    var currentPlayer: Player? = null
+}
 class MainActivity :  ComponentActivity(), SensorEventListener {
     private lateinit var sensorManager: SensorManager
     private var stepSensor: Sensor? = null
     private val stepCount = mutableIntStateOf(0)
     lateinit var imageView: ImageViewModel
     lateinit var player: Player
+
+
     private val context: Context = this
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         sensorManager = getSystemService(SENSOR_SERVICE) as SensorManager
         stepSensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_DETECTOR)
         imageView = ViewModelProvider(this).get(ImageViewModel::class.java)
-        player = DataClass.Player(2, "", false, null, 0f, null)
-
+        player = DataClass.Player(2, "", false, distance = 0f)
+        PlayerManager.currentPlayer = player
         enableEdgeToEdge()
         setContent {
 
@@ -91,12 +92,13 @@ class MainActivity :  ComponentActivity(), SensorEventListener {
                 stepCount = stepCount.intValue,
                 isSensorAvailable = stepSensor != null,
                 distance = player.distance,
-                currentPosition = player.locationResult?.lastLocation
+                //currentPosition = player.listLocation.last()
             )
 
             StriderTheme {
                 StriderApp(imageView, player, context)
             }
+
 
 
         }
@@ -134,6 +136,8 @@ class LocationService : LifecycleService() {
             locationResult.locations.lastOrNull()?.let { location ->
                 Log.d("LocationService", "Lat: ${location.latitude} }, Lng: ${location.longitude}")
                 saveLocation(location.latitude, location.longitude)
+                PlayerManager.currentPlayer?.addLocation(location)
+                //currentPlayer.calculateTotalDistance()
             }
         }
     }
@@ -153,7 +157,7 @@ class LocationService : LifecycleService() {
         }
     }
 
-    private fun createNotification(): Notification {
+    fun createNotification(): Notification {
         val channelId = "location_channel"
         val notificationManager = getSystemService(NotificationManager::class.java)
 
@@ -181,6 +185,7 @@ class LocationService : LifecycleService() {
             }
         }
     }
+
 
     override fun onDestroy() {
         super.onDestroy()
@@ -225,10 +230,10 @@ fun StepTrackerApp(stepCount: Int, isSensorAvailable: Boolean, distance: Float, 
 
 //exemple pour utiliser la localisation
 @Composable
-fun LocationScreen(context: Context) {
+fun LocationScreen(context: Context, player: Player) {
+    //val locationService = LocationService(player)
     val serviceIntent = remember { Intent(context, LocationService::class.java) }
     var isServiceRunning by remember { mutableStateOf(false) }
-
     val latitudeFlow = context.dataStore.data.map { prefs ->
         prefs[doublePreferencesKey("latitude")] ?: 0.0
     }
@@ -244,17 +249,26 @@ fun LocationScreen(context: Context) {
         onResult = { granted ->
             if (granted) {
                 context.startService(serviceIntent)
+                //locationService.startForeground(1,  locationService.createNotification())
                 isServiceRunning = true
             }
         }
     )
+    if (ContextCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+        //locationService.startForeground(1,  locationService.createNotification())
+        context.startService(serviceIntent)
+        isServiceRunning = true
+    } else {
+        permissionLauncher.launch(android.Manifest.permission.ACCESS_FINE_LOCATION)
+    }
 
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
         Text("Latitude: $latitude", style = MaterialTheme.typography.bodyLarge)
         Text("Longitude: $longitude", style = MaterialTheme.typography.bodyLarge)
 
-        Button(onClick = {
+        /*Button(onClick = {
             if (ContextCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                //locationService.startForeground(1,  locationService.createNotification())
                 context.startService(serviceIntent)
                 isServiceRunning = true
             } else {
@@ -265,10 +279,13 @@ fun LocationScreen(context: Context) {
         }
 
         Button(onClick = {
+            //locationService.stopForeground(true)
             context.stopService(serviceIntent)
             isServiceRunning = false
         }, enabled = isServiceRunning) {
             Text("Stop Location Service")
         }
+
+         */
     }
 }

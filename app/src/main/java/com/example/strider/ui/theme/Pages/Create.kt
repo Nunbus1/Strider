@@ -223,7 +223,7 @@ fun CreateScreen( imageViewModel: ImageViewModel?,
     //device="spec:width=1344dp,height=2992dp,dpi=489")
 @Composable
 fun CreateScreenPreview() {
-    val testplayer = DataClass.Player( 1,"fec",false, LocationResult.create(listOf(
+    val testplayer = DataClass.Player( 1,"fec",false,  mutableListOf<Location>(
         Location("provider").apply {
             latitude = 40.7128 // Example: New York City
             longitude = -74.0060
@@ -238,7 +238,7 @@ fun CreateScreenPreview() {
             latitude = 51.5074 // Example: London
             longitude = -0.1278
             accuracy = 12f
-        })),0f,null)
+        }),0f)
     StriderTheme {
 
 
