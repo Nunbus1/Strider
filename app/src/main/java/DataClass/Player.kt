@@ -8,7 +8,8 @@ data class Player(
     var pseudo: String,
     var isHost: Boolean,
     var locationResult: LocationResult?,
-    var distance: Float
+    var distance: Float,
+    var currentPosition: Location?
 
 ){
 

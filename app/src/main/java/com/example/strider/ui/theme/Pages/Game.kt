@@ -86,6 +86,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
+import com.example.strider.LocationScreen
 import com.example.strider.R
 import com.example.strider.ui.theme.StriderTheme
 import com.example.strider.ui.theme.gradientPrimaryColors
@@ -168,16 +169,24 @@ var ListePlayer = listOf(player1,player2,player3,player4)
                     horizontalArrangement = Arrangement.SpaceEvenly,
 
                     ) {
+                    player.calculateTotalDistance()
                     PlayerScoreStat(player.distance, imageViewModel = imageViewModel, distanceMax = 15f, isHost = player.isHost)
+                    var distanceTotale by remember { mutableStateOf( player.distance) }
 
                     for (score in ListeScores) {
-                        PlayerScoreStat(score, imageViewModel = imageViewModel, distanceMax = 15f)
+                        PlayerScoreStat(score, imageViewModel = imageViewModel, distanceMax = distanceTotale+1)
                         //Spacer(modifier = Modifier.weight(5f))
                     }
                 }
 
 
-
+            Box(
+                modifier = Modifier.fillMaxSize()
+                    .padding(bottom = 50.dp),
+                contentAlignment = (Alignment.BottomCenter)
+            ) {
+                LocationScreen(context = LocalContext.current)
+            }
             Box(
                 modifier = Modifier.fillMaxSize()
                     .padding(bottom = 50.dp),
@@ -322,7 +331,7 @@ fun PreviewMainScreen(){
             latitude = 51.5074 // Example: London
             longitude = -0.1278
             accuracy = 12f
-        })),0f)
+        })),0f,null)
     StriderTheme {
         GameScreen(
             imageViewModel = null,

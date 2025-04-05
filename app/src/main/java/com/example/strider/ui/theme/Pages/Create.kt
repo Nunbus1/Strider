@@ -238,7 +238,7 @@ fun CreateScreenPreview() {
             latitude = 51.5074 // Example: London
             longitude = -0.1278
             accuracy = 12f
-        })),0f)
+        })),0f,null)
     StriderTheme {
 
 

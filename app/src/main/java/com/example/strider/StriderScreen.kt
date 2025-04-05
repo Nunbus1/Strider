@@ -50,6 +50,7 @@ enum class StriderScreen() {
 @Composable
 fun StriderApp(imageViewModel : ImageViewModel,
                player : DataClass.Player,
+               context: Context,
                navController: NavHostController = rememberNavController()
 
 ) {

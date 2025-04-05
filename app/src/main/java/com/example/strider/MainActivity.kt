@@ -1,4 +1,5 @@
 package com.example.strider
+//package com.example.strider.BuildConfig
 
 import DataClass.Player
 import android.content.pm.PackageManager
@@ -32,12 +33,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.content.ContextCompat
 import com.example.strider.ui.theme.StriderTheme
 import android.Manifest
 import ViewModels.ImageViewModel
-import android.content.Intent
-import android.os.Looper
+import android.app.Notification
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.content.SharedPreferences
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.ViewModelProvider
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -46,87 +48,54 @@ import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
+import android.content.Context
+import android.content.Intent
+import android.location.Location
+import android.util.Log
+import androidx.compose.material3.Button
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.core.content.ContextCompat
+import androidx.datastore.preferences.core.doublePreferencesKey
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.preferencesDataStore
+import androidx.lifecycle.LifecycleService
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.runBlocking
 
+val Context.dataStore by preferencesDataStore(name = "location_prefs")
 
-class MainActivity : ComponentActivity(), SensorEventListener {
-    private lateinit var fusedLocationClient : FusedLocationProviderClient
+class MainActivity :  ComponentActivity(), SensorEventListener {
     private lateinit var sensorManager: SensorManager
     private var stepSensor: Sensor? = null
     private val stepCount = mutableIntStateOf(0)
     lateinit var imageView: ImageViewModel
     lateinit var player: Player
-    private lateinit var locationCallback : LocationCallback
-    private lateinit var locationRequest : LocationRequest
-
+    private val context: Context = this
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         sensorManager = getSystemService(SENSOR_SERVICE) as SensorManager
         stepSensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_DETECTOR)
         imageView = ViewModelProvider(this).get(ImageViewModel::class.java)
-        fusedLocationClient = LocationServices .getFusedLocationProviderClient (this)
-player=DataClass.Player(2,"",false,null,0f)
+        player = DataClass.Player(2, "", false, null, 0f, null)
 
-        //gestion permission localisation
-        val locationPermissionRequest = registerForActivityResult (
-            ActivityResultContracts .RequestMultiplePermissions ()
-        ) { permissions ->
-            when {
-                permissions .getOrDefault (Manifest .permission .ACCESS_FINE_LOCATION , false) ->
-                {
-                    // Precise location access granted.
-                }
-                permissions .getOrDefault (Manifest .permission .ACCESS_COARSE_LOCATION , false)
-                    -> {
-                    // Only approximate location access granted.
-                } else -> {
-                // No location access granted.
-            }
-            }
-        }
-        locationPermissionRequest .launch(arrayOf(
-            Manifest .permission .ACCESS_FINE_LOCATION ,
-            Manifest .permission .ACCESS_COARSE_LOCATION ))
-
-        //localisation
-
-        locationRequest= LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY,500).build()
-        locationCallback = object : LocationCallback () {
-            override fun onLocationResult (locationResult : LocationResult) {
-                super.onLocationResult(locationResult)
-                locationResult ?: return
-                player.locationResult=locationResult
-                player.calculateTotalDistance()
-
-
-            }
-        }
         enableEdgeToEdge()
         setContent {
 
 
-            val permissionLauncher = rememberLauncherForActivityResult(
-                ActivityResultContracts.RequestPermission()
-            ) { }
-
-            LaunchedEffect(Unit) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                    val permissionStatus = ContextCompat.checkSelfPermission(
-                        this@MainActivity, Manifest.permission.ACTIVITY_RECOGNITION)
-                    if (permissionStatus != PackageManager.PERMISSION_GRANTED) {
-                        permissionLauncher.launch(Manifest.permission.ACTIVITY_RECOGNITION)
-                    }
-                }
-
-            }
             StepTrackerApp(
                 stepCount = stepCount.intValue,
-                isSensorAvailable = stepSensor != null
+                isSensorAvailable = stepSensor != null,
+                distance = player.distance,
+                currentPosition = player.locationResult?.lastLocation
             )
-            //stepCounterViewModel = ViewModelProvider(this).get(StepCounterViewModel::class.java)
 
             StriderTheme {
-                StriderApp(imageView,player)
+                StriderApp(imageView, player, context)
             }
 
 
@@ -146,6 +115,7 @@ player=DataClass.Player(2,"",false,null,0f)
         sensorManager.unregisterListener(this)
     }
 
+
     override fun onSensorChanged(event: SensorEvent?) {
         if (event?.sensor?.type == Sensor.TYPE_STEP_DETECTOR) {
             stepCount.value += 1
@@ -153,9 +123,70 @@ player=DataClass.Player(2,"",false,null,0f)
     }
 
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
+
 }
 
+class LocationService : LifecycleService() {
+    private lateinit var fusedLocationClient: FusedLocationProviderClient
+    private lateinit var locationRequest: LocationRequest
+    private val locationCallback = object : LocationCallback() {
+        override fun onLocationResult(locationResult: LocationResult) {
+            locationResult.locations.lastOrNull()?.let { location ->
+                Log.d("LocationService", "Lat: ${location.latitude} }, Lng: ${location.longitude}")
+                saveLocation(location.latitude, location.longitude)
+            }
+        }
+    }
 
+
+    override fun onCreate() {
+        super.onCreate()
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+        locationRequest = LocationRequest.Builder(500).setPriority(Priority.PRIORITY_HIGH_ACCURACY).build()
+        startForeground(1, createNotification())
+        requestLocationUpdates()
+    }
+
+    private fun requestLocationUpdates() {
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, mainLooper)
+        }
+    }
+
+    private fun createNotification(): Notification {
+        val channelId = "location_channel"
+        val notificationManager = getSystemService(NotificationManager::class.java)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(channelId,"Location Service", NotificationManager.IMPORTANCE_LOW)
+            notificationManager.createNotificationChannel(channel)
+
+            return Notification.Builder(this, channelId)
+                .setContentTitle("Tracking Location")
+                .setSmallIcon(android.R.drawable.ic_menu_mylocation)
+                .build()
+        } else {
+            return Notification.Builder(this)
+                .setContentTitle("Tracking Location")
+                .setSmallIcon(android.R.drawable.ic_menu_mylocation)
+                .build()
+        }
+    }
+
+    private fun saveLocation(lat: Double, lng: Double) {
+        runBlocking {
+            applicationContext.dataStore.edit { prefs ->
+                prefs[doublePreferencesKey("latitude")] = lat
+                prefs[doublePreferencesKey("longitude")] = lng
+            }
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        fusedLocationClient.removeLocationUpdates(locationCallback)
+    }
+}
 
 @Preview(showBackground = true)
 @Composable
@@ -165,7 +196,7 @@ fun GreetingPreview() {
 }
 
 @Composable
-fun StepTrackerApp(stepCount: Int, isSensorAvailable: Boolean) {
+fun StepTrackerApp(stepCount: Int, isSensorAvailable: Boolean, distance: Float, currentPosition: Location? = null) {
     MaterialTheme {
         Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
             Box(
@@ -180,11 +211,64 @@ fun StepTrackerApp(stepCount: Int, isSensorAvailable: Boolean) {
                         Text("Step Tracker", fontSize = 24.sp, color = MaterialTheme.colorScheme.primary)
                         Spacer(modifier = Modifier.height(16.dp))
                         Text("Steps: $stepCount", fontSize = 48.sp, color = MaterialTheme.colorScheme.onBackground)
+
                     }
                 } else {
+                    Text("Steps: $distance", fontSize = 48.sp, color = MaterialTheme.colorScheme.onBackground)
+                    Text("current position: $currentPosition", fontSize = 48.sp, color = MaterialTheme.colorScheme.onBackground)
                     Text(text = "Step detector sensor not available on this device.", fontSize = 18.sp, color = MaterialTheme.colorScheme.error)
                 }
             }
+        }
+    }
+}
+
+//exemple pour utiliser la localisation
+@Composable
+fun LocationScreen(context: Context) {
+    val serviceIntent = remember { Intent(context, LocationService::class.java) }
+    var isServiceRunning by remember { mutableStateOf(false) }
+
+    val latitudeFlow = context.dataStore.data.map { prefs ->
+        prefs[doublePreferencesKey("latitude")] ?: 0.0
+    }
+    val longitudeFlow = context.dataStore.data.map { prefs ->
+        prefs[doublePreferencesKey("longitude")] ?: 0.0
+    }
+
+    val latitude by latitudeFlow.collectAsState(initial = 0.0)
+    val longitude by longitudeFlow.collectAsState(initial = 0.0)
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission(),
+        onResult = { granted ->
+            if (granted) {
+                context.startService(serviceIntent)
+                isServiceRunning = true
+            }
+        }
+    )
+
+    Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+        Text("Latitude: $latitude", style = MaterialTheme.typography.bodyLarge)
+        Text("Longitude: $longitude", style = MaterialTheme.typography.bodyLarge)
+
+        Button(onClick = {
+            if (ContextCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                context.startService(serviceIntent)
+                isServiceRunning = true
+            } else {
+                permissionLauncher.launch(android.Manifest.permission.ACCESS_FINE_LOCATION)
+            }
+        }) {
+            Text("Start Location Service")
+        }
+
+        Button(onClick = {
+            context.stopService(serviceIntent)
+            isServiceRunning = false
+        }, enabled = isServiceRunning) {
+            Text("Stop Location Service")
         }
     }
 }
