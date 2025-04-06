@@ -205,7 +205,7 @@ fun CreateScreen(
                 // Utilisation du scope Compose pour lancer la coroutine
                 coroutineScope.launch {
                     firestoreClient.insertRoom(room).collect { id ->
-                        room = room.copy(id = id ?: "")
+                        room = room.copy(id = id ?: "Test")
                     }
                 }
             },modifier = Modifier.fillMaxWidth(0.7f)

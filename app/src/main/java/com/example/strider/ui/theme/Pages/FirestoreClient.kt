@@ -19,19 +19,20 @@ class FirestoreClient {
     ): Flow<String?> {
         return callbackFlow {
             db.collection(collection)
-                .add(room.toHashMap())
-                .addOnSuccessListener { document ->
-                    println(tag + "insert user with id: ${document.id}")
+                .document(room.code) // <- Utilise le code comme ID du document
+                .set(room.toHashMap())
+                .addOnSuccessListener {
+                    println(tag + "insert room with custom id (code): ${room.code}")
 
                     CoroutineScope(Dispatchers.IO).launch {
-                        updateRoom(room.copy(id = document.id)).collect {}
+                        updateRoom(room.copy(id = room.code)).collect {}
                     }
 
-                    trySend(document.id)
+                    trySend(room.code) // <- On retourne le code comme ID
                 }
                 .addOnFailureListener { e ->
                     e.printStackTrace()
-                    println(tag + "error inserting user: ${e.message}")
+                    println(tag + "error inserting room: ${e.message}")
                     trySend(null)
                 }
 
