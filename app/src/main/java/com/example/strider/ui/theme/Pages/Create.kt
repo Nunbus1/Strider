@@ -197,11 +197,12 @@ fun CreateScreen(
         )
         {
             val firestoreClient = FirestoreClient()
-            var room = Room(
-                name = "test 2",
-                code = generateRandomCode(6),
-            )
+
             Button(onClick = {
+                var room = Room(
+                    name = "test 2",
+                    code = generateRandomCode(6),
+                )
                 // Utilisation du scope Compose pour lancer la coroutine
                 coroutineScope.launch {
                     firestoreClient.insertRoom(room).collect { id ->
