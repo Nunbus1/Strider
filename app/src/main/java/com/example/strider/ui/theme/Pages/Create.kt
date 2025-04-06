@@ -35,6 +35,8 @@ import com.example.strider.ui.theme.gradientPrimaryColors
 import com.example.strider.StriderScreen
 import com.google.firebase.database.FirebaseDatabase
 import androidx.lifecycle.lifecycleScope
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
 
 
 @Composable
@@ -43,7 +45,7 @@ fun CreateScreen(
     onCreateClicked: () -> Unit,
     modifier: Modifier = Modifier
 ) {var description by remember { mutableStateOf("dada") }
-
+    val coroutineScope = rememberCoroutineScope() // Création du scope
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -197,15 +199,15 @@ fun CreateScreen(
             val firestoreClient = FirestoreClient()
             var room = Room(
                 name = "test 2",
-                code = "test_2@gmail.com",
+                code = generateRandomCode(6),
             )
             Button(onClick = {
-
-                /* lifecycleScope.launch {
-                     firestoreClient.insertRoom(room).collect { id ->
-                         room = room.copy(id = id ?: "")
-                     }
-                 }*/
+                // Utilisation du scope Compose pour lancer la coroutine
+                coroutineScope.launch {
+                    firestoreClient.insertRoom(room).collect { id ->
+                        room = room.copy(id = id ?: "")
+                    }
+                }
             },modifier = Modifier.fillMaxWidth(0.7f)
                 .align(Alignment.BottomCenter)
                 //.padding(15.dp,15.dp)
@@ -282,7 +284,7 @@ fun createGameCode(database: FirebaseDatabase, onSuccess: (String) -> Unit, onFa
         name = "test 2",
         code = "test_2@gmail.com",
     )
-    /*lifecycleScope.launch {
+    /*coroutineScope.launch {
         firestoreClient.insertRoom(room).collect { id ->
             room = room.copy(id = id ?: "")
         }

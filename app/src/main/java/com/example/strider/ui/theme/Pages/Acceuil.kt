@@ -173,7 +173,7 @@ fun joinGame(code: String, onJoinClicked: (String) -> Unit) {
         name = "test 2",
         code = "TEST",
     )
-    db.collection("games").document(code).get()
+    db.collection("users").document(code).get()
         .addOnSuccessListener { document ->
             if (document.exists()) {
                 Log.d("Firebase", "Code valide : $code, on rejoint la partie.")

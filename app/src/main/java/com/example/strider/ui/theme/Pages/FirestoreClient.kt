@@ -24,7 +24,7 @@ class FirestoreClient {
                     println(tag + "insert user with id: ${document.id}")
 
                     CoroutineScope(Dispatchers.IO).launch {
-                        updateUser(room.copy(id = document.id)).collect {}
+                        updateRoom(room.copy(id = document.id)).collect {}
                     }
 
                     trySend(document.id)
@@ -39,7 +39,7 @@ class FirestoreClient {
         }
     }
 
-    fun updateUser(
+    fun updateRoom(
         room: Room
     ): Flow<Boolean> {
         return callbackFlow {
@@ -60,7 +60,7 @@ class FirestoreClient {
         }
     }
 
-    fun getUser(
+    fun getRoom(
         code: String
     ): Flow<Room?> {
         return callbackFlow {
