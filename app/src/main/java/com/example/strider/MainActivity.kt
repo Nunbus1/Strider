@@ -59,6 +59,9 @@ import androidx.datastore.preferences.core.doublePreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.preferencesDataStore
 import androidx.lifecycle.LifecycleService
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.runBlocking
 
@@ -82,7 +85,7 @@ class MainActivity :  ComponentActivity(), SensorEventListener {
         sensorManager = getSystemService(SENSOR_SERVICE) as SensorManager
         stepSensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_DETECTOR)
         imageView = ViewModelProvider(this).get(ImageViewModel::class.java)
-        player = DataClass.Player(2, "", false, distance = 0f)
+        player = DataClass.Player(2, "", false)
         PlayerManager.currentPlayer = player
         enableEdgeToEdge()
         setContent {
@@ -91,7 +94,6 @@ class MainActivity :  ComponentActivity(), SensorEventListener {
             StepTrackerApp(
                 stepCount = stepCount.intValue,
                 isSensorAvailable = stepSensor != null,
-                distance = player.distance,
                 //currentPosition = player.listLocation.last()
             )
 
@@ -133,11 +135,10 @@ class LocationService : LifecycleService() {
     private lateinit var locationRequest: LocationRequest
     private val locationCallback = object : LocationCallback() {
         override fun onLocationResult(locationResult: LocationResult) {
-            locationResult.locations.lastOrNull()?.let { location ->
-                Log.d("LocationService", "Lat: ${location.latitude} }, Lng: ${location.longitude}")
-                saveLocation(location.latitude, location.longitude)
+            locationResult.lastLocation?.let { location ->
                 PlayerManager.currentPlayer?.addLocation(location)
-                //currentPlayer.calculateTotalDistance()
+                //Log.d("LocationService", "Lat: ${location.latitude} }, Lng: ${location.longitude}")
+                //saveLocation(location.latitude, location.longitude)
             }
         }
     }
@@ -157,7 +158,7 @@ class LocationService : LifecycleService() {
         }
     }
 
-    fun createNotification(): Notification {
+    private fun createNotification(): Notification {
         val channelId = "location_channel"
         val notificationManager = getSystemService(NotificationManager::class.java)
 
@@ -193,6 +194,10 @@ class LocationService : LifecycleService() {
     }
 }
 
+fun getPlayerUpdates(): Flow<Player> = flow {
+    emit(PlayerManager.currentPlayer!!)
+}
+
 @Preview(showBackground = true)
 @Composable
 fun GreetingPreview() {
@@ -201,7 +206,7 @@ fun GreetingPreview() {
 }
 
 @Composable
-fun StepTrackerApp(stepCount: Int, isSensorAvailable: Boolean, distance: Float, currentPosition: Location? = null) {
+fun StepTrackerApp(stepCount: Int, isSensorAvailable: Boolean, currentPosition: Location? = null) {
     MaterialTheme {
         Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
             Box(
@@ -219,7 +224,6 @@ fun StepTrackerApp(stepCount: Int, isSensorAvailable: Boolean, distance: Float, 
 
                     }
                 } else {
-                    Text("Steps: $distance", fontSize = 48.sp, color = MaterialTheme.colorScheme.onBackground)
                     Text("current position: $currentPosition", fontSize = 48.sp, color = MaterialTheme.colorScheme.onBackground)
                     Text(text = "Step detector sensor not available on this device.", fontSize = 18.sp, color = MaterialTheme.colorScheme.error)
                 }
@@ -234,7 +238,7 @@ fun LocationScreen(context: Context, player: Player) {
     //val locationService = LocationService(player)
     val serviceIntent = remember { Intent(context, LocationService::class.java) }
     var isServiceRunning by remember { mutableStateOf(false) }
-    val latitudeFlow = context.dataStore.data.map { prefs ->
+   /* val latitudeFlow = context.dataStore.data.map { prefs ->
         prefs[doublePreferencesKey("latitude")] ?: 0.0
     }
     val longitudeFlow = context.dataStore.data.map { prefs ->
@@ -243,7 +247,7 @@ fun LocationScreen(context: Context, player: Player) {
 
     val latitude by latitudeFlow.collectAsState(initial = 0.0)
     val longitude by longitudeFlow.collectAsState(initial = 0.0)
-
+*/
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission(),
         onResult = { granted ->
@@ -261,11 +265,13 @@ fun LocationScreen(context: Context, player: Player) {
     } else {
         permissionLauncher.launch(android.Manifest.permission.ACCESS_FINE_LOCATION)
     }
-
-    Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+/*
+    Column(modifier = Modifier
+        .fillMaxSize()
+        .padding(16.dp)) {
         Text("Latitude: $latitude", style = MaterialTheme.typography.bodyLarge)
         Text("Longitude: $longitude", style = MaterialTheme.typography.bodyLarge)
-
+*/
         /*Button(onClick = {
             if (ContextCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
                 //locationService.startForeground(1,  locationService.createNotification())
@@ -287,5 +293,5 @@ fun LocationScreen(context: Context, player: Player) {
         }
 
          */
-    }
+    //}
 }

@@ -327,7 +327,7 @@ fun HomeScreenPreview() {
             latitude = 51.5074 // Example: London
             longitude = -0.1278
             accuracy = 12f
-        }),0f)
+        }))
 
     AccueilScreen(imageViewModel = null,
         player = testplayer,

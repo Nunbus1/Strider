@@ -62,9 +62,11 @@ import androidx.compose.material3.TopAppBarDefaults.topAppBarColors
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -155,40 +157,44 @@ var ListePlayer = listOf(player1,player2,player3,player4)
                     modifier = modifier
                         .fillMaxSize(0.8f)
 
-                        .border(10.dp,color =Color.Black, shape = RoundedCornerShape(20.dp))
+                        .border(10.dp, color = Color.Black, shape = RoundedCornerShape(20.dp))
                         .shadow(
                             elevation = 10.dp,
                             shape = RoundedCornerShape(20.dp)
                         )
                         .background(Color.Gray, shape = RoundedCornerShape(20.dp))
 
-                        .padding(18.dp)
-                    ,
+                        .padding(18.dp),
 
                     verticalAlignment = Alignment.Bottom, // Align children vertically to the center
                     horizontalArrangement = Arrangement.SpaceEvenly,
 
                     ) {
-                    player.calculateTotalDistance()
-                    PlayerScoreStat(player.distance, imageViewModel = imageViewModel, distanceMax = 15f, isHost = player.isHost)
-                    var distanceTotale by remember { mutableStateOf( player.distance) }
+                    //player.calculateTotalDistance()
+
+                    val distanceTotale by remember {  mutableStateOf(player.distance) }
+                    //Text( distanceTotale.toString())
+                    //val distanceTotale by remember { mutableStateOf( player.distance) }
+                    PlayerScoreStat(distanceTotale.value, imageViewModel = imageViewModel, distanceMax = 15f, isHost = player.isHost)
 
                     for (score in ListeScores) {
-                        PlayerScoreStat(score, imageViewModel = imageViewModel, distanceMax = distanceTotale+1)
+                        PlayerScoreStat(score, imageViewModel = imageViewModel, distanceMax = distanceTotale.value+1)
                         //Spacer(modifier = Modifier.weight(5f))
                     }
                 }
 
 
             Box(
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier
+                    .fillMaxSize()
                     .padding(bottom = 50.dp),
                 contentAlignment = (Alignment.BottomCenter)
             ) {
                 LocationScreen(context = LocalContext.current, player=player)
             }
             Box(
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier
+                    .fillMaxSize()
                     .padding(bottom = 50.dp),
                 contentAlignment = (Alignment.BottomCenter)
             ) {
@@ -225,9 +231,10 @@ var ListePlayer = listOf(player1,player2,player3,player4)
 
 @Composable
 fun PlayerScoreStat(distance: Float, distanceMax: Float,imageViewModel: ImageViewModel?, modifier: Modifier = Modifier,isHost: Boolean = false) {
-Column (modifier = Modifier.fillMaxHeight()
-    .height(600.dp)
- ,
+Column(
+    modifier = Modifier
+        .fillMaxHeight()
+        .height(600.dp),
     horizontalAlignment = Alignment.CenterHorizontally,
     verticalArrangement = Arrangement.Bottom,
 
@@ -253,7 +260,8 @@ Column (modifier = Modifier.fillMaxHeight()
         Text(
             text = distance.toString(),
             style = typography.bodySmall,
-            modifier = Modifier.padding(8.dp)
+            modifier = Modifier
+                .padding(8.dp)
                 .graphicsLayer {
                     rotationZ = 90f
                 }
@@ -267,16 +275,15 @@ fun PlayerHorizontalBar(players: List<Player>, modifier: Modifier) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(top=70.dp, end = 0.dp)
-                ,
+                .padding(top = 70.dp, end = 0.dp),
             contentAlignment = Alignment.TopEnd,
-            ) {
-            Column(modifier = Modifier
-                //.background(color = colorScheme.secondary,
-                //    shape = MaterialTheme.shapes.medium)
-                .padding(5.dp)
+        ) {
+            Column(
+                modifier = Modifier
+                    //.background(color = colorScheme.secondary,
+                    //    shape = MaterialTheme.shapes.medium)
+                    .padding(5.dp),
                 //.shadow(10.dp,shape = MaterialTheme.shapes.medium))
-                    ,
                 horizontalAlignment = Alignment.End,
             ) {
                 for (player in players) {
@@ -331,7 +338,7 @@ fun PreviewMainScreen(){
             latitude = 51.5074 // Example: London
             longitude = -0.1278
             accuracy = 12f
-        }),0f)
+        }))
     StriderTheme {
         GameScreen(
             imageViewModel = null,
