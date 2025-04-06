@@ -1,5 +1,6 @@
 package com.example.strider.ui.theme.Pages
 
+import DataClass.Player
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -10,25 +11,17 @@ import kotlinx.coroutines.launch
 
 class FirestoreClient {
     private val tag = "FirestoreClient: "
-
     private val db = FirebaseFirestore.getInstance()
-    private val collection = "users"
+    private val collection = "rooms"
 
-    fun insertRoom(
-        room: Room
-    ): Flow<String?> {
+    fun insertRoom(room: Room): Flow<String?> {
         return callbackFlow {
             db.collection(collection)
-                .document(room.code) // <- Utilise le code comme ID du document
+                .document(room.code)
                 .set(room.toHashMap())
                 .addOnSuccessListener {
                     println(tag + "insert room with custom id (code): ${room.code}")
-
-                    CoroutineScope(Dispatchers.IO).launch {
-                        updateRoom(room.copy(id = room.code)).collect {}
-                    }
-
-                    trySend(room.code) // <- On retourne le code comme ID
+                    trySend(room.code)
                 }
                 .addOnFailureListener { e ->
                     e.printStackTrace()
@@ -40,20 +33,18 @@ class FirestoreClient {
         }
     }
 
-    fun updateRoom(
-        room: Room
-    ): Flow<Boolean> {
+    fun updateRoom(room: Room): Flow<Boolean> {
         return callbackFlow {
             db.collection(collection)
-                .document(room.id)
+                .document(room.code) // 🔁 on utilise code comme ID
                 .set(room.toHashMap())
                 .addOnSuccessListener {
-                    println(tag + "update user with id: ${room.id}")
+                    println(tag + "update room with code: ${room.code}")
                     trySend(true)
                 }
                 .addOnFailureListener { e ->
                     e.printStackTrace()
-                    println(tag + "error updating user: ${e.message}")
+                    println(tag + "error updating room: ${e.message}")
                     trySend(false)
                 }
 
@@ -61,32 +52,30 @@ class FirestoreClient {
         }
     }
 
-    fun getRoom(
-        code: String
-    ): Flow<Room?> {
+    fun getRoom(code: String): Flow<Room?> {
         return callbackFlow {
             db.collection(collection)
+                .document(code)
                 .get()
-                .addOnSuccessListener { result ->
-                    var room: Room? = null
-
-                    for (document in result) {
-                        if (document.data["code"] == code) {
-                            room = document.data.toUser()
-                            println(tag + "user found: ${room.code}")
+                .addOnSuccessListener { document ->
+                    if (document.exists()) {
+                        val data = document.data
+                        if (data != null) {
+                            val room = data.toRoom()
+                            println(tag + "room found: ${room.code}")
                             trySend(room)
+                        } else {
+                            println(tag + "empty room data for code: $code")
+                            trySend(null)
                         }
-                    }
-
-                    if (room == null) {
-                        println(tag + "user not found: $code")
+                    } else {
+                        println(tag + "room not found: $code")
                         trySend(null)
                     }
-
                 }
                 .addOnFailureListener { e ->
                     e.printStackTrace()
-                    println(tag + "error getting user: ${e.message}")
+                    println(tag + "error getting room: ${e.message}")
                     trySend(null)
                 }
 
@@ -94,19 +83,97 @@ class FirestoreClient {
         }
     }
 
+
+    fun insertRoomWithHost(roomCode: String, player: Player): Flow<String?> {
+        return callbackFlow {
+            val room = Room(code = roomCode, hostId = "0", lastPlayerIndex = 0)
+            val roomRef = db.collection(collection).document(roomCode)
+
+            val playerMap = mapOf(
+                "id" to 0,
+                "pseudo" to player.pseudo,
+                "iconUrl" to player.iconUrl,
+                "isHost" to true,
+                "distance" to player.distance.value,
+                //"latitude" to player.listLocation.lastOrNull()?.latitude ?: 0.0,
+                //"longitude" to player.listLocation.lastOrNull()?.longitude ?: 0.0
+            )
+
+            roomRef.set(room.toHashMap())
+                .addOnSuccessListener {
+                    roomRef.collection("players").document("0").set(playerMap)
+                        .addOnSuccessListener {
+                            println("$tag Room and host created")
+                            trySend(room.code)
+                        }
+                        .addOnFailureListener { e ->
+                            e.printStackTrace()
+                            println("$tag Error adding host: ${e.message}")
+                            trySend(null)
+                        }
+                }
+                .addOnFailureListener { e ->
+                    e.printStackTrace()
+                    println("$tag Error creating room: ${e.message}")
+                    trySend(null)
+                }
+
+            awaitClose {}
+        }
+    }
+
+
+    fun joinRoomWithAutoId(roomCode: String, player: Player): Flow<Int?> {
+        return callbackFlow {
+            val roomRef = db.collection(collection).document(roomCode)
+
+            db.runTransaction { transaction ->
+                val snapshot = transaction.get(roomRef)
+                val lastIndex = (snapshot.getLong("lastPlayerIndex") ?: -1).toInt()
+                val newIndex = lastIndex + 1
+
+                val playerMap = mapOf(
+                    "id" to newIndex,
+                    "pseudo" to player.pseudo,
+                    "iconUrl" to player.iconUrl,
+                    "isHost" to false,
+                    "distance" to player.distance.value,
+                    //"latitude" to player.listLocation.lastOrNull()?.latitude ?: 0.0,
+                    //"longitude" to player.listLocation.lastOrNull()?.longitude ?: 0.0
+                )
+
+                transaction.set(
+                    roomRef.collection("players").document(newIndex.toString()),
+                    playerMap
+                )
+                transaction.update(roomRef, "lastPlayerIndex", newIndex)
+
+                newIndex
+            }.addOnSuccessListener { newId ->
+                trySend(newId)
+            }.addOnFailureListener { e ->
+                e.printStackTrace()
+                println(tag + "Error joining room: ${e.message}")
+                trySend(null)
+            }
+
+            awaitClose {}
+        }
+    }
+
     private fun Room.toHashMap(): HashMap<String, Any> {
         return hashMapOf(
-            "id" to id,
-            "name" to name,
-            "code" to code
+            "code" to code,
+            "hostId" to hostId,
+            "lastPlayerIndex" to lastPlayerIndex
         )
     }
 
-    private fun Map<String, Any>.toUser(): Room {
+    private fun Map<String, Any>.toRoom(): Room {
         return Room(
-            id = this["id"] as String,
-            name = this["name"] as String,
-            code = this["code"] as String
+            code = this["code"] as String,
+            hostId = this["hostId"] as String,
+            lastPlayerIndex = (this["lastPlayerIndex"] as Long).toInt()
         )
     }
 }
