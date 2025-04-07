@@ -24,6 +24,8 @@ import androidx.compose.ui.unit.sp
 import com.example.strider.ui.theme.gradientPrimaryColors
 import kotlinx.coroutines.launch
 import DataClass.Player
+import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.tasks.await
 
 @Composable
 fun CreateScreen(
@@ -163,7 +165,9 @@ fun CreateScreen(
 
         Button(
             onClick = {
-                roomCode = generateRandomCode(6)
+                coroutineScope.launch {
+                    roomCode = generateUniqueRoomCode()
+                }
             },
             modifier = Modifier
                 .fillMaxWidth(0.7f)
@@ -232,6 +236,23 @@ fun CreateScreen(
 
         Spacer(modifier = Modifier.height(2000.dp))
     }
+}
+
+suspend fun generateUniqueRoomCode(): String {
+    val db = FirebaseFirestore.getInstance()
+    var roomCode: String
+    var isUnique: Boolean
+
+    do {
+        roomCode = generateRandomCode(6)
+        val querySnapshot = db.collection("rooms")
+            .whereEqualTo("code", roomCode)
+            .get()
+            .await()
+        isUnique = querySnapshot.isEmpty
+    } while (!isUnique)
+
+    return roomCode
 }
 
 // 🔧 Génère un code de room aléatoire
