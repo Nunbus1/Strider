@@ -10,6 +10,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -21,14 +27,37 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.strider.R
+import com.google.firebase.firestore.FirebaseFirestore
+import DataClass.Player
+import android.util.Log
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
+import kotlinx.coroutines.flow.collectLatest
+
 
 @Composable
 fun LobbyScreen(
+    roomCode: String,
     onBackClicked: () -> Unit,
     onStartClicked: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val firestoreClient = remember { FirestoreClient() }
+    val players = remember { mutableStateListOf<Player>() }
+
+    LaunchedEffect(roomCode) {
+        firestoreClient.getPlayersInRoom(roomCode).collect { newPlayers ->
+            players.clear()
+            players.addAll(newPlayers)
+            players.forEach { player ->
+                Log.d("Debug", "Pseudo du joueur : ${player.pseudo}")
+            }
+        }
+    }
+
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -36,7 +65,8 @@ fun LobbyScreen(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Spacer(modifier = Modifier.height(30.dp))
-        // Titre avec bouton retour
+
+        // Header avec retour + titre
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
@@ -46,7 +76,7 @@ fun LobbyScreen(
                 Icon(
                     imageVector = androidx.compose.material.icons.Icons.Default.ArrowBack,
                     contentDescription = "Back",
-                    modifier = Modifier.size(32.dp).clickable { onBackClicked() }
+                    modifier = Modifier.size(32.dp)
                 )
             }
             Text(
@@ -54,7 +84,6 @@ fun LobbyScreen(
                 style = MaterialTheme.typography.headlineLarge,
                 fontSize = 60.sp,
                 fontWeight = FontWeight.Bold
-
             )
             Box(
                 modifier = Modifier
@@ -65,12 +94,10 @@ fun LobbyScreen(
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        // Encadré "Lobby"
         Card(
             shape = RoundedCornerShape(8.dp),
             border = BorderStroke(2.dp, Color.Blue),
             modifier = Modifier.padding(horizontal = 32.dp)
-
         ) {
             Text(
                 text = "Lobby",
@@ -81,14 +108,14 @@ fun LobbyScreen(
         }
 
         Spacer(modifier = Modifier.height(8.dp))
+
         Text(
-            text = "Code : A3FG9",
+            text = "Code : $roomCode",
             fontSize = 20.sp,
             color = Color.Black,
             modifier = Modifier.padding(8.dp)
         )
-        Spacer(modifier = Modifier.height(8.dp))
-        // Séparation avec "Runners"
+
         Divider(color = Color.Gray, thickness = 1.dp)
         Text(
             text = "Runners",
@@ -98,24 +125,27 @@ fun LobbyScreen(
         )
         Divider(color = Color.Gray, thickness = 1.dp)
 
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
-        // Liste des joueurs
-        val players = listOf(
-            Pair(R.drawable.beaute, "PlayerOne"),
-            Pair(R.drawable.beaute, "Speedster"),
-            Pair(R.drawable.beaute, "Shadow"),
-            Pair(R.drawable.beaute, "Blaze")
-        )
 
-        players.forEach { (imageRes, pseudo) ->
-            PlayerCard(imageRes, pseudo)
-            Spacer(modifier = Modifier.height(8.dp))
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f),
+            contentPadding = PaddingValues(vertical = 8.dp)
+        ) {
+            itemsIndexed(players, key = { index, _ -> index }) { _, player ->
+                PlayerCard(
+                    imageRes = getDrawableFromId(player.iconUrl),
+                    pseudo = player.pseudo,
+                    isHost = player.isHost
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+            }
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
-        // Bouton Start
         Button(
             onClick = onStartClicked,
             colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
@@ -128,25 +158,42 @@ fun LobbyScreen(
         ) {
             Text("Start")
         }
+
+        Spacer(modifier = Modifier.height(16.dp))
     }
 }
 
 @Composable
-fun PlayerCard(imageRes: Int, pseudo: String) {
+fun PlayerCard(imageRes: Int, pseudo: String, isHost: Boolean) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Image(
-            painter = painterResource(imageRes),
-            contentDescription = "Profile Picture",
-            modifier = Modifier
-                .size(60.dp)
-                .clip(RoundedCornerShape(25.dp))
-        )
+        Box(
+            modifier = Modifier.size(60.dp)
+        ) {
+            Image(
+                painter = painterResource(imageRes),
+                contentDescription = "Profile Picture",
+                modifier = Modifier
+                    .size(60.dp)
+                    .clip(RoundedCornerShape(25.dp))
+            )
+            if (isHost) {
+                Text(
+                    text = "👑",
+                    fontSize = 20.sp,
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .offset(x = 4.dp, y = (-4).dp)
+                )
+            }
+        }
+
         Spacer(modifier = Modifier.width(16.dp))
+
         Card(
             modifier = Modifier
                 .padding(5.dp)
@@ -164,10 +211,19 @@ fun PlayerCard(imageRes: Int, pseudo: String) {
     }
 }
 
+
+private fun getDrawableFromId(iconUrl: Int): Int {
+    return when (iconUrl) {
+        1 -> R.drawable.beaute
+        else -> R.drawable.beaute // valeur par défaut
+    }
+}
+
 @Preview(showBackground = true)
 @Composable
 fun LobbyScreenPreview() {
     LobbyScreen(
+        roomCode = "",
         onBackClicked = {},
         onStartClicked = {}
     )

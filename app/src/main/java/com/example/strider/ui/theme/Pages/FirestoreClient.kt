@@ -1,13 +1,14 @@
 package com.example.strider.ui.theme.Pages
 
 import DataClass.Player
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
 import com.google.firebase.firestore.FirebaseFirestore
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.distinctUntilChanged
+import com.example.strider.R
 
 class FirestoreClient {
     private val tag = "FirestoreClient: "
@@ -161,19 +162,44 @@ class FirestoreClient {
         }
     }
 
+
+
     fun getPlayersInRoom(roomCode: String): Flow<List<Player>> = callbackFlow {
-        val playersRef = db.collection(collection).document(roomCode).collection("players")
-        val subscription = playersRef.addSnapshotListener { snapshot, exception ->
-            if (exception != null) {
-                println("$tag Error fetching players: ${exception.message}")
-                close(exception)
+        val playersRef = db.collection("rooms")
+            .document(roomCode)
+            .collection("players")
+
+        val listener = playersRef.addSnapshotListener { snapshot, error ->
+            if (error != null) {
+                error.printStackTrace()
+                trySend(emptyList())
                 return@addSnapshotListener
             }
-            val players = snapshot?.documents?.mapNotNull { it.toObject(Player::class.java) } ?: emptyList()
-            trySend(players).isSuccess
+
+            val players = snapshot?.documents?.mapNotNull { doc ->
+                val pseudo = doc.getString("pseudo") ?: return@mapNotNull null
+                val iconUrl = (doc.getLong("iconUrl") ?: 0).toInt()
+                val isHost = doc.getBoolean("isHost") ?: false
+                val distance = (doc.getDouble("distance") ?: 0.0).toFloat()
+
+                Player(
+                    iconUrl = iconUrl,
+                    pseudo = pseudo,
+                    isHost = isHost,
+                    listLocation = mutableListOf(),
+                    distance = mutableFloatStateOf(distance)
+                )
+            } ?: emptyList()
+
+            trySend(players)
         }
-        awaitClose { subscription.remove() }
-    }
+
+        awaitClose { listener.remove() }
+    }.distinctUntilChanged()
+
+
+
+
 
 
     private fun Room.toHashMap(): HashMap<String, Any> {

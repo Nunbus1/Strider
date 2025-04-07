@@ -56,6 +56,7 @@ dependencies {
     implementation(libs.firebase.database.ktx)
     implementation(platform(libs.firebase.bom))
     implementation("androidx.datastore:datastore-preferences:1.1.1")
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.6.0")
     implementation("androidx.localbroadcastmanager:localbroadcastmanager:1.1.0")
     implementation("com.google.android.gms:play-services-location:21.0.1")
     testImplementation(libs.junit)

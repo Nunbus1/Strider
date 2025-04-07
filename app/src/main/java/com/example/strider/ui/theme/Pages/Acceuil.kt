@@ -30,13 +30,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.strider.R
-import com.google.firebase.firestore.ktx.firestore
-import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.launch
 
 @Composable
 fun AccueilScreen(
-    onCreateClicked: () -> Unit,
+    onCreateClicked: (String) -> Unit,
     onJoinClicked: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -101,7 +99,7 @@ fun AccueilScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Button(
-                onClick = onCreateClicked,
+                onClick = { onCreateClicked(pseudo) },
                 colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
                 modifier = Modifier
                     .background(

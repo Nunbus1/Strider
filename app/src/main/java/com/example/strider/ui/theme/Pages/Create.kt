@@ -29,8 +29,9 @@ import kotlinx.coroutines.tasks.await
 
 @Composable
 fun CreateScreen(
+    pseudo: String,
     onBackClicked: () -> Unit,
-    onCreateClicked: () -> Unit,
+    onCreateClicked: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     var description by remember { mutableStateOf("dada") }
@@ -58,7 +59,9 @@ fun CreateScreen(
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "Back",
-                    modifier = Modifier.size(32.dp).clickable { onBackClicked() }
+                    modifier = Modifier
+                        .size(32.dp)
+                        .clickable { onBackClicked() }
                 )
             }
             Text(
@@ -153,7 +156,9 @@ fun CreateScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
         Card(
-            modifier = Modifier.padding(10.dp).fillMaxWidth(0.7f)
+            modifier = Modifier
+                .padding(10.dp)
+                .fillMaxWidth(0.7f)
         ) {
             Text(
                 text = "description mode de jeu",
@@ -197,7 +202,7 @@ fun CreateScreen(
             onClick = {
                 if (roomCode.isNotEmpty()) {
                     val hostPlayer = Player(
-                        pseudo = "HostPlayer",
+                        pseudo = pseudo,
                         iconUrl = 1,
                         isHost = true
                     )
@@ -206,7 +211,7 @@ fun CreateScreen(
                         firestoreClient.insertRoomWithHost(roomCode, hostPlayer).collect { result ->
                             if (result != null) {
                                 Toast.makeText(context, "Room créée avec le code : $roomCode", Toast.LENGTH_SHORT).show()
-                                onCreateClicked()
+                                onCreateClicked(roomCode)
                             } else {
                                 Toast.makeText(context, "Erreur lors de la création", Toast.LENGTH_SHORT).show()
                             }
@@ -267,6 +272,7 @@ fun generateRandomCode(length: Int): String {
 @Composable
 fun CreateScreenPreview() {
     CreateScreen(
+        pseudo = "" ,
         onBackClicked = {},
         onCreateClicked = {}
     )
