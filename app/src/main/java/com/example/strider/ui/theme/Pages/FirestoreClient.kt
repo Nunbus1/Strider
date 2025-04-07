@@ -161,6 +161,21 @@ class FirestoreClient {
         }
     }
 
+    fun getPlayersInRoom(roomCode: String): Flow<List<Player>> = callbackFlow {
+        val playersRef = db.collection(collection).document(roomCode).collection("players")
+        val subscription = playersRef.addSnapshotListener { snapshot, exception ->
+            if (exception != null) {
+                println("$tag Error fetching players: ${exception.message}")
+                close(exception)
+                return@addSnapshotListener
+            }
+            val players = snapshot?.documents?.mapNotNull { it.toObject(Player::class.java) } ?: emptyList()
+            trySend(players).isSuccess
+        }
+        awaitClose { subscription.remove() }
+    }
+
+
     private fun Room.toHashMap(): HashMap<String, Any> {
         return hashMapOf(
             "code" to code,
