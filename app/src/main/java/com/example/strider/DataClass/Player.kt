@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.flow
 
 
 data class Player(
+
     var iconUrl: Int,
     var pseudo: String,
     var isHost: Boolean,

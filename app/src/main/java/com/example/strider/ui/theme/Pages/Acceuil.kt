@@ -35,7 +35,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun AccueilScreen(
     onCreateClicked: (String) -> Unit,
-    onJoinClicked: (String) -> Unit,
+    onJoinClicked: (roomCode: String, playerId: Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
     var pseudo by remember { mutableStateOf("Pseudo") }
@@ -143,7 +143,7 @@ fun AccueilScreen(
                                         firestoreClient.joinRoomWithAutoId(code, player).collect { playerId ->
                                             if (playerId != null) {
                                                 Log.d("Firebase", "Joueur ajouté avec ID : $playerId")
-                                                onJoinClicked(code)
+                                                onJoinClicked(code, playerId)
                                             } else {
                                                 Log.e("Firebase", "Erreur lors de l'ajout du joueur")
                                             }
@@ -235,6 +235,6 @@ fun ProfilePicture() {
 fun HomeScreenPreview() {
     AccueilScreen(
         onCreateClicked = {},
-        onJoinClicked = {}
+        onJoinClicked = { _, _ -> }
     )
 }

@@ -35,11 +35,12 @@ fun StriderApp(navController: NavHostController = rememberNavController()) {
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
         ) {
+
             // Accueil
             composable(route = StriderScreen.Accueil.name) {
                 AccueilScreen(
-                    onJoinClicked = { roomCode ->
-                        navController.navigate("Lobby/$roomCode")
+                    onJoinClicked = { roomCode: String, playerId: Int ->
+                        navController.navigate("Lobby/$roomCode/$playerId")
                     },
                     onCreateClicked = { pseudo ->
                         navController.navigate("Create/$pseudo")
@@ -56,20 +57,25 @@ fun StriderApp(navController: NavHostController = rememberNavController()) {
                 CreateScreen(
                     pseudo = pseudo,
                     onBackClicked = { navController.navigate(StriderScreen.Accueil.name) },
-                    onCreateClicked = { roomCode ->
-                        navController.navigate("Lobby/$roomCode")
+                    onCreateClicked = { roomCode: String, playerId: Int ->
+                        navController.navigate("Lobby/$roomCode/$playerId")
                     }
                 )
             }
 
             // Lobby
             composable(
-                route = "Lobby/{roomCode}",
-                arguments = listOf(navArgument("roomCode") { type = NavType.StringType })
+                route = "Lobby/{roomCode}/{playerId}",
+                arguments = listOf(
+                    navArgument("roomCode") { type = NavType.StringType },
+                    navArgument("playerId") { type = NavType.IntType }
+                )
             ) { backStackEntry ->
                 val roomCode = backStackEntry.arguments?.getString("roomCode") ?: ""
+                val playerId = backStackEntry.arguments?.getInt("playerId") ?: -1
                 LobbyScreen(
                     roomCode = roomCode,
+                    playerId = playerId,
                     onBackClicked = { navController.navigate(StriderScreen.Accueil.name) },
                     onStartClicked = { navController.navigate(StriderScreen.Game.name) }
                 )

@@ -41,19 +41,22 @@ import kotlinx.coroutines.flow.collectLatest
 @Composable
 fun LobbyScreen(
     roomCode: String,
+    playerId: Int,
     onBackClicked: () -> Unit,
     onStartClicked: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val firestoreClient = remember { FirestoreClient() }
-    val players = remember { mutableStateListOf<Player>() }
+    val players = remember { mutableStateListOf<Pair<Int, Player>>() }
+
 
     LaunchedEffect(roomCode) {
         firestoreClient.getPlayersInRoom(roomCode).collect { newPlayers ->
             players.clear()
             players.addAll(newPlayers)
-            players.forEach { player ->
-                Log.d("Debug", "Pseudo du joueur : ${player.pseudo}")
+
+            newPlayers.forEach { (id, player) ->
+                Log.d("Debug", "Player[$id] = ${player.pseudo}")
             }
         }
     }
@@ -127,21 +130,22 @@ fun LobbyScreen(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-
         LazyColumn(
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f),
             contentPadding = PaddingValues(vertical = 8.dp)
         ) {
-            itemsIndexed(players, key = { index, _ -> index }) { _, player ->
+            itemsIndexed(players, key = { index, _ -> index }) { _, (id, player) ->
                 PlayerCard(
                     imageRes = getDrawableFromId(player.iconUrl),
                     pseudo = player.pseudo,
-                    isHost = player.isHost
+                    isHost = player.isHost,
+                    isCurrentUser = id == playerId
                 )
                 Spacer(modifier = Modifier.height(16.dp))
             }
+
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -164,7 +168,12 @@ fun LobbyScreen(
 }
 
 @Composable
-fun PlayerCard(imageRes: Int, pseudo: String, isHost: Boolean) {
+fun PlayerCard(
+    imageRes: Int,
+    pseudo: String,
+    isHost: Boolean,
+    isCurrentUser: Boolean
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -202,7 +211,7 @@ fun PlayerCard(imageRes: Int, pseudo: String, isHost: Boolean) {
                 .padding(5.dp)
         ) {
             Text(
-                text = pseudo,
+                text = if (isCurrentUser) "$pseudo (You)" else pseudo,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Medium,
                 modifier = Modifier.padding(8.dp)
@@ -211,11 +220,10 @@ fun PlayerCard(imageRes: Int, pseudo: String, isHost: Boolean) {
     }
 }
 
-
 private fun getDrawableFromId(iconUrl: Int): Int {
     return when (iconUrl) {
         1 -> R.drawable.beaute
-        else -> R.drawable.beaute // valeur par défaut
+        else -> R.drawable.beaute
     }
 }
 
@@ -224,6 +232,7 @@ private fun getDrawableFromId(iconUrl: Int): Int {
 fun LobbyScreenPreview() {
     LobbyScreen(
         roomCode = "",
+        playerId = 0,
         onBackClicked = {},
         onStartClicked = {}
     )

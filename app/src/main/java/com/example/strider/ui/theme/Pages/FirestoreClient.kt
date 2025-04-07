@@ -37,7 +37,7 @@ class FirestoreClient {
     fun updateRoom(room: Room): Flow<Boolean> {
         return callbackFlow {
             db.collection(collection)
-                .document(room.code) // 🔁 on utilise code comme ID
+                .document(room.code)
                 .set(room.toHashMap())
                 .addOnSuccessListener {
                     println(tag + "update room with code: ${room.code}")
@@ -164,7 +164,7 @@ class FirestoreClient {
 
 
 
-    fun getPlayersInRoom(roomCode: String): Flow<List<Player>> = callbackFlow {
+    fun getPlayersInRoom(roomCode: String): Flow<List<Pair<Int, Player>>> = callbackFlow {
         val playersRef = db.collection("rooms")
             .document(roomCode)
             .collection("players")
@@ -177,18 +177,20 @@ class FirestoreClient {
             }
 
             val players = snapshot?.documents?.mapNotNull { doc ->
+                val id = doc.getLong("id")?.toInt() ?: return@mapNotNull null
                 val pseudo = doc.getString("pseudo") ?: return@mapNotNull null
                 val iconUrl = (doc.getLong("iconUrl") ?: 0).toInt()
                 val isHost = doc.getBoolean("isHost") ?: false
                 val distance = (doc.getDouble("distance") ?: 0.0).toFloat()
 
-                Player(
+                val player = Player(
                     iconUrl = iconUrl,
                     pseudo = pseudo,
                     isHost = isHost,
                     listLocation = mutableListOf(),
                     distance = mutableFloatStateOf(distance)
                 )
+                id to player
             } ?: emptyList()
 
             trySend(players)
@@ -196,6 +198,7 @@ class FirestoreClient {
 
         awaitClose { listener.remove() }
     }.distinctUntilChanged()
+
 
 
 

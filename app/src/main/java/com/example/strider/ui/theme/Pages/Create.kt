@@ -31,7 +31,7 @@ import kotlinx.coroutines.tasks.await
 fun CreateScreen(
     pseudo: String,
     onBackClicked: () -> Unit,
-    onCreateClicked: (String) -> Unit,
+    onCreateClicked: (roomCode: String, playerId: Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
     var description by remember { mutableStateOf("dada") }
@@ -211,7 +211,7 @@ fun CreateScreen(
                         firestoreClient.insertRoomWithHost(roomCode, hostPlayer).collect { result ->
                             if (result != null) {
                                 Toast.makeText(context, "Room créée avec le code : $roomCode", Toast.LENGTH_SHORT).show()
-                                onCreateClicked(roomCode)
+                                onCreateClicked(roomCode, 0)
                             } else {
                                 Toast.makeText(context, "Erreur lors de la création", Toast.LENGTH_SHORT).show()
                             }
@@ -274,6 +274,6 @@ fun CreateScreenPreview() {
     CreateScreen(
         pseudo = "" ,
         onBackClicked = {},
-        onCreateClicked = {}
+        onCreateClicked = { _, _ -> }
     )
 }
