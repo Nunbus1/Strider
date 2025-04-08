@@ -98,6 +98,7 @@ class FirestoreClient {
                 "iconUrl" to player.iconUrl,
                 "isHost" to true,
                 "distance" to player.distance.value,
+                "timedLocations" to emptyList<Map<String, Any>>()
                 //"latitude" to player.listLocation.lastOrNull()?.latitude ?: 0.0,
                 //"longitude" to player.listLocation.lastOrNull()?.longitude ?: 0.0
             )
@@ -141,6 +142,7 @@ class FirestoreClient {
                     "iconUrl" to player.iconUrl,
                     "isHost" to false,
                     "distance" to player.distance.value,
+                    "timedLocations" to emptyList<Map<String, Any>>()
                     //"latitude" to player.listLocation.lastOrNull()?.latitude ?: 0.0,
                     //"longitude" to player.listLocation.lastOrNull()?.longitude ?: 0.0
                 )
@@ -182,7 +184,10 @@ class FirestoreClient {
                 val pseudo = doc.getString("pseudo") ?: return@mapNotNull null
                 val iconUrl = (doc.getLong("iconUrl") ?: 0).toInt()
                 val isHost = doc.getBoolean("isHost") ?: false
-                val distance = (doc.getDouble("distance") ?: 10.0).toFloat()
+                val distance = (doc.getDouble("distance") ?: 0.0).toFloat()
+
+                val timedList = doc["timedLocations"] as? List<Map<String, Any>> ?: emptyList()
+                val timedLocations = parseTimedLocations(timedList)
 
                 val player = Player(
                     iconUrl = iconUrl,
@@ -190,7 +195,10 @@ class FirestoreClient {
                     isHost = isHost,
                     listLocation = mutableListOf(),
                     distance = mutableFloatStateOf(distance)
-                )
+                ).apply {
+                    this.timedLocations.addAll(timedLocations)
+                }
+
                 id to player
             } ?: emptyList()
 
@@ -221,6 +229,9 @@ class FirestoreClient {
                 val isHost = doc.getBoolean("isHost") ?: false
                 val distance = (doc.getDouble("distance") ?: 0.0).toFloat()
 
+                val timedList = doc["timedLocations"] as? List<Map<String, Any>> ?: emptyList()
+                val timedLocations = parseTimedLocations(timedList)
+
                 if (pseudo != null) {
                     val player = Player(
                         iconUrl = iconUrl,
@@ -228,7 +239,10 @@ class FirestoreClient {
                         isHost = isHost,
                         listLocation = mutableListOf(),
                         distance = mutableFloatStateOf(distance)
-                    )
+                    ).apply {
+                        this.timedLocations.addAll(timedLocations)
+                    }
+
                     trySend(player)
                 } else {
                     trySend(null)
@@ -285,6 +299,21 @@ class FirestoreClient {
                 e.printStackTrace()
                 println("$tag Error updating location for player $playerId: ${e.message}")
             }
+    }
+
+    fun parseTimedLocations(data: List<Map<String, Any>>): List<Pair<Location, Long>> {
+        return data.mapNotNull {
+            val lat = it["latitude"] as? Double
+            val lng = it["longitude"] as? Double
+            val timestamp = (it["timestamp"] as? Number)?.toLong()
+            if (lat != null && lng != null && timestamp != null) {
+                val loc = Location("").apply {
+                    latitude = lat
+                    longitude = lng
+                }
+                loc to timestamp
+            } else null
+        }
     }
 
 }
