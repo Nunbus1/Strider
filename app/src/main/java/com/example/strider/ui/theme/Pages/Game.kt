@@ -73,7 +73,8 @@ fun GameScreen(
     roomCode: String,
     playerId: Int,
     modifier:Modifier = Modifier,
-    onPauseClicked:() -> Unit, pictureProfil : Bitmap?) {
+    onPauseClicked: (roomCode: String, playerId: Int) -> Unit,
+    pictureProfil : Bitmap?) {
 
     val firestoreClient = remember { FirestoreClient() }
     val players = remember { mutableStateListOf<Pair<Int, Player>>() }
@@ -199,7 +200,7 @@ fun GameScreen(
             contentAlignment = (Alignment.BottomCenter)
         ) {
             Button(
-                onClick = onPauseClicked,
+                onClick = {onPauseClicked(roomCode, playerId) },
                 modifier = Modifier
                     .fillMaxWidth(0.7f)
                     .shadow(8.dp, shape = RoundedCornerShape(23.dp)),
@@ -237,7 +238,6 @@ fun PlayerScoreStat(distance: Float, distanceMax: Float,imageViewModel: ImageVie
             .height(600.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Bottom,
-
 
         ) {
 
@@ -344,7 +344,8 @@ fun PreviewMainScreen(){
             imageViewModel = null,
             roomCode = "",
             playerId = 0,
-            onPauseClicked = {}, pictureProfil = null
+            onPauseClicked = { _, _ -> },
+            pictureProfil = null
         )
     }
 }

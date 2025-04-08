@@ -56,6 +56,8 @@ import com.example.strider.ui.theme.gradientSecondaryColor
 @Composable
 fun FinishScreen(
     imageViewModel : ImageViewModel?,
+    roomCode: String,
+    playerId: Int,
     onContinueClicked: () -> Unit,
     onHomeClicked: () -> Unit
 ) {
@@ -490,6 +492,7 @@ fun ActionButtons(onNextClicked: () -> Unit,onContinueClicked:() -> Unit) {
 @Composable
 fun FinishScreenPreview() {
     StriderTheme {
-        FinishScreen(null, {}, {})
+        FinishScreen(null,roomCode = "",
+            playerId = 0, {}, {})
     }
 }

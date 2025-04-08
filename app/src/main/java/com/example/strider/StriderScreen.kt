@@ -104,19 +104,34 @@ fun StriderApp(navController: NavHostController = rememberNavController(), image
                     imageViewModel = imageViewModel,
                     roomCode = roomCode,
                     playerId = playerId,
-                    onPauseClicked = {
-                        navController.navigate(StriderScreen.Finish.name)
+                    onPauseClicked = { roomCode: String, playerId: Int ->
+                        navController.navigate("Finish/$roomCode/$playerId")
                     },
                     pictureProfil = null
                 )
             }
 
             // Finish
-            composable(route = StriderScreen.Finish.name) {
+            composable(
+                route = "Finish/{roomCode}/{playerId}",
+                arguments = listOf(
+                    navArgument("roomCode") { type = NavType.StringType },
+                    navArgument("playerId") { type = NavType.IntType }
+                )
+            ) { backStackEntry ->
+                val roomCode = backStackEntry.arguments?.getString("roomCode") ?: ""
+                val playerId = backStackEntry.arguments?.getInt("playerId") ?: -1
+
                 FinishScreen(
                     imageViewModel = imageViewModel,
-                    onContinueClicked = { navController.navigate(StriderScreen.Game.name) },
-                    onHomeClicked = { navController.navigate(StriderScreen.Accueil.name) }
+                    roomCode = roomCode,
+                    playerId = playerId,
+                    onContinueClicked = {
+                        navController.navigate("Game/$roomCode/$playerId")
+                    },
+                    onHomeClicked = {
+                        navController.navigate(StriderScreen.Accueil.name)
+                    }
                 )
             }
         }
