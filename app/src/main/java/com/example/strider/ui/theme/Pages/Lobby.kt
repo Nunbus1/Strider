@@ -45,7 +45,7 @@ fun LobbyScreen(
     roomCode: String,
     playerId: Int,
     onBackClicked: () -> Unit,
-    onStartClicked: (roomCode: String, playerId: Int) -> Unit,
+    onStartClicked: (roomCode: String, playerId: Int, startTime: Long) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val firestoreClient = remember { FirestoreClient() }
@@ -153,7 +153,10 @@ fun LobbyScreen(
         Spacer(modifier = Modifier.height(16.dp))
 
         Button(
-            onClick = { onStartClicked(roomCode, playerId) },
+            onClick = {
+                val currentTime = System.currentTimeMillis()
+                onStartClicked(roomCode, playerId, currentTime)
+            },
             colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
             modifier = Modifier
                 .background(
@@ -239,6 +242,6 @@ fun LobbyScreenPreview() {
         roomCode = "",
         playerId = 0,
         onBackClicked = {},
-        onStartClicked = { _, _ -> }
+        onStartClicked = { _, _, _ -> }
     )
 }

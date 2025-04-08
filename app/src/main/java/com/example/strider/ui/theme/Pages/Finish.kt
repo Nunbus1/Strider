@@ -57,6 +57,7 @@ import kotlin.random.Random
 import com.example.strider.ui.theme.StriderTheme
 import com.example.strider.ui.theme.gradientPrimaryColors
 import com.example.strider.ui.theme.gradientSecondaryColor
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 
 @Composable
@@ -64,12 +65,23 @@ fun FinishScreen(
     imageViewModel : ImageViewModel?,
     roomCode: String,
     playerId: Int,
-    onContinueClicked: (roomCode: String, playerId: Int) -> Unit,
+    startTime: Long,
+    onContinueClicked: (roomCode: String, playerId: Int, startTime: Long) -> Unit,
     onHomeClicked: () -> Unit
 ) {
 
     val firestoreClient = remember { FirestoreClient() }
     val players = remember { mutableStateListOf<Pair<Int, Player>>() }
+
+    val elapsed = remember { mutableStateOf(0L) }
+
+    LaunchedEffect(Unit) {
+        while (true) {
+            elapsed.value = (System.currentTimeMillis() - startTime)
+            Log.d("TIMER", "Temps écoulé : ${elapsed.value / 1000}s")
+            delay(1000)
+        }
+    }
 
     LaunchedEffect(roomCode) {
         firestoreClient.getPlayersInRoom(roomCode).collect { newPlayers ->
@@ -132,7 +144,8 @@ fun FinishScreen(
             onNextClicked = { showSpeedState = true },
             onContinueClicked = onContinueClicked,
             roomCode = roomCode,
-            playerId = playerId
+            playerId = playerId,
+            startTime = startTime
         )
     }
 }
@@ -507,9 +520,10 @@ fun SpeedGraph(players: List<Pair<Int, Player>>, selectedPlayers: Set<Int>) {
 @Composable
 fun ActionButtons(
     onNextClicked: () -> Unit,
-    onContinueClicked: (String, Int) -> Unit,
+    onContinueClicked: (String, Int, Long) -> Unit,
     roomCode: String,
-    playerId: Int
+    playerId: Int,
+    startTime: Long,
 )
 {
     Row(
@@ -518,7 +532,7 @@ fun ActionButtons(
         horizontalArrangement = Arrangement.SpaceEvenly
     ) {
         Button(
-            onClick =  {onContinueClicked(roomCode, playerId) },
+            onClick =  {onContinueClicked(roomCode, playerId, startTime) },
             colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
             modifier = Modifier
                 .background(
@@ -550,6 +564,6 @@ fun ActionButtons(
 fun FinishScreenPreview() {
     StriderTheme {
         FinishScreen(null,roomCode = "",
-            playerId = 0, { _, _ -> }, {})
+            playerId = 0, startTime = System.currentTimeMillis(),{ _, _, _ -> }, {})
     }
 }

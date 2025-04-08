@@ -39,6 +39,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -61,6 +62,7 @@ import com.example.strider.PlayerManager
 import com.example.strider.R
 import com.example.strider.ui.theme.StriderTheme
 import com.example.strider.ui.theme.gradientPrimaryColors
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.runBlocking
@@ -72,14 +74,27 @@ fun GameScreen(
     imageViewModel: ImageViewModel?,
     roomCode: String,
     playerId: Int,
+    startTime: Long,
     modifier:Modifier = Modifier,
-    onPauseClicked: (roomCode: String, playerId: Int) -> Unit,
+    onPauseClicked: (roomCode: String, playerId: Int, startTime: Long) -> Unit,
     pictureProfil : Bitmap?) {
+
+    val elapsed = remember { mutableStateOf(0L) }
 
     val firestoreClient = remember { FirestoreClient() }
     val players = remember { mutableStateListOf<Pair<Int, Player>>() }
 
     var distanceTotale = remember { mutableFloatStateOf(0f) }
+
+
+    LaunchedEffect(Unit) {
+        while (true) {
+            elapsed.value = (System.currentTimeMillis() - startTime)
+            Log.d("TIMER", "Temps écoulé : ${elapsed.value / 1000}s")
+            delay(1000)
+        }
+    }
+
     //var playerFlow = firestoreClient.getPlayerById(roomCode, playerId)
     //val myPlayer by playerFlow.collectAsState(initial = PlayerManager.currentPlayer)
     LaunchedEffect(roomCode) {
@@ -88,7 +103,7 @@ fun GameScreen(
             players.addAll(newPlayers)
 
             newPlayers.forEach { (id, player) ->
-                Log.d("Debug", "Player[$id] = ${player.pseudo}")
+                //Log.d("Debug", "Player[$id] = ${player.pseudo}")
                 if(player.distance.value> distanceTotale.value){distanceTotale.value= player.distance.value}
             }
         }
@@ -200,7 +215,7 @@ fun GameScreen(
             contentAlignment = (Alignment.BottomCenter)
         ) {
             Button(
-                onClick = {onPauseClicked(roomCode, playerId) },
+                onClick = {onPauseClicked(roomCode, playerId, startTime) },
                 modifier = Modifier
                     .fillMaxWidth(0.7f)
                     .shadow(8.dp, shape = RoundedCornerShape(23.dp)),
@@ -344,7 +359,8 @@ fun PreviewMainScreen(){
             imageViewModel = null,
             roomCode = "",
             playerId = 0,
-            onPauseClicked = { _, _ -> },
+            startTime = System.currentTimeMillis(),
+            onPauseClicked = { _, _, _ -> },
             pictureProfil = null
         )
     }
