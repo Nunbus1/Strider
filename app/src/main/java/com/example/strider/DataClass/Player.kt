@@ -63,7 +63,7 @@ data class Player(
         return}
         */
 
-        this.distance.value += this.listLocation[this.listLocation.size-1].distanceTo(this.listLocation[this.listLocation.size])
+        this.distance.value += this.listLocation[this.listLocation.size-2].distanceTo(this.listLocation[this.listLocation.size-1])
         /*for (i in 0 until listLocation.size - 1) {
             totalDistance += locations[i].distanceTo(locations[i + 1])
         }
