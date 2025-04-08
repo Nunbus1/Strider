@@ -1,5 +1,6 @@
 package com.example.strider.ui.theme.Pages
 
+import ViewModels.ImageViewModel
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -54,6 +55,7 @@ import com.example.strider.ui.theme.gradientSecondaryColor
 
 @Composable
 fun FinishScreen(
+    imageViewModel : ImageViewModel?,
     onContinueClicked: () -> Unit,
     onHomeClicked: () -> Unit
 ) {
@@ -488,6 +490,6 @@ fun ActionButtons(onNextClicked: () -> Unit,onContinueClicked:() -> Unit) {
 @Composable
 fun FinishScreenPreview() {
     StriderTheme {
-        FinishScreen({}, {})
+        FinishScreen(null, {}, {})
     }
 }

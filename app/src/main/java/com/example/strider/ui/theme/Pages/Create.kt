@@ -24,11 +24,13 @@ import androidx.compose.ui.unit.sp
 import com.example.strider.ui.theme.gradientPrimaryColors
 import kotlinx.coroutines.launch
 import DataClass.Player
+import ViewModels.ImageViewModel
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 
 @Composable
 fun CreateScreen(
+    imageViewModel : ImageViewModel?,
     pseudo: String,
     onBackClicked: () -> Unit,
     onCreateClicked: (roomCode: String, playerId: Int) -> Unit,
@@ -272,6 +274,7 @@ fun generateRandomCode(length: Int): String {
 @Composable
 fun CreateScreenPreview() {
     CreateScreen(
+        imageViewModel = null,
         pseudo = "" ,
         onBackClicked = {},
         onCreateClicked = { _, _ -> }

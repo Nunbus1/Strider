@@ -16,6 +16,7 @@ firebaseDatabaseKtx = "21.0.0"
 
 firebaseBom = "33.4.0"
 gmsGoogleServices = "4.4.2"
+lifecycleService = "2.8.7"
 
 [libraries]
 firebase-bom = {module = "com.google.firebase:firebase-bom",version.ref = "firebaseBom"}
@@ -38,6 +39,7 @@ androidx-navigation-compose = { group = "androidx.navigation", name = "navigatio
 firebase-firestore-ktx = { group = "com.google.firebase", name = "firebase-firestore-ktx", version.ref = "firebaseFirestoreKtx" }
 firebase-firestore = { group = "com.google.firebase", name = "firebase-firestore", version.ref = "firebaseFirestore" }
 firebase-database-ktx = { group = "com.google.firebase", name = "firebase-database-ktx", version.ref = "firebaseDatabaseKtx" }
+androidx-lifecycle-service = { group = "androidx.lifecycle", name = "lifecycle-service", version.ref = "lifecycleService" }
 
 [plugins]
 

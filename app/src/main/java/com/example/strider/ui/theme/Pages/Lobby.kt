@@ -31,6 +31,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.strider.R
 import com.google.firebase.firestore.FirebaseFirestore
 import DataClass.Player
+import ViewModels.ImageViewModel
 import android.util.Log
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -40,10 +41,11 @@ import kotlinx.coroutines.flow.collectLatest
 
 @Composable
 fun LobbyScreen(
+    imageViewModel : ImageViewModel?,
     roomCode: String,
     playerId: Int,
     onBackClicked: () -> Unit,
-    onStartClicked: () -> Unit,
+    onStartClicked: (roomCode: String, playerId: Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val firestoreClient = remember { FirestoreClient() }
@@ -151,7 +153,7 @@ fun LobbyScreen(
         Spacer(modifier = Modifier.height(16.dp))
 
         Button(
-            onClick = onStartClicked,
+            onClick = { onStartClicked(roomCode, playerId) },
             colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
             modifier = Modifier
                 .background(
@@ -227,13 +229,16 @@ private fun getDrawableFromId(iconUrl: Int): Int {
     }
 }
 
+
+
 @Preview(showBackground = true)
 @Composable
 fun LobbyScreenPreview() {
     LobbyScreen(
+        imageViewModel = null,
         roomCode = "",
         playerId = 0,
         onBackClicked = {},
-        onStartClicked = {}
+        onStartClicked = { _, _ -> }
     )
 }

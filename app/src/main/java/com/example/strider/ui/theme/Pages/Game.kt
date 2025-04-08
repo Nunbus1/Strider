@@ -1,5 +1,8 @@
 package com.example.strider.ui.theme.Pages
+import ViewModels.ImageViewModel
 import android.app.Activity
+import android.graphics.Bitmap
+import android.location.Location
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -15,6 +18,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imeNestedScroll
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
@@ -58,9 +62,11 @@ import androidx.compose.material3.TopAppBarDefaults.topAppBarColors
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -82,195 +88,198 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
+import com.example.strider.LocationScreen
 import com.example.strider.R
+import com.example.strider.ui.theme.StriderTheme
 import com.example.strider.ui.theme.gradientPrimaryColors
+import com.google.android.gms.location.LocationResult
 import kotlin.math.round
 
-//val gradientColors = listOf(Color.Blue,Color.Cyan )
 
-data class Player(
-    val iconUrl: Int,
-    val pseudo: String
-)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun GameScreen(modifier:Modifier = Modifier,
-               onPauseClicked:() -> Unit) {
-    var presses by remember { mutableIntStateOf(0) }
-    var ListeScores by remember { mutableStateOf(listOf(0f)) }
+fun GameScreen(
+    imageViewModel: ImageViewModel?,
+    roomCode: String,
+    playerId: Int,
+    modifier:Modifier = Modifier,
+    onPauseClicked:() -> Unit, pictureProfil : Bitmap?) {
+    var presses by remember { mutableIntStateOf(0)
+    }
 
-    ListeScores = listOf(15f, 12f, 10f,11f)
-    val player1 = Player(1,"test")
-    val player2 = Player(1,"test")
-    val player3 = Player(1,"test")
-    val player4 = Player(1,"test")
-var ListePlayer = listOf(player1,player2,player3,player4)
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .background(colorScheme.primary)
+            .zIndex(-2f),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.SpaceBetween
+    ) {
+        TopAppBar(modifier = Modifier
+            .background(brush = Brush.linearGradient(colors = gradientPrimaryColors))
+            ,
 
-        Column(
-            modifier = modifier
-                .fillMaxSize()
-                .background(colorScheme.primary)
-                .zIndex(-2f),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.SpaceBetween
-        ) {
-            TopAppBar(modifier = Modifier
-                .background(brush = Brush.linearGradient(colors = gradientPrimaryColors))
-                ,
+            title = {
+                Text(
+                    modifier = modifier.fillMaxWidth(),
+                    textAlign = TextAlign.Center,
+                    maxLines = 1,
+                    text = stringResource(R.string.app_name),
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold
+                )
+            },
+            navigationIcon = {
 
-                title = {
-                    Text(
-                        modifier = modifier.fillMaxWidth(),
-                        textAlign = TextAlign.Center,
-                        maxLines = 1,
-                        text = stringResource(R.string.app_name),
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold
+                Icon(
+                    modifier = Modifier.size(50.dp),
+                    painter = painterResource(R.drawable.logo), // Use your desired icon
+                    contentDescription = "Menu Icon",
+
                     )
-                },
-                navigationIcon = {
+            }
 
-                    Icon(
-                        modifier = Modifier.size(50.dp),
-                        painter = painterResource(R.drawable.logo), // Use your desired icon
-                        contentDescription = "Menu Icon",
-
-                        )
-                }
-
-            )
+        )
 
 
-                Row(
-                    modifier = modifier
-                        .fillMaxSize(0.8f)
+        Row(
+            modifier = modifier
+                .fillMaxSize(0.8f)
 
-                        .border(10.dp,color =Color.Black, shape = RoundedCornerShape(20.dp))
-                        .shadow(
-                            elevation = 10.dp,
-                            shape = RoundedCornerShape(20.dp)
-                        )
-                        .background(Color.Gray, shape = RoundedCornerShape(20.dp))
+                .border(10.dp, color = Color.Black, shape = RoundedCornerShape(20.dp))
+                .shadow(
+                    elevation = 10.dp,
+                    shape = RoundedCornerShape(20.dp)
+                )
+                .background(Color.Gray, shape = RoundedCornerShape(20.dp))
 
-                        .padding(18.dp)
-                    ,
+                .padding(18.dp),
 
-                    verticalAlignment = Alignment.Bottom, // Align children vertically to the center
-                    horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.Bottom, // Align children vertically to the center
+            horizontalArrangement = Arrangement.SpaceEvenly,
 
-                    ) {
-                    for (score in ListeScores) {
-                        PlayerScoreStat(score, 15f)
-                        //Spacer(modifier = Modifier.weight(5f))
-                    }
-                }
-
-
-
-            Box(
-                modifier = Modifier.fillMaxSize()
-                    .padding(bottom = 50.dp),
-                contentAlignment = (Alignment.BottomCenter)
             ) {
-                Button(
-                    onClick = onPauseClicked,
+            val distanceTotale by remember {  mutableStateOf(player.distance) }
+            PlayerScoreStat(distanceTotale.value, imageViewModel = imageViewModel, distanceMax = 15f, isHost = player.isHost)
+
+            //for (score in ListeScores) {
+            //PlayerScoreStat(score, imageViewModel = imageViewModel, distanceMax = distanceTotale.value+1)
+            //Spacer(modifier = Modifier.weight(5f))
+            //}
+        }
+
+
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(bottom = 50.dp),
+            contentAlignment = (Alignment.BottomCenter)
+        ) {
+            LocationScreen(context = LocalContext.current, player=player)
+        }
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(bottom = 50.dp),
+            contentAlignment = (Alignment.BottomCenter)
+        ) {
+            Button(
+                onClick = onPauseClicked,
+                modifier = Modifier
+                    .fillMaxWidth(0.7f)
+                    .shadow(8.dp, shape = RoundedCornerShape(23.dp)),
+                colors = ButtonDefaults.buttonColors(
+                    Color.Transparent
+                ),
+
+                contentPadding = PaddingValues(),
+                shape = RoundedCornerShape(23.dp),
+            ) {
+                Box(
                     modifier = Modifier
-                        .fillMaxWidth(0.7f)
-                        .shadow(8.dp, shape = RoundedCornerShape(23.dp)),
-                    colors = ButtonDefaults.buttonColors(
-                        Color.Transparent
-                    ),
-
-                    contentPadding = PaddingValues(),
-                    shape = RoundedCornerShape(23.dp),
+                        .fillMaxWidth()
+                        .background(
+                            brush = Brush.linearGradient(gradientPrimaryColors)
+                        )
+                        .padding(20.dp),
+                    contentAlignment = Alignment.BottomCenter
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .background(
-                                brush = Brush.linearGradient(gradientPrimaryColors)
-                            )
-                            .padding(20.dp),
-                        contentAlignment = Alignment.BottomCenter
-                    ) {
-                        Text("Pause")
-                    }
-
+                    Text("Pause")
                 }
+
             }
         }
+    }
 
     //PlayerHorizontalBar(players = ListePlayer, modifier = Modifier)
 }
 
 @Composable
-fun PlayerScoreStat(distance: Float, distanceMax: Float,modifier: Modifier = Modifier) {
-Column (modifier = Modifier.fillMaxHeight()
-    .height(600.dp)
- ,
-    horizontalAlignment = Alignment.CenterHorizontally,
-    verticalArrangement = Arrangement.Bottom,
-
-
-    ) {
-    Image(
-        painter = painterResource(R.drawable.beaute),
-        contentDescription = "Player Icon",
+fun PlayerScoreStat(distance: Float, distanceMax: Float,imageViewModel: ImageViewModel?, modifier: Modifier = Modifier,isHost: Boolean = false) {
+    Column(
         modifier = Modifier
+            .fillMaxHeight()
+            .height(600.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Bottom,
+
+
+        ) {
+
+        ProfilePicture(modifier= Modifier
             .padding(bottom = 10.dp)
             .size(50.dp)
             .clip(CircleShape)
-            .background(Color.Cyan)
-               )
-    Box(
-        modifier = Modifier
-            .clip(RoundedCornerShape(10))
-
-            .fillMaxHeight(distance / distanceMax)
-            .background(
-                brush = Brush.linearGradient(colors = gradientPrimaryColors),
-            ),
-        //contentAlignment = Alignment.BottomCenter,
-    ) {
-
-        Text(
-            text = distance.toString(),
-            style = typography.bodySmall,
-            modifier = Modifier.padding(8.dp)
-                .graphicsLayer {
-                    rotationZ = 90f
-                }
-        )
-
-    }
-}
-}
-@Composable
-fun PlayerHorizontalBar(players: List<Player>, modifier: Modifier) {
+            , imageViewModel = imageViewModel,isHost= isHost)
         Box(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(top=70.dp, end = 0.dp)
-                ,
-            contentAlignment = Alignment.TopEnd,
-            ) {
-            Column(modifier = Modifier
+                .clip(RoundedCornerShape(10))
+
+                .fillMaxHeight(distance / distanceMax)
+                .background(
+                    brush = Brush.linearGradient(colors = gradientPrimaryColors),
+                ),
+            //contentAlignment = Alignment.BottomCenter,
+        ) {
+
+            Text(
+                text = distance.toString(),
+                style = typography.bodySmall,
+                modifier = Modifier
+                    .padding(8.dp)
+                    .graphicsLayer {
+                        rotationZ = 90f
+                    }
+            )
+
+        }
+    }
+}
+@Composable
+fun PlayerHorizontalBar(players: List<DataClass.Player>, modifier: Modifier) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(top = 70.dp, end = 0.dp),
+        contentAlignment = Alignment.TopEnd,
+    ) {
+        Column(
+            modifier = Modifier
                 //.background(color = colorScheme.secondary,
                 //    shape = MaterialTheme.shapes.medium)
-                .padding(5.dp)
-                //.shadow(10.dp,shape = MaterialTheme.shapes.medium))
-                    ,
-                horizontalAlignment = Alignment.End,
-            ) {
-                for (player in players) {
-                    PlayerIconWithPseudo(player)
-                }
+                .padding(5.dp),
+            //.shadow(10.dp,shape = MaterialTheme.shapes.medium))
+            horizontalAlignment = Alignment.End,
+        ) {
+            for (player in players) {
+                PlayerIconWithPseudo(player)
             }
         }
+    }
 
 }
 @Composable
-fun PlayerIconWithPseudo(player: Player) {
+fun PlayerIconWithPseudo(player: DataClass.Player) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier.padding(vertical = 2.dp)
@@ -285,7 +294,6 @@ fun PlayerIconWithPseudo(player: Player) {
                 modifier = Modifier
                     .size(40.dp)
                     .clip(CircleShape)
-                    .background(Color.Cyan)
             )
             //Spacer(modifier = Modifier.height(-15.dp))
             Text(
@@ -300,5 +308,28 @@ fun PlayerIconWithPseudo(player: Player) {
 @Preview(showBackground = true)
 @Composable
 fun PreviewMainScreen(){
-    GameScreen(onPauseClicked = {})
+    val testplayer = DataClass.Player( 1,"fec",false,  mutableListOf<Location>(
+        Location("provider").apply {
+            latitude = 40.7128 // Example: New York City
+            longitude = -74.0060
+            accuracy = 10f
+        },
+        Location("provider").apply {
+            latitude = 34.0522 // Example: Los Angeles
+            longitude = -118.2437
+            accuracy = 15f
+        },
+        Location("provider").apply {
+            latitude = 51.5074 // Example: London
+            longitude = -0.1278
+            accuracy = 12f
+        }))
+    StriderTheme {
+        GameScreen(
+            imageViewModel = null,
+            roomCode = "",
+            playerId = 0,
+            onPauseClicked = {}, pictureProfil = null
+        )
+    }
 }

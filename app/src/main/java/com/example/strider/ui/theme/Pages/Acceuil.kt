@@ -1,7 +1,9 @@
 package com.example.strider.ui.theme.Pages
 
 import DataClass.Player
+import ViewModels.ImageViewModel
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -17,10 +19,13 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
@@ -31,9 +36,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.strider.R
 import kotlinx.coroutines.launch
+import java.io.File
+import java.io.FileOutputStream
 
 @Composable
 fun AccueilScreen(
+    imageViewModel : ImageViewModel?,
     onCreateClicked: (String) -> Unit,
     onJoinClicked: (roomCode: String, playerId: Int) -> Unit,
     modifier: Modifier = Modifier
@@ -45,10 +53,13 @@ fun AccueilScreen(
     val coroutineScope = rememberCoroutineScope()
     val firestoreClient = FirestoreClient()
 
+
+
     // Gérer le bouton retour du téléphone
     BackHandler(isJoining) {
         isJoining = false
     }
+
 
     Column(
         modifier = modifier
@@ -76,7 +87,7 @@ fun AccueilScreen(
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        ProfilePicture()
+        TakeProfilePicture(imageViewModel)
 
         Spacer(modifier = Modifier.height(10.dp))
 
@@ -185,47 +196,90 @@ fun AccueilScreen(
 }
 
 @Composable
-fun ProfilePicture() {
+fun TakeProfilePicture(imageViewModel : ImageViewModel?) {
     var bitmap by remember { mutableStateOf<Bitmap?>(null) }
-
     val takePictureLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.TakePicturePreview()
     ) { result: Bitmap? ->
         bitmap = result
     }
-
-    Box {
+    Box(
+        //modifier = modifier.size(120.dp)
+    ) {
         Image(
             painter = painterResource(R.drawable.beaute),
             contentDescription = "Profile Picture",
             modifier = Modifier
                 .size(120.dp)
+                //.clip(RoundedCornerShape(25.dp))
                 .shadow(8.dp, shape = CircleShape)
                 .background(shape = CircleShape, color = Color.White),
         )
         bitmap?.let {
-            Image(
-                bitmap = it.asImageBitmap(),
-                contentDescription = "Captured photo",
-                modifier = Modifier
-                    .size(120.dp)
-                    .shadow(8.dp, shape = CircleShape)
-                    .background(shape = CircleShape, color = Color.White),
+            Image(bitmap = it.asImageBitmap(), contentDescription = "Captured photo",modifier = Modifier
+                .size(120.dp)
+                .background(shape = CircleShape, color = Color.White)
+                .shadow(8.dp, shape = CircleShape)
+                ,
+                contentScale = ContentScale.Crop,
             )
+            // Save the image to a file
+            val context = LocalContext.current
+            val internalDir = context.filesDir
+            val photoFile = File(internalDir,"temp_photo.jpg")
+            bitmap?.compress(Bitmap.CompressFormat.JPEG, 100, FileOutputStream(photoFile))
+            imageViewModel?.updateImagePath(photoFile.absolutePath)
         }
-        IconButton(
-            modifier = Modifier
-                .size(36.dp)
-                .background(Color.White, shape = CircleShape)
-                .align(Alignment.BottomEnd),
-            onClick = { takePictureLauncher.launch() }
-        ) {
+        IconButton(modifier = Modifier
+            .size(36.dp)
+            .background(Color.White, shape = CircleShape)
+            .align(Alignment.BottomEnd),
+            onClick = { takePictureLauncher.launch()
+            }) {
             Icon(
                 imageVector = androidx.compose.material.icons.Icons.Default.Add,
                 contentDescription = "Add",
                 tint = Color.Black,
                 modifier = Modifier.size(14.dp)
             )
+            //Text("Take Photo")
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+    }
+}
+
+@Composable
+fun ProfilePicture(modifier: Modifier, imageViewModel : ImageViewModel?,isHost: Boolean = false) {
+    //var bitmap by remember { mutableStateOf<Bitmap?>(null) }
+    Box(
+        modifier = modifier
+    ) {
+
+        Image(
+
+            painter = painterResource(R.drawable.beaute),
+            contentDescription = "Profile Picture",
+            modifier = Modifier
+                .background(shape = CircleShape, color = Color.White),
+        )
+        imageViewModel?.imagePath?.let {
+                path ->
+            val bitmap = BitmapFactory.decodeFile(path)
+
+            // val context = LocalContext.current
+            //val internalDir = context.filesDir
+            //val photoFile = File(internalDir,imageViewModel?.imagePath?)
+
+            Image(bitmap = bitmap.asImageBitmap(), contentDescription = "Captured photo",modifier = Modifier
+                .size(120.dp)
+                .background(shape = CircleShape, color = Color.White)
+                .clip(CircleShape)
+                .shadow(8.dp, shape = CircleShape)
+                ,
+                contentScale = ContentScale.Crop,
+            )
+
+
         }
     }
 }
@@ -234,6 +288,7 @@ fun ProfilePicture() {
 @Composable
 fun HomeScreenPreview() {
     AccueilScreen(
+        imageViewModel = null,
         onCreateClicked = {},
         onJoinClicked = { _, _ -> }
     )

@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import com.example.strider.R
+import com.google.firebase.firestore.ListenerRegistration
 
 class FirestoreClient {
     private val tag = "FirestoreClient: "
@@ -163,7 +164,6 @@ class FirestoreClient {
     }
 
 
-
     fun getPlayersInRoom(roomCode: String): Flow<List<Pair<Int, Player>>> = callbackFlow {
         val playersRef = db.collection("rooms")
             .document(roomCode)
@@ -200,9 +200,45 @@ class FirestoreClient {
     }.distinctUntilChanged()
 
 
+    fun getPlayerById(roomCode: String, playerId: Int): Flow<Player?> = callbackFlow {
+        val playerRef = db.collection("rooms")
+            .document(roomCode)
+            .collection("players")
+            .document(playerId.toString())
 
+        val listener = playerRef.addSnapshotListener { snapshot, error ->
+            if (error != null) {
+                error.printStackTrace()
+                trySend(null)
+                return@addSnapshotListener
+            }
 
+            val doc = snapshot
+            if (doc != null && doc.exists()) {
+                val pseudo = doc.getString("pseudo")
+                val iconUrl = (doc.getLong("iconUrl") ?: 0).toInt()
+                val isHost = doc.getBoolean("isHost") ?: false
+                val distance = (doc.getDouble("distance") ?: 0.0).toFloat()
 
+                if (pseudo != null) {
+                    val player = Player(
+                        iconUrl = iconUrl,
+                        pseudo = pseudo,
+                        isHost = isHost,
+                        listLocation = mutableListOf(),
+                        distance = mutableFloatStateOf(distance)
+                    )
+                    trySend(player)
+                } else {
+                    trySend(null)
+                }
+            } else {
+                trySend(null)
+            }
+        }
+
+        awaitClose { listener.remove() }
+    }
 
 
     private fun Room.toHashMap(): HashMap<String, Any> {
