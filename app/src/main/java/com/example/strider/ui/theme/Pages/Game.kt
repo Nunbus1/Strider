@@ -95,12 +95,7 @@ import com.example.strider.ui.theme.gradientPrimaryColors
 import com.google.android.gms.location.LocationResult
 import kotlin.math.round
 
-//val gradientColors = listOf(Color.Blue,Color.Cyan )
 
-data class Player(
-    val iconUrl: Int,
-    val pseudo: String
-)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GameScreen(
@@ -109,14 +104,6 @@ fun GameScreen(
     modifier:Modifier = Modifier,
     onPauseClicked:() -> Unit, pictureProfil : Bitmap?) {
     var presses by remember { mutableIntStateOf(0) }
-    var ListeScores by remember { mutableStateOf(listOf(0f)) }
-
-    ListeScores = listOf(15f, 12f, 10f,11f)
-    val player1 = Player(1,"test")
-    val player2 = Player(1,"test")
-    val player3 = Player(1,"test")
-    val player4 = Player(1,"test")
-var ListePlayer = listOf(player1,player2,player3,player4)
 
         Column(
             modifier = modifier
@@ -170,17 +157,13 @@ var ListePlayer = listOf(player1,player2,player3,player4)
                     horizontalArrangement = Arrangement.SpaceEvenly,
 
                     ) {
-                    //player.calculateTotalDistance()
-
                     val distanceTotale by remember {  mutableStateOf(player.distance) }
-                    //Text( distanceTotale.toString())
-                    //val distanceTotale by remember { mutableStateOf( player.distance) }
                     PlayerScoreStat(distanceTotale.value, imageViewModel = imageViewModel, distanceMax = 15f, isHost = player.isHost)
 
-                    for (score in ListeScores) {
-                        PlayerScoreStat(score, imageViewModel = imageViewModel, distanceMax = distanceTotale.value+1)
+                    //for (score in ListeScores) {
+                        //PlayerScoreStat(score, imageViewModel = imageViewModel, distanceMax = distanceTotale.value+1)
                         //Spacer(modifier = Modifier.weight(5f))
-                    }
+                    //}
                 }
 
 
@@ -271,7 +254,7 @@ Column(
 }
 }
 @Composable
-fun PlayerHorizontalBar(players: List<Player>, modifier: Modifier) {
+fun PlayerHorizontalBar(players: List<DataClass.Player>, modifier: Modifier) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -294,7 +277,7 @@ fun PlayerHorizontalBar(players: List<Player>, modifier: Modifier) {
 
 }
 @Composable
-fun PlayerIconWithPseudo(player: Player) {
+fun PlayerIconWithPseudo(player: DataClass.Player) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier.padding(vertical = 2.dp)
