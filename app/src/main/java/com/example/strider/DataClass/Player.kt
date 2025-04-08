@@ -8,6 +8,8 @@ import androidx.compose.runtime.Stable
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import com.example.strider.IdManager
+import com.example.strider.ui.theme.Pages.FirestoreClient
 //import com.google.android.gms.location.LocationResult
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -21,6 +23,7 @@ data class Player(
     var isHost: Boolean,
     var listLocation: MutableList<Location> = mutableListOf(),
     var distance: MutableFloatState = mutableFloatStateOf(0f),
+    var firestoreClient: FirestoreClient? = null
 
     ){
 
@@ -40,6 +43,7 @@ data class Player(
 
         if (this.listLocation.last().distanceTo(location) > 1.0f) {
             this.listLocation.add(location)
+            firestoreClient?.addLocationToPlayer(IdManager.currentRoomId!!,IdManager.currentPlayerId!!,location )
             this.calculateTotalDistance()
         }
     }

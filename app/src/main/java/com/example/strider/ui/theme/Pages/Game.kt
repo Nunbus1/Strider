@@ -1,8 +1,9 @@
 package com.example.strider.ui.theme.Pages
+import DataClass.Player
 import ViewModels.ImageViewModel
-import android.app.Activity
 import android.graphics.Bitmap
 import android.location.Location
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -12,62 +13,33 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.absoluteOffset
-import androidx.compose.foundation.layout.absolutePadding
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.imeNestedScroll
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material3.AlertDialog
 import androidx.compose.ui.res.painterResource
-import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MaterialTheme.colorScheme
-import androidx.compose.material3.MaterialTheme.shapes
 import androidx.compose.material3.MaterialTheme.typography
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults.topAppBarColors
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -75,25 +47,23 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.layout.VerticalAlignmentLine
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.dimensionResource
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import com.example.strider.LocationScreen
+import com.example.strider.PlayerManager
 import com.example.strider.R
 import com.example.strider.ui.theme.StriderTheme
 import com.example.strider.ui.theme.gradientPrimaryColors
-import com.google.android.gms.location.LocationResult
-import kotlin.math.round
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.last
+import kotlinx.coroutines.runBlocking
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -104,8 +74,54 @@ fun GameScreen(
     playerId: Int,
     modifier:Modifier = Modifier,
     onPauseClicked:() -> Unit, pictureProfil : Bitmap?) {
-    var presses by remember { mutableIntStateOf(0)
+
+    val firestoreClient = remember { FirestoreClient() }
+    val players = remember { mutableStateListOf<Pair<Int, Player>>() }
+
+    var distanceTotale = remember { mutableFloatStateOf(0f) }
+    //var playerFlow = firestoreClient.getPlayerById(roomCode, playerId)
+    //val myPlayer by playerFlow.collectAsState(initial = PlayerManager.currentPlayer)
+    LaunchedEffect(roomCode) {
+        firestoreClient.getPlayersInRoom(roomCode).collect { newPlayers ->
+            players.clear()
+            players.addAll(newPlayers)
+
+            newPlayers.forEach { (id, player) ->
+                Log.d("Debug", "Player[$id] = ${player.pseudo}")
+                if(player.distance.value> distanceTotale.value){distanceTotale.value= player.distance.value}
+            }
+        }
     }
+    //update distanceTotale based on the max distance in of every player in players
+    //LaunchedEffect(players) {
+    //    distanceTotale.value = players.maxOfOrNull { it.second.distance.value } ?: 0f
+    //    Log.d("Debug", "distanceTotale = $distanceTotale")
+    //}
+
+
+
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(bottom = 50.dp),
+        contentAlignment = (Alignment.BottomCenter)
+    ) {
+
+        LocationScreen(
+            context = LocalContext.current,
+        )
+    }
+    /*LaunchedEffect(roomCode) {
+        firestoreClient.getPlayersInRoom(roomCode).collect { newPlayers ->
+            players.clear()
+            players.addAll(newPlayers)
+
+            newPlayers.forEach { (id, player) ->
+                Log.d("Debug", "Player[$id] = ${player.pseudo}")
+            }
+        }
+    }*/
 
     Column(
         modifier = modifier
@@ -142,7 +158,7 @@ fun GameScreen(
         )
 
 
-        Row(
+        LazyRow(
             modifier = modifier
                 .fillMaxSize(0.8f)
 
@@ -159,24 +175,23 @@ fun GameScreen(
             horizontalArrangement = Arrangement.SpaceEvenly,
 
             ) {
-            val distanceTotale by remember {  mutableStateOf(player.distance) }
-            PlayerScoreStat(distanceTotale.value, imageViewModel = imageViewModel, distanceMax = 15f, isHost = player.isHost)
+            //val distanceTotale by remember {  mutableStateOf(player.distance) }
+            //create the first item with the current player
 
-            //for (score in ListeScores) {
-            //PlayerScoreStat(score, imageViewModel = imageViewModel, distanceMax = distanceTotale.value+1)
-            //Spacer(modifier = Modifier.weight(5f))
-            //}
+
+            itemsIndexed(players, key = { index, _ -> index }) { _, (id, player) ->
+                PlayerScoreStat(
+                    player.distance.value,
+                    imageViewModel = imageViewModel,
+                    distanceMax = distanceTotale.value + 10
+                )
+                Spacer(modifier = Modifier.weight(5f))
+            }
+
         }
 
 
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(bottom = 50.dp),
-            contentAlignment = (Alignment.BottomCenter)
-        ) {
-            LocationScreen(context = LocalContext.current, player=player)
-        }
+
         Box(
             modifier = Modifier
                 .fillMaxSize()

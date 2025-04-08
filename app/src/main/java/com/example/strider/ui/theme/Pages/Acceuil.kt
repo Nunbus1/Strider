@@ -34,6 +34,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.strider.IdManager
 import com.example.strider.R
 import kotlinx.coroutines.launch
 import java.io.File
@@ -153,6 +154,8 @@ fun AccueilScreen(
                                         // 🔥 Ajoute le joueur dans la room
                                         firestoreClient.joinRoomWithAutoId(code, player).collect { playerId ->
                                             if (playerId != null) {
+                                                IdManager.currentPlayerId=playerId
+                                                IdManager.currentRoomId = code
                                                 Log.d("Firebase", "Joueur ajouté avec ID : $playerId")
                                                 onJoinClicked(code, playerId)
                                             } else {

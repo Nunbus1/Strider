@@ -1,6 +1,7 @@
 package com.example.strider.ui.theme.Pages
 
 import DataClass.Player
+import android.location.Location
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import com.google.firebase.firestore.FirebaseFirestore
@@ -181,7 +182,7 @@ class FirestoreClient {
                 val pseudo = doc.getString("pseudo") ?: return@mapNotNull null
                 val iconUrl = (doc.getLong("iconUrl") ?: 0).toInt()
                 val isHost = doc.getBoolean("isHost") ?: false
-                val distance = (doc.getDouble("distance") ?: 0.0).toFloat()
+                val distance = (doc.getDouble("distance") ?: 10.0).toFloat()
 
                 val player = Player(
                     iconUrl = iconUrl,
@@ -256,4 +257,34 @@ class FirestoreClient {
             lastPlayerIndex = (this["lastPlayerIndex"] as Long).toInt()
         )
     }
+    suspend fun getPlayer(flow: Flow<Player?>): Player? {
+        var player: Player? = null
+        flow.collect { result ->
+            player = result
+        }
+        return player
+    }
+
+    //add location to player in firestore
+    fun addLocationToPlayer(roomCode: String, playerId: Int, location: Location) {
+        val playerRef = db.collection("rooms")
+            .document(roomCode)
+            .collection("players")
+            .document(playerId.toString())
+
+        val locationData = hashMapOf(
+            "latitude" to location.latitude,
+            "longitude" to location.longitude
+        )
+
+        playerRef.update(locationData as Map<String, Any>)
+            .addOnSuccessListener {
+                println("$tag Updated location for player $playerId in room $roomCode")
+            }
+            .addOnFailureListener { e ->
+                e.printStackTrace()
+                println("$tag Error updating location for player $playerId: ${e.message}")
+            }
+    }
+
 }

@@ -25,6 +25,8 @@ import com.example.strider.ui.theme.gradientPrimaryColors
 import kotlinx.coroutines.launch
 import DataClass.Player
 import ViewModels.ImageViewModel
+import com.example.strider.IdManager
+import com.example.strider.PlayerManager
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 
@@ -213,6 +215,8 @@ fun CreateScreen(
                         firestoreClient.insertRoomWithHost(roomCode, hostPlayer).collect { result ->
                             if (result != null) {
                                 Toast.makeText(context, "Room créée avec le code : $roomCode", Toast.LENGTH_SHORT).show()
+                                IdManager.currentRoomId = roomCode
+                                PlayerManager.currentPlayer?.firestoreClient= firestoreClient
                                 onCreateClicked(roomCode, 0)
                             } else {
                                 Toast.makeText(context, "Erreur lors de la création", Toast.LENGTH_SHORT).show()

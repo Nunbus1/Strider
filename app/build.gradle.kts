@@ -2,7 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
-    alias(libs.plugins.google.gms.google.services)
+    alias(libs.plugins.gms.google.services)
 }
 
 android {
@@ -56,9 +56,12 @@ dependencies {
     implementation(libs.firebase.database.ktx)
     implementation(platform(libs.firebase.bom))
     implementation("androidx.datastore:datastore-preferences:1.1.1")
-    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.6.0")
     implementation("androidx.localbroadcastmanager:localbroadcastmanager:1.1.0")
     implementation("com.google.android.gms:play-services-location:21.0.1")
+    implementation(libs.play.services.location)
+    //implementation(libs.androidx.media3.common.ktx)
+    implementation("com.google.firebase:firebase-firestore-ktx:25.0.0")
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.6.0")
     implementation(libs.androidx.lifecycle.service)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

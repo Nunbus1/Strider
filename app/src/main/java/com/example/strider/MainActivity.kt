@@ -49,6 +49,7 @@ import android.content.Intent
 import android.location.Location
 import android.util.Log
 import androidx.compose.material3.Button
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -59,6 +60,8 @@ import androidx.datastore.preferences.core.doublePreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.preferencesDataStore
 import androidx.lifecycle.LifecycleService
+import com.example.strider.ui.theme.Pages.FirestoreClient
+import com.google.firebase.FirebaseApp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -68,6 +71,10 @@ import kotlinx.coroutines.runBlocking
 val Context.dataStore by preferencesDataStore(name = "location_prefs")
 object PlayerManager {
     var currentPlayer: Player? = null
+}
+object IdManager {
+    var currentPlayerId: Int? = 0
+    var currentRoomId: String? = ""
 }
 class MainActivity :  ComponentActivity(), SensorEventListener {
     private lateinit var sensorManager: SensorManager
@@ -81,6 +88,7 @@ class MainActivity :  ComponentActivity(), SensorEventListener {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        FirebaseApp.initializeApp(this)
 
         sensorManager = getSystemService(SENSOR_SERVICE) as SensorManager
         stepSensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_DETECTOR)
@@ -132,7 +140,9 @@ class LocationService : LifecycleService() {
     private lateinit var locationRequest: LocationRequest
     private val locationCallback = object : LocationCallback() {
         override fun onLocationResult(locationResult: LocationResult) {
+            val firestoreClient = FirestoreClient()
             locationResult.lastLocation?.let { location ->
+                //firestoreClient.getPlayerById(IdManager.currentRoomId!!,IdManager.currentPlayerId!!)
                 PlayerManager.currentPlayer?.addLocation(location)
                 //Log.d("LocationService", "Lat: ${location.latitude} }, Lng: ${location.longitude}")
                 //saveLocation(location.latitude, location.longitude)
@@ -231,20 +241,11 @@ fun StepTrackerApp(stepCount: Int, isSensorAvailable: Boolean, currentPosition: 
 
 //exemple pour utiliser la localisation
 @Composable
-fun LocationScreen(context: Context, player: Player) {
-    //val locationService = LocationService(player)
+fun LocationScreen(context: Context) {
     val serviceIntent = remember { Intent(context, LocationService::class.java) }
     var isServiceRunning by remember { mutableStateOf(false) }
-    /* val latitudeFlow = context.dataStore.data.map { prefs ->
-         prefs[doublePreferencesKey("latitude")] ?: 0.0
-     }
-     val longitudeFlow = context.dataStore.data.map { prefs ->
-         prefs[doublePreferencesKey("longitude")] ?: 0.0
-     }
 
-     val latitude by latitudeFlow.collectAsState(initial = 0.0)
-     val longitude by longitudeFlow.collectAsState(initial = 0.0)
- */
+    /*
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission(),
         onResult = { granted ->
@@ -265,8 +266,65 @@ fun LocationScreen(context: Context, player: Player) {
         isServiceRunning = true
     } else {
         permissionLauncher.launch(android.Manifest.permission.ACCESS_FINE_LOCATION)
+    }*/
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission(),
+        onResult = { granted ->
+            if (granted && !isServiceRunning) {
+                context.startService(serviceIntent)
+                isServiceRunning = true
+            }
+        }
+    )
+
+    LaunchedEffect(Unit) {
+        if (ContextCompat.checkSelfPermission(
+                context,
+                android.Manifest.permission.ACCESS_FINE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
+            if (!isServiceRunning) {
+                context.startService(serviceIntent)
+                isServiceRunning = true
+            }
+        } else {
+            permissionLauncher.launch(android.Manifest.permission.ACCESS_FINE_LOCATION)
+        }
     }
 }
+/*
+@Composable
+fun LocationScreen(context: Context) {
+    val serviceIntent = remember { Intent(context, LocationService::class.java) }
+    var isServiceRunning by remember { mutableStateOf(false) }
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission(),
+        onResult = { granted ->
+            if (granted && !isServiceRunning) {
+                context.startService(serviceIntent)
+                isServiceRunning = true
+            }
+        }
+    )
+
+    LaunchedEffect(Unit) {
+        if (ContextCompat.checkSelfPermission(
+                context,
+                android.Manifest.permission.ACCESS_FINE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
+            if (!isServiceRunning) {
+                context.startService(serviceIntent)
+                isServiceRunning = true
+            }
+        } else {
+            permissionLauncher.launch(android.Manifest.permission.ACCESS_FINE_LOCATION)
+        }
+    }
+}
+*/
+
 /*
     Column(modifier = Modifier
         .fillMaxSize()
