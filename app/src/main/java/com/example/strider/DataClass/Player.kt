@@ -24,7 +24,7 @@ data class Player(
     var isHost: Boolean,
     var listLocation: MutableList<Location> = mutableListOf(),
     var distance: MutableFloatState = mutableFloatStateOf(0f),
-    var timedLocations: MutableList<Pair<Location, Long>> = mutableListOf(),
+    var timedDistance: MutableList<Pair<Float, Long>> = mutableListOf(),
     var firestoreClient: FirestoreClient? = null
 
     ){
@@ -40,14 +40,16 @@ data class Player(
     fun addLocation(location: Location) {
         if (this.listLocation.isEmpty()) {
             this.listLocation.add(location)
-            timedLocations.add(location to System.currentTimeMillis())
+            timedDistance.add(this?.distance?.value!!  to System.currentTimeMillis())
             return
         }
 
-        if (this.listLocation.last().distanceTo(location) > 10.0f) {
+        if (this.listLocation.last().distanceTo(location) > 1.0f) {
             this.listLocation.add(location)
-            timedLocations.add(location to System.currentTimeMillis())
+
+            timedDistance.add(this?.distance?.value!! to System.currentTimeMillis())
             firestoreClient?.addLocationToPlayer(IdManager.currentRoomId!!, IdManager.currentPlayerId!!, location)
+
             this.calculateTotalDistance()
         }
     }
@@ -68,7 +70,6 @@ data class Player(
         */
 
         this.distance.value += this.listLocation[this.listLocation.size-2].distanceTo(this.listLocation[this.listLocation.size-1])
-        firestoreClient?.updatePlayerDistance(IdManager.currentRoomId!!,IdManager.currentPlayerId!!)
         /*for (i in 0 until listLocation.size - 1) {
             totalDistance += locations[i].distanceTo(locations[i + 1])
         }

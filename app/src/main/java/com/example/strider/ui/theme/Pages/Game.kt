@@ -82,6 +82,7 @@ fun GameScreen(
     val elapsed = remember { mutableStateOf(0L) }
 
     val firestoreClient = remember { FirestoreClient() }
+    PlayerManager.currentPlayer?.firestoreClient= firestoreClient
     val players = remember { mutableStateListOf<Pair<Int, Player>>() }
 
     var distanceTotale = remember { mutableFloatStateOf(0f) }

@@ -70,7 +70,7 @@ import kotlinx.coroutines.runBlocking
 
 val Context.dataStore by preferencesDataStore(name = "location_prefs")
 object PlayerManager {
-    var currentPlayer: Player? = null
+    var currentPlayer: Player? = DataClass.Player( 1, "", false)
 }
 object IdManager {
     var currentPlayerId: Int? = 0

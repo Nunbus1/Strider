@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import com.example.strider.R
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.ListenerRegistration
 
 class FirestoreClient {
@@ -99,7 +100,7 @@ class FirestoreClient {
                 "iconUrl" to player.iconUrl,
                 "isHost" to true,
                 "distance" to player.distance.value,
-                "timedLocations" to emptyList<Map<String, Any>>()
+                "timedDistances" to emptyList<Map<String, Any>>()
                 //"latitude" to player.listLocation.lastOrNull()?.latitude ?: 0.0,
                 //"longitude" to player.listLocation.lastOrNull()?.longitude ?: 0.0
             )
@@ -143,7 +144,7 @@ class FirestoreClient {
                     "iconUrl" to player.iconUrl,
                     "isHost" to false,
                     "distance" to player.distance.value,
-                    "timedLocations" to emptyList<Map<String, Any>>()
+                    "timedDistances" to emptyList<Map<String, Any>>()
                     //"latitude" to player.listLocation.lastOrNull()?.latitude ?: 0.0,
                     //"longitude" to player.listLocation.lastOrNull()?.longitude ?: 0.0
                 )
@@ -187,8 +188,8 @@ class FirestoreClient {
                 val isHost = doc.getBoolean("isHost") ?: false
                 val distance = (doc.getDouble("distance") ?: 0.0).toFloat()
 
-                val timedList = doc["timedLocations"] as? List<Map<String, Any>> ?: emptyList()
-                val timedLocations = parseTimedLocations(timedList)
+                val timedList = doc["timedDistances"] as? List<Map<String, Any>> ?: emptyList()
+                val timedDistances = parsetimedDistances(timedList)
 
                 val player = Player(
                     iconUrl = iconUrl,
@@ -197,7 +198,7 @@ class FirestoreClient {
                     listLocation = mutableListOf(),
                     distance = mutableFloatStateOf(distance)
                 ).apply {
-                    this.timedLocations.addAll(timedLocations)
+                    this.timedDistance.addAll(timedDistance)
                 }
 
                 id to player
@@ -230,8 +231,8 @@ class FirestoreClient {
                 val isHost = doc.getBoolean("isHost") ?: false
                 val distance = (doc.getDouble("distance") ?: 0.0).toFloat()
 
-                val timedList = doc["timedLocations"] as? List<Map<String, Any>> ?: emptyList()
-                val timedLocations = parseTimedLocations(timedList)
+                val timedList = doc["timedDistances"] as? List<Map<String, Any>> ?: emptyList()
+                val timedDistances = parsetimedDistances(timedList)
 
                 if (pseudo != null) {
                     val player = Player(
@@ -241,7 +242,7 @@ class FirestoreClient {
                         listLocation = mutableListOf(),
                         distance = mutableFloatStateOf(distance)
                     ).apply {
-                        this.timedLocations.addAll(timedLocations)
+                        this.timedDistance.addAll(timedDistance)
                     }
 
                     trySend(player)
@@ -289,7 +290,8 @@ class FirestoreClient {
 
         val locationData = hashMapOf(
             "latitude" to location.latitude,
-            "longitude" to location.longitude
+            "longitude" to location.longitude,
+            "distance" to PlayerManager.currentPlayer?.distance?.value
         )
 
         playerRef.update(locationData as Map<String, Any>)
@@ -300,37 +302,30 @@ class FirestoreClient {
                 e.printStackTrace()
                 println("$tag Error updating location for player $playerId: ${e.message}")
             }
-    }
 
-    fun updatePlayerDistance(roomCode: String, playerId: Int): Flow<Float> {
-        return callbackFlow {
-            val playerRef = db.collection("rooms").document(roomCode)
-                .collection("players")
-                .document(playerId.toString()) // Assuming playerId is stored as a string in Firestore
-
-            playerRef.update("distance", PlayerManager.currentPlayer?.distance?.value)
+        //add distance and timestamp into timedDistances to player in firebase
+        val timedDistanceData = hashMapOf(
+            "distance" to PlayerManager.currentPlayer?.distance?.value,
+            "timestamp" to System.currentTimeMillis()
+        )
+            playerRef.update("timedDistance", FieldValue.arrayUnion(timedDistanceData))
                 .addOnSuccessListener {
-                    println("Distance updated successfully!")
+                    println("Item added successfully to $timedDistanceData!")
                 }
                 .addOnFailureListener { e ->
-                    println("Error updating distance: ${e.message}")
+                    println("Error adding item: ${e.message}")
                 }
-            awaitClose {}
-        }
 
     }
 
 
-
-    fun parseTimedLocations(data: List<Map<String, Any>>): List<Pair<Location, Long>> {
+    fun parsetimedDistances(data: List<Map<String, Any>>): List<Pair<Location, Long>> {
         return data.mapNotNull {
-            val lat = it["latitude"] as? Double
-            val lng = it["longitude"] as? Double
+            var distance = it["distance"] as? Float
             val timestamp = (it["timestamp"] as? Number)?.toLong()
-            if (lat != null && lng != null && timestamp != null) {
+            if (distance != null && timestamp != null) {
                 val loc = Location("").apply {
-                    latitude = lat
-                    longitude = lng
+                    distance = distance
                 }
                 loc to timestamp
             } else null
