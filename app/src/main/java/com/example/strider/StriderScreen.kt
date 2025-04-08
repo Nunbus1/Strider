@@ -126,8 +126,8 @@ fun StriderApp(navController: NavHostController = rememberNavController(), image
                     imageViewModel = imageViewModel,
                     roomCode = roomCode,
                     playerId = playerId,
-                    onContinueClicked = {
-                        navController.navigate("Game/$roomCode/$playerId")
+                    onContinueClicked = { code, id ->
+                        navController.navigate("Game/$code/$id")
                     },
                     onHomeClicked = {
                         navController.navigate(StriderScreen.Accueil.name)

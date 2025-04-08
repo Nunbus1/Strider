@@ -1,6 +1,8 @@
 package com.example.strider.ui.theme.Pages
 
+import DataClass.Player
 import ViewModels.ImageViewModel
+import android.util.Log
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -28,7 +30,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -52,19 +57,40 @@ import kotlin.random.Random
 import com.example.strider.ui.theme.StriderTheme
 import com.example.strider.ui.theme.gradientPrimaryColors
 import com.example.strider.ui.theme.gradientSecondaryColor
+import kotlinx.coroutines.flow.Flow
 
 @Composable
 fun FinishScreen(
     imageViewModel : ImageViewModel?,
     roomCode: String,
     playerId: Int,
-    onContinueClicked: () -> Unit,
+    onContinueClicked: (roomCode: String, playerId: Int) -> Unit,
     onHomeClicked: () -> Unit
 ) {
+
+    val firestoreClient = remember { FirestoreClient() }
+    val players = remember { mutableStateListOf<Pair<Int, Player>>() }
+
+    LaunchedEffect(roomCode) {
+        firestoreClient.getPlayersInRoom(roomCode).collect { newPlayers ->
+            players.clear()
+            players.addAll(newPlayers)
+
+            newPlayers.forEach { (id, player) ->
+                Log.d("Debug", "Player[$id] = ${player.pseudo}")
+            }
+        }
+
+    }
+    val sortedPlayers by remember {
+        derivedStateOf {
+            players.sortedByDescending { it.second.distance.value }
+        }
+    }
+
     var showSpeedState by remember { mutableStateOf(false) }
-    //val meIndex = Random.nextInt(12)
-    val meIndex = 4
-    var selectedPlayers by remember { mutableStateOf(setOf(meIndex)) }
+    //val meIndex = 4
+    var selectedPlayers by remember { mutableStateOf(setOf(playerId)) }
 
     Column(
         modifier = Modifier
@@ -79,27 +105,35 @@ fun FinishScreen(
             onHomeClicked = onHomeClicked // Passe la navigation vers Acceuil
         )
         Spacer(modifier = Modifier.height(10.dp))
-        ResultSection(playerName = "Bob", resultMessage = if (showSpeedState) "The fastest" else "Win this match")
+        ResultSection(
+            playerName = sortedPlayers.firstOrNull()?.second?.pseudo ?: "Unknown",
+            resultMessage = if (showSpeedState) "The fastest" else "Win this match")
         Spacer(modifier = Modifier.height(10.dp))
         if (showSpeedState) {
-            SpeedGraph(selectedPlayers)
+            SpeedGraph(players = players, selectedPlayers = selectedPlayers)
         } else {
             Podium()
         }
         Spacer(modifier = Modifier.height(10.dp))
         PlayerRanking(
-            showSpeedState,
-            selectedPlayers,
-            onPlayerClick = { playerId ->
-                selectedPlayers = if (selectedPlayers.contains(playerId))
-                    selectedPlayers - playerId
+            players = sortedPlayers,
+            showSpeed = showSpeedState,
+            selectedPlayers = selectedPlayers,
+            onPlayerClick = { clickedId ->
+                selectedPlayers = if (selectedPlayers.contains(clickedId))
+                    selectedPlayers - clickedId
                 else
-                    selectedPlayers + playerId
+                    selectedPlayers + clickedId
             },
-            meIndex = meIndex
+            meId = playerId
         )
         Spacer(modifier = Modifier.height(10.dp))
-        ActionButtons({ showSpeedState = true},onContinueClicked)
+        ActionButtons(
+            onNextClicked = { showSpeedState = true },
+            onContinueClicked = onContinueClicked,
+            roomCode = roomCode,
+            playerId = playerId
+        )
     }
 }
 
@@ -295,55 +329,61 @@ fun Podium() {
 }
 
 @Composable
-fun PlayerRanking(showSpeed: Boolean, selectedPlayers: Set<Int>, onPlayerClick: (Int) -> Unit, meIndex: Int) {
-    //val meIndex = Random.nextInt(12)
-    val players = List(12) { if (it == meIndex) "Player ${it + 1} (Me)" else "Player ${it + 1}" }
-    val speeds = List(12) { Random.nextInt(5, 20) } // Vitesse aléatoire entre 5 et 20 km/h
-
+fun PlayerRanking(
+    players: List<Pair<Int, Player>>,
+    showSpeed: Boolean,
+    selectedPlayers: Set<Int>,
+    onPlayerClick: (Int) -> Unit,
+    meId: Int
+) {
     val gradients = listOf(
         Brush.verticalGradient(colors = listOf(Color(0xFFFFD700), Color(0xFFFFE066))), // Or
         Brush.verticalGradient(colors = listOf(Color(0xFFC0C0C0), Color(0xFFD9D9D9))), // Argent
-        Brush.verticalGradient(colors = listOf(Color(0xFFCD7F32), Color(0xFFD8A47F))) // Bronze
+        Brush.verticalGradient(colors = listOf(Color(0xFFCD7F32), Color(0xFFD8A47F)))  // Bronze
     )
 
     val meGradient = Brush.verticalGradient(colors = listOf(Color(0xFF22FFFB), Color(0xFF48AAC5)))
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .horizontalScroll(rememberScrollState()),
         horizontalArrangement = Arrangement.Center
     ) {
-        players.chunked(5).forEachIndexed { globalIndex, group ->
+        players.chunked(5).forEach { group ->
             Column(
                 modifier = Modifier
                     .width(300.dp)
                     .padding(horizontal = 15.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                group.forEachIndexed { localIndex, player ->
-                    val speed = speeds[globalIndex * 5 + localIndex]
-                    val playerId = globalIndex * 5 + localIndex
+                group.forEachIndexed { index, (id, player) ->
+                    val isMe = id == meId
+                    val rank = players.indexOfFirst { it.first == id }
+                    val backgroundBrush = when {
+                        isMe -> meGradient
+                        rank == 0 -> gradients[0]
+                        rank == 1 -> gradients[1]
+                        rank == 2 -> gradients[2]
+                        else -> Brush.verticalGradient(colors = listOf(Color.White, Color.White))
+                    }
+
                     Box(
                         modifier = Modifier
                             .padding(5.dp)
                             .fillMaxWidth()
                             .shadow(8.dp, shape = RoundedCornerShape(16.dp))
-                            .clickable { onPlayerClick(playerId) }
-                            .background(
-                                when {
-                                    player.contains("(Me)") -> meGradient // Bleu pour "Me"
-                                    globalIndex * 5 + localIndex == 0 -> gradients[0] // Or pour le premier
-                                    globalIndex * 5 + localIndex == 1 -> gradients[1] // Argent pour le deuxième
-                                    globalIndex * 5 + localIndex == 2 -> gradients[2] // Bronze pour le troisième
-                                    else -> Brush.verticalGradient(colors = listOf(Color.White, Color.White))
-                                },
-                                shape = CircleShape
+                            .clickable { onPlayerClick(id) }
+                            .background(backgroundBrush, shape = CircleShape)
+                            .border(
+                                2.dp,
+                                if (selectedPlayers.contains(id)) Color.Black else Color.Transparent,
+                                CircleShape
                             )
-                            .border(2.dp, if (selectedPlayers.contains(playerId)) Color.Black else Color.Transparent, CircleShape)
                             .padding(5.dp)
                     ) {
                         Text(
-                            text = if (showSpeed) "$player - ${speed}km/h" else player,
+                            text = if (showSpeed) "${player.pseudo} - ${player.distance.value.toInt()}km/h" else player.pseudo,
                             fontSize = 15.sp,
                             color = Color.Black,
                             modifier = Modifier.align(Alignment.Center)
@@ -355,37 +395,42 @@ fun PlayerRanking(showSpeed: Boolean, selectedPlayers: Set<Int>, onPlayerClick: 
     }
 }
 
-@Composable
-fun SpeedGraph(selectedPlayers: Set<Int>) {
-    val players = 12
-    val timeSteps = 16
-    val speedData = List(players) { List(timeSteps) { Random.nextInt(1, 25).toFloat() } }
 
-    Canvas(modifier = Modifier
-        .fillMaxWidth()
-        .height(250.dp)
-        .padding(10.dp)
-        .shadow(8.dp, shape = RoundedCornerShape(16.dp))
-        .background(
-            brush = Brush.verticalGradient(
-                colors = listOf(Color(0xFFE8E8E8), Color(0xFFD0D0D0))
-            ),
-            shape = RoundedCornerShape(16.dp)
-        )
-        .padding(10.dp)
+@Composable
+fun SpeedGraph(players: List<Pair<Int, Player>>, selectedPlayers: Set<Int>) {
+    val timeSteps = 16
+    val speedData = remember {
+        players.associate { (id, _) ->
+            id to List(timeSteps) { Random.nextInt(1, 25).toFloat() }
+        }
+    }
+
+    Canvas(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(250.dp)
+            .padding(10.dp)
+            .shadow(8.dp, shape = RoundedCornerShape(16.dp))
+            .background(
+                brush = Brush.verticalGradient(
+                    colors = listOf(Color(0xFFE8E8E8), Color(0xFFD0D0D0))
+                ),
+                shape = RoundedCornerShape(16.dp)
+            )
+            .padding(10.dp)
     ) {
         val graphWidth = size.width - 50f
-        val graphHeight = (size.height - 50f)
+        val graphHeight = size.height - 50f
         val stepX = graphWidth / (timeSteps - 1)
         val stepY = graphHeight / 15f
         val originX = 20f
         val originY = size.height - 20f
 
-
-
-        for (i in 0 until timeSteps step 1) {
+        // Axes labels
+        for (i in 0 until timeSteps) {
             drawContext.canvas.nativeCanvas.drawText(
-                "$i", originX + i * stepX - 10, originY + 22f, android.graphics.Paint().apply {
+                "$i", originX + i * stepX - 10, originY + 22f,
+                android.graphics.Paint().apply {
                     textSize = 30f
                     color = android.graphics.Color.BLACK
                 }
@@ -393,13 +438,15 @@ fun SpeedGraph(selectedPlayers: Set<Int>) {
         }
         for (i in 0..30 step 5) {
             drawContext.canvas.nativeCanvas.drawText(
-                "$i", originX - 40f, originY - i * stepY / 2 + 10, android.graphics.Paint().apply {
+                "$i", originX - 40f, originY - i * stepY / 2 + 10,
+                android.graphics.Paint().apply {
                     textSize = 30f
                     color = android.graphics.Color.BLACK
                 }
             )
         }
 
+        // Axes lines
         for (i in 0..timeSteps) {
             val x = originX + i * stepX
             drawLine(Color.White, Offset(x, originY), Offset(x, originY - graphHeight), strokeWidth = 2f)
@@ -412,16 +459,16 @@ fun SpeedGraph(selectedPlayers: Set<Int>) {
         drawLine(Color.Black, Offset(originX, originY), Offset(originX, originY - graphHeight), strokeWidth = 3f)
         drawLine(Color.Black, Offset(originX, originY), Offset(originX + graphWidth, originY), strokeWidth = 3f)
 
+        // Labels
         drawContext.canvas.nativeCanvas.apply {
             drawText(
-                "Time", originX + graphWidth / 2 , originY - graphHeight - 20f,
+                "Time", originX + graphWidth / 2, originY - graphHeight - 20f,
                 android.graphics.Paint().apply {
                     textSize = 30f
                     textAlign = android.graphics.Paint.Align.CENTER
                     color = android.graphics.Color.BLACK
                 }
             )
-
             save()
             rotate(90f, originX + graphWidth + 40f, originY - graphHeight / 2)
             drawText(
@@ -435,17 +482,20 @@ fun SpeedGraph(selectedPlayers: Set<Int>) {
             restore()
         }
 
+        // Tracer les vitesses
         selectedPlayers.forEach { playerId ->
             val speeds = speedData[playerId]
-            val path = Path().apply {
-                moveTo(originX, originY - speeds[0] * stepY / 2)
-                for (i in 1 until timeSteps) {
-                    lineTo(originX + i * stepX, originY - speeds[i] * stepY / 2)
+            if (speeds != null) {
+                val path = Path().apply {
+                    moveTo(originX, originY - speeds[0] * stepY / 2)
+                    for (i in 1 until timeSteps) {
+                        lineTo(originX + i * stepX, originY - speeds[i] * stepY / 2)
+                    }
                 }
-            }
-            drawPath(path, gradientBrush, style = Stroke(width = 3f))
-            speeds.forEachIndexed { i, speed ->
-                drawCircle(Color.Black, 4f, Offset(originX + i * stepX, originY - speed * stepY / 2))
+                drawPath(path, gradientBrush, style = Stroke(width = 3f))
+                speeds.forEachIndexed { i, speed ->
+                    drawCircle(Color.Black, 4f, Offset(originX + i * stepX, originY - speed * stepY / 2))
+                }
             }
         }
     }
@@ -453,15 +503,22 @@ fun SpeedGraph(selectedPlayers: Set<Int>) {
 
 
 
+
 @Composable
-fun ActionButtons(onNextClicked: () -> Unit,onContinueClicked:() -> Unit) {
+fun ActionButtons(
+    onNextClicked: () -> Unit,
+    onContinueClicked: (String, Int) -> Unit,
+    roomCode: String,
+    playerId: Int
+)
+{
     Row(
         modifier = Modifier
             .fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceEvenly
     ) {
         Button(
-            onClick =  onContinueClicked,
+            onClick =  {onContinueClicked(roomCode, playerId) },
             colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
             modifier = Modifier
                 .background(
@@ -493,6 +550,6 @@ fun ActionButtons(onNextClicked: () -> Unit,onContinueClicked:() -> Unit) {
 fun FinishScreenPreview() {
     StriderTheme {
         FinishScreen(null,roomCode = "",
-            playerId = 0, {}, {})
+            playerId = 0, { _, _ -> }, {})
     }
 }
