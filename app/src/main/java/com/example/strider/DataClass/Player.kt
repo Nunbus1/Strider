@@ -13,6 +13,7 @@ import com.example.strider.ui.theme.Pages.FirestoreClient
 //import com.google.android.gms.location.LocationResult
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.flow
 
 
@@ -67,6 +68,7 @@ data class Player(
         */
 
         this.distance.value += this.listLocation[this.listLocation.size-2].distanceTo(this.listLocation[this.listLocation.size-1])
+        firestoreClient?.updatePlayerDistance(IdManager.currentRoomId!!,IdManager.currentPlayerId!!)
         /*for (i in 0 until listLocation.size - 1) {
             totalDistance += locations[i].distanceTo(locations[i + 1])
         }

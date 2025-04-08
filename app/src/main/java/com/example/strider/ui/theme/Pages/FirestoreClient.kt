@@ -4,6 +4,7 @@ import DataClass.Player
 import android.location.Location
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
+import com.example.strider.PlayerManager
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -300,6 +301,26 @@ class FirestoreClient {
                 println("$tag Error updating location for player $playerId: ${e.message}")
             }
     }
+
+    fun updatePlayerDistance(roomCode: String, playerId: Int): Flow<Float> {
+        return callbackFlow {
+            val playerRef = db.collection("rooms").document(roomCode)
+                .collection("players")
+                .document(playerId.toString()) // Assuming playerId is stored as a string in Firestore
+
+            playerRef.update("distance", PlayerManager.currentPlayer?.distance?.value)
+                .addOnSuccessListener {
+                    println("Distance updated successfully!")
+                }
+                .addOnFailureListener { e ->
+                    println("Error updating distance: ${e.message}")
+                }
+            awaitClose {}
+        }
+
+    }
+
+
 
     fun parseTimedLocations(data: List<Map<String, Any>>): List<Pair<Location, Long>> {
         return data.mapNotNull {
