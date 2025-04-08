@@ -96,17 +96,18 @@ fun StriderApp(navController: NavHostController = rememberNavController(), image
                     navArgument("roomCode") { type = NavType.StringType },
                     navArgument("playerId") { type = NavType.IntType }
                 )
-            ) {
-                backStackEntry ->
+            ) { backStackEntry ->
                 val roomCode = backStackEntry.arguments?.getString("roomCode") ?: ""
                 val playerId = backStackEntry.arguments?.getInt("playerId") ?: -1
+
                 GameScreen(
                     imageViewModel = imageViewModel,
                     roomCode = roomCode,
                     playerId = playerId,
-                    onPauseClicked = { roomCode: String, playerId: Int ->
-                        navController.navigate("Finish/$roomCode/$playerId")
-                    }
+                    onPauseClicked = {
+                        navController.navigate(StriderScreen.Finish.name)
+                    },
+                    pictureProfil = null
                 )
             }
 
