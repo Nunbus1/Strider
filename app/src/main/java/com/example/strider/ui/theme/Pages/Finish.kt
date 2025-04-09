@@ -413,19 +413,22 @@ fun PlayerRanking(
 @Composable
 fun SpeedGraph(players: List<Pair<Int, Player>>, selectedPlayers: Set<Int>) {
     val timeSteps = 15
-/*
+
     val distanceData = remember {
         players.associate { (id, _) ->
             id to List(timeSteps) { Random.nextInt(1, 25).toFloat() }
         }
-    }*/
-
+    }
+/*
     val distanceData = remember {
         players.associate { (id, player) ->
+            player.timedDistance.forEach { (distance, time) ->
+                Log.d("TIMED_DIST", "distance: $distance, time: $time")
+            }
             val distances = getInterpolatedDistancePoints(player.timedDistance, steps = timeSteps)
             id to distances
         }
-    }
+    }*/
 
 
 
@@ -597,7 +600,8 @@ fun getInterpolatedDistancePoints(
     timedDistance: List<Pair<Float, Long>>,
     steps: Int = 15
 ): List<Float> {
-    if (timedDistance.size < 2) return List(steps) { 0f }
+
+    if (timedDistance.isEmpty()) return List(steps) { 5f }
 
     val sorted = timedDistance.sortedBy { it.second }
     val startTime = sorted.first().second
