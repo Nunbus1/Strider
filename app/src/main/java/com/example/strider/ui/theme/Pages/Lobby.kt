@@ -151,16 +151,30 @@ fun LobbyScreen(
         }
 
         Spacer(modifier = Modifier.height(16.dp))
-
+        /*
+        players.forEach { (id, player) ->
+            if (id == playerId) {
+                ButtonStart(
+                    isHost = player.isHost,
+                    onStartClicked = onStartClicked,
+                    roomCode = roomCode,
+                    playerId = playerId)
+            }
+        }*/
         Button(
             onClick = {
                 val currentTime = System.currentTimeMillis()
-                onStartClicked(roomCode, playerId, currentTime)
+                onStartClicked(roomCode, playerId, currentTime) // pour le host
             },
             colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
             modifier = Modifier
                 .background(
-                    Brush.horizontalGradient(colors = listOf(Color(0xFF22A6FF), Color(0xFF0044FF))),
+                    Brush.horizontalGradient(
+                        colors = listOf(
+                            Color(0xFF22A6FF),
+                            Color(0xFF0044FF)
+                        )
+                    ),
                     shape = CircleShape
                 )
                 .width(150.dp)
@@ -168,7 +182,9 @@ fun LobbyScreen(
             Text("Start")
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+
+            Spacer(modifier = Modifier.height(16.dp))
+
     }
 }
 
@@ -223,6 +239,49 @@ fun PlayerCard(
             )
         }
     }
+}
+
+@Composable
+fun ButtonStart(
+    isHost: Boolean,
+    onStartClicked: (roomCode: String, playerId: Int, startTime: Long) -> Unit,
+    roomCode: String,
+    playerId: Int,) {
+
+    if(isHost){
+        Button(
+            onClick = {
+                val currentTime = System.currentTimeMillis()
+                onStartClicked(roomCode, playerId, currentTime) // pour le host
+            },
+            colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
+            modifier = Modifier
+                .background(
+                    Brush.horizontalGradient(
+                        colors = listOf(
+                            Color(0xFF22A6FF),
+                            Color(0xFF0044FF)
+                        )
+                    ),
+                    shape = CircleShape
+                )
+                .width(150.dp)
+        ) {
+            Text("Start")
+        }
+    }
+    else(
+            Text(
+                text = "Waiting for the hosting player...",
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Medium,
+                modifier = Modifier.padding(vertical = 8.dp)
+            )
+            )
+
+
+    Spacer(modifier = Modifier.height(16.dp))
+
 }
 
 private fun getDrawableFromId(iconUrl: Int): Int {

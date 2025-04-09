@@ -330,4 +330,17 @@ class FirestoreClient {
             } else null
         }
     }
+
+    fun setPlayerStarting(roomCode: String, playerId: Int) {
+        val playerRef = db.collection("rooms").document(roomCode)
+            .collection("players").document(playerId.toString())
+
+        playerRef.update("isStarting", true)
+            .addOnSuccessListener {
+                println("Item added successfully to $playerId!")
+            }
+            .addOnFailureListener { e ->
+                println("Error adding item: ${e.message}")
+            }
+    }
 }

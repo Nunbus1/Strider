@@ -25,7 +25,7 @@ data class Player(
     var listLocation: MutableList<Location> = mutableListOf(),
     var distance: MutableFloatState = mutableFloatStateOf(0f),
     var timedDistance: MutableList<Pair<Float, Long>> = mutableListOf(),
-    var firestoreClient: FirestoreClient? = null
+    var firestoreClient: FirestoreClient? = null,
 
     ){
 
