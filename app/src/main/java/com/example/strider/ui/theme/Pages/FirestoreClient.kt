@@ -1,6 +1,7 @@
 package com.example.strider.ui.theme.Pages
 
 import DataClass.Player
+import android.annotation.SuppressLint
 import android.location.Location
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -188,8 +189,8 @@ class FirestoreClient {
                 val isHost = doc.getBoolean("isHost") ?: false
                 val distance = (doc.getDouble("distance") ?: 0.0).toFloat()
 
-                val timedList = doc["timedDistances"] as? List<Map<String, Any>> ?: emptyList()
-                val timedDistances = parsetimedDistances(timedList)
+                val timedList = doc["timedDistance"] as? List<Map<String, Any>> ?: emptyList()
+                val parsedTimedDistances = parseTimedDistances(timedList)
 
                 val player = Player(
                     iconUrl = iconUrl,
@@ -198,7 +199,7 @@ class FirestoreClient {
                     listLocation = mutableListOf(),
                     distance = mutableFloatStateOf(distance)
                 ).apply {
-                    this.timedDistance.addAll(timedDistance)
+                    this.timedDistance.addAll(parsedTimedDistances)
                 }
 
                 id to player
@@ -231,8 +232,8 @@ class FirestoreClient {
                 val isHost = doc.getBoolean("isHost") ?: false
                 val distance = (doc.getDouble("distance") ?: 0.0).toFloat()
 
-                val timedList = doc["timedDistances"] as? List<Map<String, Any>> ?: emptyList()
-                val timedDistances = parsetimedDistances(timedList)
+                val timedList = doc["timedDistance"] as? List<Map<String, Any>> ?: emptyList()
+                val parsedTimedDistances = parseTimedDistances(timedList)
 
                 if (pseudo != null) {
                     val player = Player(
@@ -242,7 +243,7 @@ class FirestoreClient {
                         listLocation = mutableListOf(),
                         distance = mutableFloatStateOf(distance)
                     ).apply {
-                        this.timedDistance.addAll(timedDistance)
+                        this.timedDistance.addAll(parsedTimedDistances)
                     }
 
                     trySend(player)
@@ -282,6 +283,7 @@ class FirestoreClient {
     }
 
     //add location to player in firestore
+    @SuppressLint("SuspiciousIndentation")
     fun addLocationToPlayer(roomCode: String, playerId: Int, location: Location) {
         val playerRef = db.collection("rooms")
             .document(roomCode)
@@ -319,17 +321,13 @@ class FirestoreClient {
     }
 
 
-    fun parsetimedDistances(data: List<Map<String, Any>>): List<Pair<Location, Long>> {
+    fun parseTimedDistances(data: List<Map<String, Any>>): List<Pair<Float, Long>> {
         return data.mapNotNull {
-            var distance = it["distance"] as? Float
+            val distance = (it["distance"] as? Number)?.toFloat()
             val timestamp = (it["timestamp"] as? Number)?.toLong()
             if (distance != null && timestamp != null) {
-                val loc = Location("").apply {
-                    distance = distance
-                }
-                loc to timestamp
+                distance to timestamp
             } else null
         }
     }
-
 }
