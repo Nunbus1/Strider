@@ -74,10 +74,12 @@ fun CreateScreen(
                 fontSize = 60.sp,
                 fontWeight = FontWeight.Bold
             )
-            Box(
+            ProfilePicture(
                 modifier = Modifier
                     .size(50.dp)
-                    .background(Color.Gray, CircleShape)
+                    .background(Color.Gray, CircleShape),
+                imageViewModel = imageViewModel,
+                isHost = true
             )
         }
 

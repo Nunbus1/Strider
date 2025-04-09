@@ -90,11 +90,8 @@ fun LobbyScreen(
                 fontSize = 60.sp,
                 fontWeight = FontWeight.Bold
             )
-            Box(
-                modifier = Modifier
-                    .size(50.dp)
-                    .background(Color.Gray, CircleShape)
-            )
+            ProfilePicture(modifier = Modifier.size(75.dp)
+                .clip(CircleShape), imageViewModel = imageViewModel)
         }
 
         Spacer(modifier = Modifier.height(32.dp))
