@@ -58,6 +58,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
+import com.example.strider.IdManager
 import com.example.strider.LocationScreen
 import com.example.strider.PlayerManager
 import com.example.strider.R
@@ -199,6 +200,8 @@ fun GameScreen(
 
             itemsIndexed(players, key = { index, _ -> index }) { _, (id, player) ->
                 PlayerScoreStat(
+                    player.pseudo,
+                    id,
                     player.distance.value,
                     imageViewModel = imageViewModel,
                     distanceMax = distanceTotale.value + 10
@@ -249,7 +252,15 @@ fun GameScreen(
 
 @SuppressLint("DefaultLocale")
 @Composable
-fun PlayerScoreStat(distance: Float, distanceMax: Float,imageViewModel: ImageViewModel?, modifier: Modifier = Modifier,isHost: Boolean = false) {
+fun PlayerScoreStat(
+    playerName: String,
+    playerId : Int,
+    distance: Float,
+    distanceMax: Float,
+    imageViewModel: ImageViewModel?,
+    modifier: Modifier = Modifier,
+    isHost: Boolean = false
+) {
     Column(
         modifier = Modifier
             .fillMaxHeight()
@@ -258,12 +269,26 @@ fun PlayerScoreStat(distance: Float, distanceMax: Float,imageViewModel: ImageVie
         verticalArrangement = Arrangement.Bottom,
 
         ) {
-
+        if(IdManager.currentPlayerId==playerId ){
         ProfilePicture(modifier= Modifier
             .padding(bottom = 10.dp)
             .size(50.dp)
             .clip(CircleShape)
             , imageViewModel = imageViewModel,isHost= isHost)
+        }
+        else{
+    ProfilePicture(modifier= Modifier
+        .padding(bottom = 10.dp)
+        .size(50.dp)
+        .clip(CircleShape)
+        , imageViewModel = null,isHost= isHost)
+        }
+        Text(text = playerName,
+            style = typography.bodySmall.copy(color = Color.Red),
+            modifier = Modifier
+                .padding(8.dp)
+        )
+
         Box(
             modifier = Modifier
                 .clip(RoundedCornerShape(10))
