@@ -1,4 +1,4 @@
-# Strider - Version Alpha - Wiki
+# Strider - Version Beta - Wiki
 
 ## 1. Information sur l'environnement et l'application  
 Pour utiliser Strider, cette configuration est recommandé :
@@ -19,32 +19,25 @@ Pour utiliser Strider, cette configuration est recommandé :
 - Page de la partie en cours avec entête, graphique de progression, et ordre de placement des joueurs et bouton "Pause"
 - Page de Finish avec entête, podium, texte de victoire, podium avec photos des gagnants, liste des vainqueurs et deux boutons "Continue" et "Next"
 - Navigation entre les pages 
-
-### 🔄 Fonctionnalités en cours / à venir  
-- Gestion des pseudos dans un vrai système de session  
-- Amélioration de l'UI et des animations  
-- Ajout d’une gestion des erreurs et des validations  
-- Ajout de sons d'information durant la course
+- Mise en page avec le choix de notre palette de couleurs et de notre typographie 
 - Récupération des données de course
 - Génération d’un code de partie
 - Vérification de l'existence du code pour rejoindre la partie
-- Mise en page avec le choix de notre palette de couleurs et de notre typographie 
+- Ajout d’une gestion des erreurs et des validations  
+- Gestion des pseudos dans un vrai système de session  
+
+### 🔄 Fonctionnalités en cours / à venir  
+- Amélioration de l'UI et des animations  
+- Ajout de sons d'information durant la course
 
 ---
 
-## 3. Modifications apportées depuis la planification initiale  
+## 3. Modifications apportées depuis la planification de l'alpha  
 
+### Supression d'une page de récapitulatif sur le chemin parcouru  | Mineur |
+- C'était une option payante de Google pour activer les API nécessaires
 
-### Déplacement du choix du pseudo et image de profil dans l'acceuil | Majeur | 
-- Il nous semblait plus simple d'offrir à l'utilisateur directement ce choix et donc de réduire le nombre de page de notre application |
-
-### Ajout d’une page création de partie | Majeur | 
-- Permettra de configurer une partie avec des modes spécifiques 
-
-### Modification de la représentation des données dans la page finish  | Mineur |
-- Découpage en plusieurs défilement les statistiques récupérées pendant la course 
-
-### Affichage en plus grand le nom et la photo du joueur dans le lobby  | Mineur |
-- Permettra une meilleure visibilité aux joueurs
+### Supression du syteme de gamemode  | Mineur |
+- On a manqué de temps par rapport à l'utilité que cela apportait
 ---
 
