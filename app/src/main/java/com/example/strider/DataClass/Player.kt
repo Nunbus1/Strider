@@ -44,7 +44,7 @@ data class Player(
             return
         }
 
-        if (this.listLocation.last().distanceTo(location) > 1.0f) {
+        if (this.listLocation.last().distanceTo(location) > 10.0f) {
             this.listLocation.add(location)
 
             timedDistance.add(this?.distance?.value!! to System.currentTimeMillis())

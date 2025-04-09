@@ -1,6 +1,7 @@
 package com.example.strider.ui.theme.Pages
 import DataClass.Player
 import ViewModels.ImageViewModel
+import android.annotation.SuppressLint
 import android.graphics.Bitmap
 import android.location.Location
 import android.util.Log
@@ -246,6 +247,7 @@ fun GameScreen(
     //PlayerHorizontalBar(players = ListePlayer, modifier = Modifier)
 }
 
+@SuppressLint("DefaultLocale")
 @Composable
 fun PlayerScoreStat(distance: Float, distanceMax: Float,imageViewModel: ImageViewModel?, modifier: Modifier = Modifier,isHost: Boolean = false) {
     Column(
@@ -274,8 +276,8 @@ fun PlayerScoreStat(distance: Float, distanceMax: Float,imageViewModel: ImageVie
         ) {
 
             Text(
-                text = distance.toString(),
-                style = typography.bodySmall,
+                text = String.format("%.1f", distance),
+                style = typography.bodySmall.copy(color = Color.Red),
                 modifier = Modifier
                     .padding(8.dp)
                     .graphicsLayer {
