@@ -59,6 +59,7 @@ import com.example.strider.ui.theme.gradientPrimaryColors
 import com.example.strider.ui.theme.gradientSecondaryColor
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlin.math.ceil
 
 @Composable
 fun FinishScreen(
@@ -411,12 +412,22 @@ fun PlayerRanking(
 
 @Composable
 fun SpeedGraph(players: List<Pair<Int, Player>>, selectedPlayers: Set<Int>) {
-    val timeSteps = 16
-    val speedData = remember {
+    val timeSteps = 15
+/*
+    val distanceData = remember {
         players.associate { (id, _) ->
             id to List(timeSteps) { Random.nextInt(1, 25).toFloat() }
         }
+    }*/
+
+    val distanceData = remember {
+        players.associate { (id, player) ->
+            val distances = getInterpolatedDistancePoints(player.timedDistance, steps = timeSteps)
+            id to distances
+        }
     }
+
+
 
     Canvas(
         modifier = Modifier
@@ -432,50 +443,92 @@ fun SpeedGraph(players: List<Pair<Int, Player>>, selectedPlayers: Set<Int>) {
             )
             .padding(10.dp)
     ) {
-        val graphWidth = size.width - 50f
-        val graphHeight = size.height - 50f
-        val stepX = graphWidth / (timeSteps - 1)
-        val stepY = graphHeight / 15f
-        val originX = 20f
-        val originY = size.height - 20f
+        val graphWidth = size.width - 60f
+        val graphHeight = size.height - 60f
+        val originX = 40f
+        val originY = size.height - 30f
 
-        // Axes labels
+        // Calcul du total en minutes et de l’échelle pour l’axe X
+      //  val totalDurationMinutes = (maxTimestamp - minTimestamp).toFloat() / 60000f
+        //val stepX = graphWidth / totalDurationMinutes
+        val stepX = graphWidth / (timeSteps - 1)
+
+        // Récupère la distance max de tous les joueurs sélectionnés
+        val allDistances = selectedPlayers.flatMap { distanceData[it] ?: emptyList() }
+        val maxDistance = allDistances.maxOrNull()?.coerceAtLeast(0.1f) ?: 1f
+        val stepY = graphHeight / maxDistance
+
+        // Graduation dynamique Y
+        val yStepKm = when {
+            maxDistance > 10f -> 5
+            maxDistance > 5f -> 2
+            else -> 1
+        }
+        val maxYLabel = ceil(maxDistance / yStepKm).toInt() * yStepKm
+
+        // Graduation X (temps)
         for (i in 0 until timeSteps) {
             drawContext.canvas.nativeCanvas.drawText(
-                "$i", originX + i * stepX - 10, originY + 22f,
+                "$i", originX + i * stepX - 10, originY + 25f,
                 android.graphics.Paint().apply {
-                    textSize = 30f
-                    color = android.graphics.Color.BLACK
-                }
-            )
-        }
-        for (i in 0..30 step 5) {
-            drawContext.canvas.nativeCanvas.drawText(
-                "$i", originX - 40f, originY - i * stepY / 2 + 10,
-                android.graphics.Paint().apply {
-                    textSize = 30f
+                    textSize = 28f
                     color = android.graphics.Color.BLACK
                 }
             )
         }
 
-        // Axes lines
+        // Graduation Y (distance)
+        for (i in 0..maxYLabel step yStepKm) {
+            val y = originY - i * stepY
+            drawContext.canvas.nativeCanvas.drawText(
+                "$i", originX - 35f, y + 10f,
+                android.graphics.Paint().apply {
+                    textSize = 28f
+                    color = android.graphics.Color.BLACK
+                }
+            )
+        }
+
+        // Grille
         for (i in 0..timeSteps) {
             val x = originX + i * stepX
-            drawLine(Color.White, Offset(x, originY), Offset(x, originY - graphHeight), strokeWidth = 2f)
+            drawLine(Color.LightGray, Offset(x, originY), Offset(x, originY - graphHeight), strokeWidth = 1f)
         }
-        for (i in 0..30 step 5) {
-            val y = originY - i * stepY / 2
-            drawLine(Color.White, Offset(originX, y), Offset(originX + graphWidth, y), strokeWidth = 2f)
+        for (i in 0..maxYLabel step yStepKm) {
+            val y = originY - i * stepY
+            drawLine(Color.LightGray, Offset(originX, y), Offset(originX + graphWidth, y), strokeWidth = 1f)
         }
 
-        drawLine(Color.Black, Offset(originX, originY), Offset(originX, originY - graphHeight), strokeWidth = 3f)
-        drawLine(Color.Black, Offset(originX, originY), Offset(originX + graphWidth, originY), strokeWidth = 3f)
+        // Axes
+        drawLine(Color.Black, Offset(originX, originY), Offset(originX, originY - graphHeight), strokeWidth = 2f)
+        drawLine(Color.Black, Offset(originX, originY), Offset(originX + graphWidth, originY), strokeWidth = 2f)
 
-        // Labels
+        // Tracer les courbes pour chaque joueur
+        selectedPlayers.forEach { playerId ->
+            val distances = distanceData[playerId]
+            if (!distances.isNullOrEmpty()) {
+                val path = Path().apply {
+                    moveTo(originX, originY - distances[0] * stepY)
+                    for (i in 1 until distances.size) {
+                        lineTo(originX + i * stepX, originY - distances[i] * stepY)
+                    }
+                }
+                drawPath(path, gradientBrush, style = Stroke(width = 3f))
+
+                distances.forEachIndexed { i, distance ->
+                    drawCircle(
+                        color = Color.Black,
+                        radius = 4f,
+                        center = Offset(originX + i * stepX, originY - distance * stepY)
+                    )
+                }
+            }
+        }
+
+        // Labels axes
         drawContext.canvas.nativeCanvas.apply {
             drawText(
-                "Time", originX + graphWidth / 2, originY - graphHeight - 20f,
+                "Temps", originX + graphWidth / 2, originY + 50f,
                 android.graphics.Paint().apply {
                     textSize = 30f
                     textAlign = android.graphics.Paint.Align.CENTER
@@ -485,7 +538,7 @@ fun SpeedGraph(players: List<Pair<Int, Player>>, selectedPlayers: Set<Int>) {
             save()
             rotate(90f, originX + graphWidth + 40f, originY - graphHeight / 2)
             drawText(
-                "Speed", originX + graphWidth + 40f, originY - graphHeight / 2 + 15,
+                "Distance (km)", originX + graphWidth + 40f, originY - graphHeight / 2 + 15,
                 android.graphics.Paint().apply {
                     textSize = 30f
                     textAlign = android.graphics.Paint.Align.CENTER
@@ -494,27 +547,85 @@ fun SpeedGraph(players: List<Pair<Int, Player>>, selectedPlayers: Set<Int>) {
             )
             restore()
         }
-
-        // Tracer les vitesses
-        selectedPlayers.forEach { playerId ->
-            val speeds = speedData[playerId]
-            if (speeds != null) {
-                val path = Path().apply {
-                    moveTo(originX, originY - speeds[0] * stepY / 2)
-                    for (i in 1 until timeSteps) {
-                        lineTo(originX + i * stepX, originY - speeds[i] * stepY / 2)
-                    }
-                }
-                drawPath(path, gradientBrush, style = Stroke(width = 3f))
-                speeds.forEachIndexed { i, speed ->
-                    drawCircle(Color.Black, 4f, Offset(originX + i * stepX, originY - speed * stepY / 2))
-                }
-            }
-        }
     }
+
 }
 
 
+fun getInterpolatedSpeedPoints(
+    timedDistance: List<Pair<Float, Long>>,
+    steps: Int = 15,
+    inKmPerHour: Boolean = true // sinon c’est en km/min
+): List<Float> {
+    if (timedDistance.size < 2) return List(steps) { 0f }
+
+    val sorted = timedDistance.sortedBy { it.second }
+    val startTime = sorted.first().second
+    val endTime = sorted.last().second
+    val totalDuration = endTime - startTime
+
+    val stepDuration = totalDuration / (steps - 1)
+
+    val result = mutableListOf<Float>()
+    var currentIndex = 0
+
+    for (i in 0 until steps) {
+        val targetTime = startTime + i * stepDuration
+
+        // Avancer dans la liste pour trouver les 2 points autour du temps voulu
+        while (currentIndex < sorted.size - 2 && sorted[currentIndex + 1].second < targetTime) {
+            currentIndex++
+        }
+
+        val (d1, t1) = sorted[currentIndex]
+        val (d2, t2) = sorted[currentIndex + 1]
+
+        val deltaDistance = d2 - d1
+        val deltaTime = (t2 - t1).toFloat() / 60000f // en minutes
+        val baseSpeed = if (deltaTime > 0f) deltaDistance / deltaTime else 0f
+
+        // Optionnel : convertir en km/h
+        val speed = if (inKmPerHour) baseSpeed * 60f else baseSpeed
+
+        result.add(speed)
+    }
+
+    return result
+}
+
+fun getInterpolatedDistancePoints(
+    timedDistance: List<Pair<Float, Long>>,
+    steps: Int = 15
+): List<Float> {
+    if (timedDistance.size < 2) return List(steps) { 0f }
+
+    val sorted = timedDistance.sortedBy { it.second }
+    val startTime = sorted.first().second
+    val endTime = sorted.last().second
+    val totalDuration = endTime - startTime
+    val stepDuration = totalDuration / (steps - 1)
+
+    val result = mutableListOf<Float>()
+    var currentIndex = 0
+
+    for (i in 0 until steps) {
+        val targetTime = startTime + i * stepDuration
+
+        while (currentIndex < sorted.size - 2 && sorted[currentIndex + 1].second < targetTime) {
+            currentIndex++
+        }
+
+        val (d1, t1) = sorted[currentIndex]
+        val (d2, t2) = sorted[currentIndex + 1]
+
+        val tFraction = (targetTime - t1).toFloat() / (t2 - t1).toFloat()
+        val interpolatedDistance = d1 + (d2 - d1) * tFraction
+
+        result.add(interpolatedDistance / 1000f) // convertir en km
+    }
+
+    return result
+}
 
 
 @Composable
