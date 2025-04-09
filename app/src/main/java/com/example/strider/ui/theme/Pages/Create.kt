@@ -111,7 +111,7 @@ fun CreateScreen(
         HorizontalDivider(color = Color.Gray, thickness = 1.dp)
 
         Spacer(modifier = Modifier.height(32.dp))
-
+/*
         Text(text = "GameMode", fontSize = 20.sp, modifier = Modifier.padding(8.dp))
 
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -171,7 +171,7 @@ fun CreateScreen(
                 modifier = Modifier.padding(10.dp),
             )
         }
-
+*/
         Spacer(modifier = Modifier.height(100.dp))
 
         Button(

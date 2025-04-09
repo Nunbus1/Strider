@@ -98,12 +98,12 @@ class MainActivity :  ComponentActivity(), SensorEventListener {
         enableEdgeToEdge()
         setContent {
 
-
+/*
             StepTrackerApp(
                 stepCount = stepCount.intValue,
                 isSensorAvailable = stepSensor != null,
                 //currentPosition = player.listLocation.last()
-            )
+            )*/
 
             StriderTheme {
                 StriderApp(imageViewModel = imageView)
@@ -226,7 +226,7 @@ fun StepTrackerApp(stepCount: Int, isSensorAvailable: Boolean, currentPosition: 
                         verticalArrangement = Arrangement.Center
                     ) {
                         Text("Step Tracker", fontSize = 24.sp, color = MaterialTheme.colorScheme.primary)
-                        Spacer(modifier = Modifier.height(16.dp))
+                       // Spacer(modifier = Modifier.height(16.dp))
                         Text("Steps: $stepCount", fontSize = 48.sp, color = MaterialTheme.colorScheme.onBackground)
 
                     }
