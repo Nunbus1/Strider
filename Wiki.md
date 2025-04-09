@@ -37,7 +37,7 @@ Pour utiliser Strider, cette configuration est recommandé :
 ### Supression d'une page de récapitulatif sur le chemin parcouru  | Mineur |
 - C'était une option payante de Google pour activer les API nécessaires
 
-### Supression du syteme de gamemode  | Mineur |
+### Supression du syteme de gamemode  | Majeu |
 - On a manqué de temps par rapport à l'utilité que cela apportait
 ---
 
