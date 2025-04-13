@@ -77,14 +77,15 @@ fun CreateScreen(
             ProfilePicture(
                 modifier = Modifier
                     .size(50.dp)
-                    .background(Color.Gray, CircleShape),
+                    .background(shape = CircleShape, color = Color.White)
+                    ,
                 imageViewModel = imageViewModel,
                 isHost = true
             )
         }
 
         Spacer(modifier = Modifier.height(32.dp))
-
+/*
         // Titre
         Card(
             shape = RoundedCornerShape(8.dp),
@@ -173,7 +174,7 @@ fun CreateScreen(
         }
 
         Spacer(modifier = Modifier.height(100.dp))
-
+*/
         Button(
             onClick = {
                 coroutineScope.launch {

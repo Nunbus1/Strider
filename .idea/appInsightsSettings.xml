@@ -8,10 +8,10 @@
             <InsightsFilterSettings>
               <option name="connection">
                 <ConnectionSetting>
-                  <option name="appId" value="PLACEHOLDER" />
-                  <option name="mobileSdkAppId" value="" />
-                  <option name="projectId" value="" />
-                  <option name="projectNumber" value="" />
+                  <option name="appId" value="com.example.strider" />
+                  <option name="mobileSdkAppId" value="1:999451407744:android:9b55c562ca738b14957d65" />
+                  <option name="projectId" value="strider-4bead" />
+                  <option name="projectNumber" value="999451407744" />
                 </ConnectionSetting>
               </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />

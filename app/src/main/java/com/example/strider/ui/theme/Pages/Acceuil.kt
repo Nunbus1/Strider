@@ -31,6 +31,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -47,7 +48,10 @@ fun AccueilScreen(
     onJoinClicked: (roomCode: String, playerId: Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    var pseudo by remember { mutableStateOf("Pseudo") }
+    var pseudo by remember { mutableStateOf(TextFieldValue("")) }
+
+    val placeholderText = "Enter your pseudo"
+
     var code by remember { mutableStateOf("") }
     var isJoining by remember { mutableStateOf(false) }
 
@@ -100,6 +104,11 @@ fun AccueilScreen(
                 keyboardType = KeyboardType.Text,
                 imeAction = ImeAction.Done
             ),
+            placeholder = {
+                if (pseudo.text.isEmpty() ) {
+                Text(text = placeholderText)
+                }
+            },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp)
@@ -111,7 +120,7 @@ fun AccueilScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Button(
-                onClick = { onCreateClicked(pseudo) },
+                onClick = { onCreateClicked(pseudo.text) },
                 colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
                 modifier = Modifier
                     .background(
@@ -139,14 +148,14 @@ fun AccueilScreen(
 
                 Button(
                     onClick = {
-                        if (pseudo.isNotBlank() && code.isNotBlank()) {
+                        if (pseudo.toString().isNotBlank() && code.isNotBlank()) {
                             coroutineScope.launch {
                                 firestoreClient.getRoom(code).collect { room ->
                                     if (room != null) {
                                         Log.d("Firebase", "Room trouvée avec le code : $code")
 
                                         val player = Player(
-                                            pseudo = pseudo,
+                                            pseudo = pseudo.text,
                                             iconUrl = 1,
                                             isHost = false
                                         )

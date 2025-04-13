@@ -99,11 +99,11 @@ class MainActivity :  ComponentActivity(), SensorEventListener {
         setContent {
 
 
-            StepTrackerApp(
+            /*StepTrackerApp(
                 stepCount = stepCount.intValue,
                 isSensorAvailable = stepSensor != null,
                 //currentPosition = player.listLocation.last()
-            )
+            )*/
 
             StriderTheme {
                 StriderApp(imageViewModel = imageView)
