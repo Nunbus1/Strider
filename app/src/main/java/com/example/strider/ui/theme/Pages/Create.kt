@@ -28,6 +28,7 @@ import ViewModels.ImageViewModel
 import com.example.strider.IdManager
 import com.example.strider.PlayerManager
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.tasks.await
 
 @Composable
@@ -175,59 +176,48 @@ fun CreateScreen(
 
         Spacer(modifier = Modifier.height(100.dp))
 */
-        Button(
-            onClick = {
-                coroutineScope.launch {
-                    roomCode = generateUniqueRoomCode()
-                }
-            },
+        OutlinedTextField(
+            value = roomCode,
+            onValueChange = { roomCode = it.uppercase().replace(" ", "") },
+            label = { Text("Code") },
+            placeholder = { Text("At least 6 characters") },
+            singleLine = true,
             modifier = Modifier
                 .fillMaxWidth(0.7f)
-                .shadow(8.dp, shape = RoundedCornerShape(23.dp)),
-            colors = ButtonDefaults.buttonColors(Color.Transparent),
-            contentPadding = PaddingValues(),
-            shape = RoundedCornerShape(23.dp)
-        ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(Brush.linearGradient(gradientPrimaryColors))
-                    .padding(20.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = if (roomCode.isNotEmpty()) roomCode else "Générer un code",
-                    color = Color.White
-                )
-            }
-        }
+                .padding(bottom = 16.dp)
+        )
 
-        Spacer(modifier = Modifier.height(100.dp))
-
-        // 🔹 2. Créer la Room avec le code affiché
         Button(
             onClick = {
-                if (roomCode.isNotEmpty()) {
-                    val hostPlayer = Player(
-                        pseudo = pseudo,
-                        iconUrl = 1,
-                        isHost = true
-                    )
+                val cleanedCode = roomCode.trim().replace("\\s".toRegex(), "")
 
+                if (cleanedCode.length < 6) {
+                    Toast.makeText(context, "Code trop court 😅", Toast.LENGTH_SHORT).show()
+                } else {
                     coroutineScope.launch {
-                        firestoreClient.insertRoomWithHost(roomCode, hostPlayer).collect { result ->
-                            if (result != null) {
-                                Toast.makeText(context, "Room créée avec le code : $roomCode", Toast.LENGTH_SHORT).show()
-                                IdManager.currentRoomId = roomCode
-                                PlayerManager.currentPlayer?.firestoreClient= firestoreClient
-                                onCreateClicked(roomCode, 0)
-                            } else {
-                                Toast.makeText(context, "Erreur lors de la création", Toast.LENGTH_SHORT).show()
+                        val exists = firestoreClient.checkIfRoomExists(cleanedCode)
+
+                        if (exists) {
+                            Toast.makeText(context, "Code déjà existant ❌", Toast.LENGTH_SHORT).show()
+                        } else {
+                            val hostPlayer = Player(
+                                pseudo = pseudo,
+                                iconUrl = 1,
+                                isHost = true
+                            )
+
+                            firestoreClient.insertRoomWithHost(cleanedCode, hostPlayer).collect { result ->
+                                if (result != null) {
+                                    Toast.makeText(context, "Room créée avec le code : $cleanedCode", Toast.LENGTH_SHORT).show()
+                                    IdManager.currentRoomId = cleanedCode
+                                    PlayerManager.currentPlayer?.firestoreClient = firestoreClient
+                                    onCreateClicked(cleanedCode, 0)
+                                } else {
+                                    Toast.makeText(context, "Erreur lors de la création", Toast.LENGTH_SHORT).show()
+                                }
                             }
                         }
                     }
-                } else {
-                    Toast.makeText(context, "Génère un code d'abord 😅", Toast.LENGTH_SHORT).show()
                 }
             },
             modifier = Modifier
@@ -245,6 +235,46 @@ fun CreateScreen(
                 contentAlignment = Alignment.Center
             ) {
                 Text("Créer la Room", color = Color.White)
+            }
+        }
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        Button(
+            onClick = {
+                coroutineScope.launch {
+                    var newCode: String
+                    do {
+                        newCode = generateUniqueRoomCode()
+                        val result = firestoreClient.insertRoomWithHost(
+                            newCode,
+                            Player(pseudo = pseudo, iconUrl = 1, isHost = true)
+                        ).first()
+
+                    } while (result == null)
+
+                    roomCode = newCode
+                    Toast.makeText(context, "Room créée avec le code : $newCode", Toast.LENGTH_SHORT).show()
+                    IdManager.currentRoomId = newCode
+                    PlayerManager.currentPlayer?.firestoreClient = firestoreClient
+                    onCreateClicked(newCode, 0)
+                }
+            },
+            modifier = Modifier
+                .fillMaxWidth(0.7f)
+                .shadow(8.dp, shape = RoundedCornerShape(23.dp)),
+            colors = ButtonDefaults.buttonColors(Color.Transparent),
+            contentPadding = PaddingValues(),
+            shape = RoundedCornerShape(23.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Brush.linearGradient(gradientPrimaryColors))
+                    .padding(20.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text("Générer un code", color = Color.White)
             }
         }
 

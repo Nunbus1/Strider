@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import com.example.strider.R
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.ListenerRegistration
+import kotlinx.coroutines.tasks.await
 
 class FirestoreClient {
     private val tag = "FirestoreClient: "
@@ -342,5 +343,14 @@ class FirestoreClient {
             .addOnFailureListener { e ->
                 println("Error adding item: ${e.message}")
             }
+    }
+
+    suspend fun checkIfRoomExists(code: String): Boolean {
+        val doc = FirebaseFirestore.getInstance()
+            .collection("rooms")
+            .document(code)
+            .get()
+            .await()
+        return doc.exists()
     }
 }

@@ -58,6 +58,7 @@ fun AccueilScreen(
     val coroutineScope = rememberCoroutineScope()
     val firestoreClient = FirestoreClient()
 
+    var joiningInProgress by remember { mutableStateOf(false) }
 
 
     // Gérer le bouton retour du téléphone
@@ -137,7 +138,7 @@ fun AccueilScreen(
             if (isJoining) {
                 OutlinedTextField(
                     value = code,
-                    onValueChange = { code = it },
+                    onValueChange = { code = it.uppercase().replace("\\s".toRegex(), "") },
                     label = { Text("Enter your code") },
                     keyboardOptions = KeyboardOptions.Default.copy(
                         keyboardType = KeyboardType.Text,
@@ -146,39 +147,41 @@ fun AccueilScreen(
                     modifier = Modifier.width(200.dp)
                 )
 
+                Spacer(modifier = Modifier.height(12.dp))
+
                 Button(
                     onClick = {
-                        if (pseudo.toString().isNotBlank() && code.isNotBlank()) {
+                        if (!joiningInProgress && pseudo.text.isNotBlank() && code.isNotBlank()) {
+                            joiningInProgress = true
+
                             coroutineScope.launch {
                                 firestoreClient.getRoom(code).collect { room ->
                                     if (room != null) {
-                                        Log.d("Firebase", "Room trouvée avec le code : $code")
-
                                         val player = Player(
                                             pseudo = pseudo.text,
                                             iconUrl = 1,
                                             isHost = false
                                         )
 
-                                        // 🔥 Ajoute le joueur dans la room
                                         firestoreClient.joinRoomWithAutoId(code, player).collect { playerId ->
+                                            joiningInProgress = false
                                             if (playerId != null) {
-                                                IdManager.currentPlayerId=playerId
+                                                IdManager.currentPlayerId = playerId
                                                 IdManager.currentRoomId = code
-                                                Log.d("Firebase", "Joueur ajouté avec ID : $playerId")
                                                 onJoinClicked(code, playerId)
                                             } else {
                                                 Log.e("Firebase", "Erreur lors de l'ajout du joueur")
                                             }
                                         }
-
                                     } else {
+                                        joiningInProgress = false
                                         Log.e("Firebase", "Aucune Room trouvée avec le code : $code")
                                     }
                                 }
                             }
                         }
                     },
+                    enabled = !joiningInProgress,
                     colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
                     modifier = Modifier
                         .background(
@@ -187,7 +190,15 @@ fun AccueilScreen(
                         )
                         .width(150.dp)
                 ) {
-                    Text("Join")
+                    if (joiningInProgress) {
+                        CircularProgressIndicator(
+                            color = Color.White,
+                            modifier = Modifier.size(20.dp),
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Text("Join", color = Color.White)
+                    }
                 }
             } else {
                 Button(
@@ -200,7 +211,7 @@ fun AccueilScreen(
                         )
                         .width(150.dp)
                 ) {
-                    Text("Join")
+                    Text("Join", color = Color.White)
                 }
             }
         }
