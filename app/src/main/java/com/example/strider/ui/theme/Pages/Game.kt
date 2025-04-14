@@ -237,7 +237,7 @@ fun GameScreen(
                         .padding(20.dp),
                     contentAlignment = Alignment.BottomCenter
                 ) {
-                    Text("Pause")
+                    Text("Stat")
                 }
 
             }

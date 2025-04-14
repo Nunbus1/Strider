@@ -3,6 +3,7 @@ package com.example.strider.ui.theme.Pages
 import DataClass.Player
 import ViewModels.ImageViewModel
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -48,6 +49,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -106,6 +108,8 @@ fun FinishScreen(
     //val meIndex = 4
     var selectedPlayers by remember { mutableStateOf(setOf(playerId)) }
 
+    var infoMessage by remember { mutableStateOf("Cliquez sur Next pour voir les stats 📊") }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -116,8 +120,9 @@ fun FinishScreen(
         HeaderSection(
             showSpeedState = showSpeedState,
             onBackClicked = { showSpeedState = false },
-            onHomeClicked = onHomeClicked // Passe la navigation vers Acceuil
-            ,imageViewModel = imageViewModel
+            onHomeClicked = onHomeClicked,
+            onResetInfoMessage = { infoMessage = "Cliquez sur Next pour voir les stats 📊" },
+            imageViewModel = imageViewModel
         )
         Spacer(modifier = Modifier.height(10.dp))
         ResultSection(
@@ -144,11 +149,16 @@ fun FinishScreen(
         )
         Spacer(modifier = Modifier.height(10.dp))
         ActionButtons(
-            onNextClicked = { showSpeedState = true },
+            onNextClicked = {
+                showSpeedState = true
+                infoMessage = "Sélectionnez un joueur pour voir sa courbe 📈"
+            },
             onContinueClicked = onContinueClicked,
             roomCode = roomCode,
             playerId = playerId,
-            startTime = startTime
+            startTime = startTime,
+            infoMessage = infoMessage,
+            onResetInfoMessage = { infoMessage = "Cliquez sur Next pour voir les stats 📊" }
         )
     }
 }
@@ -158,7 +168,14 @@ val gradientBrush = Brush.verticalGradient(
 )
 
 @Composable
-fun HeaderSection(showSpeedState: Boolean, onBackClicked: () -> Unit, onHomeClicked: () -> Unit,imageViewModel : ImageViewModel?) {
+fun HeaderSection(
+    showSpeedState: Boolean,
+    onBackClicked: () -> Unit,
+    onHomeClicked: () -> Unit,
+    onResetInfoMessage: () -> Unit,
+    imageViewModel : ImageViewModel?
+)
+{
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -174,7 +191,12 @@ fun HeaderSection(showSpeedState: Boolean, onBackClicked: () -> Unit, onHomeClic
             contentDescription = if (showSpeedState) "Back" else "Home",
             modifier = Modifier
                 .size(32.dp)
-                .clickable { if (showSpeedState) onBackClicked() else onHomeClicked() } // Navigation dynamique
+                .clickable { if (showSpeedState) {
+                    onResetInfoMessage()
+                    onBackClicked()
+                } else {
+                    onHomeClicked()
+                }}
         )
 
         Text(
@@ -653,37 +675,51 @@ fun ActionButtons(
     roomCode: String,
     playerId: Int,
     startTime: Long,
-)
-{
-    Row(
-        modifier = Modifier
-            .fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceEvenly
+    infoMessage: String,
+    onResetInfoMessage: () -> Unit
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.fillMaxWidth()
     ) {
-        Button(
-            onClick =  {onContinueClicked(roomCode, playerId, startTime) },
-            colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
-            modifier = Modifier
-                .background(
-                    Brush.horizontalGradient(colors = listOf(Color(0xFF22A6FF), Color(0xFF0044FF))),
-                    shape = CircleShape
-                )
-                .width(150.dp)
-        ) {
-            Text(text = "Continue", fontSize = 20.sp, color = Color.White)
-        }
+        Text(
+            text = infoMessage,
+            style = MaterialTheme.typography.bodyLarge,
+            color = Color.Gray,
+            modifier = Modifier.padding(bottom = 12.dp)
+        )
 
-        Button(
-            onClick = onNextClicked,
-            colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
-            modifier = Modifier
-                .background(
-                    Brush.horizontalGradient(colors = listOf(Color(0xFFFF4444), Color(0xFFFF2266))),
-                    shape = CircleShape
-                )
-                .width(150.dp)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            Text(text = "Next", fontSize = 20.sp, color = Color.White)
+            Button(
+                onClick = { onContinueClicked(roomCode, playerId, startTime) },
+                colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
+                modifier = Modifier
+                    .background(
+                        Brush.horizontalGradient(colors = listOf(Color(0xFF22A6FF), Color(0xFF0044FF))),
+                        shape = CircleShape
+                    )
+                    .width(150.dp)
+            ) {
+                Text(text = "Game", fontSize = 20.sp, color = Color.White)
+            }
+
+            Button(
+                onClick = {
+                    onNextClicked()
+                },
+                colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
+                modifier = Modifier
+                    .background(
+                        Brush.horizontalGradient(colors = listOf(Color(0xFFFF4444), Color(0xFFFF2266))),
+                        shape = CircleShape
+                    )
+                    .width(150.dp)
+            ) {
+                Text(text = "Next", fontSize = 20.sp, color = Color.White)
+            }
         }
     }
 }
