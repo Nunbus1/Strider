@@ -346,7 +346,7 @@ fun PlayerIconWithPseudo(player: DataClass.Player) {
 @Preview(showBackground = true)
 @Composable
 fun PreviewMainScreen(){
-    val testplayer = DataClass.Player( 1,"fec",false,  mutableListOf<Location>(
+    val testplayer = DataClass.Player( 1,"fec",  false,mutableListOf<Location>(
         Location("provider").apply {
             latitude = 40.7128 // Example: New York City
             longitude = -74.0060

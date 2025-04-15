@@ -14,12 +14,23 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import com.example.strider.R
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.ListenerRegistration
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.tasks.await
 
 class FirestoreClient {
     private val tag = "FirestoreClient: "
     private val db = FirebaseFirestore.getInstance()
     private val collection = "rooms"
+
+    fun getHostLaunchGame(roomCode: String): Flow<Boolean?> {
+
+        return callbackFlow {
+            db.collection(collection)
+                .document(roomCode).collection("hostLaunchGame")
+
+        }
+
+    }
 
     fun insertRoom(room: Room): Flow<String?> {
         return callbackFlow {
@@ -100,9 +111,9 @@ class FirestoreClient {
                 "id" to 0,
                 "pseudo" to player.pseudo,
                 "iconUrl" to player.iconUrl,
-                "isHost" to true,
+                "isHost" to player.isHost,
                 "distance" to player.distance.value,
-                "timedDistances" to emptyList<Map<String, Any>>()
+                "timedDistances" to emptyList<Map<String, Any>>(),
                 //"latitude" to player.listLocation.lastOrNull()?.latitude ?: 0.0,
                 //"longitude" to player.listLocation.lastOrNull()?.longitude ?: 0.0
             )
@@ -190,6 +201,7 @@ class FirestoreClient {
                 val isHost = doc.getBoolean("isHost") ?: false
                 val distance = (doc.getDouble("distance") ?: 0.0).toFloat()
 
+
                 val timedList = doc["timedDistance"] as? List<Map<String, Any>> ?: emptyList()
                 val parsedTimedDistances = parseTimedDistances(timedList)
 
@@ -211,6 +223,7 @@ class FirestoreClient {
 
         awaitClose { listener.remove() }
     }.distinctUntilChanged()
+
 
 
     fun getPlayerById(roomCode: String, playerId: Int): Flow<Player?> = callbackFlow {
