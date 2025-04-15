@@ -174,7 +174,12 @@ fun GameScreen(
             }
 
         )
-
+            Text(
+            text = "Code : $roomCode",
+            fontSize = 20.sp,
+            color = Color.Black,
+            modifier = Modifier.padding(8.dp)
+        )
 
         LazyRow(
             modifier = modifier

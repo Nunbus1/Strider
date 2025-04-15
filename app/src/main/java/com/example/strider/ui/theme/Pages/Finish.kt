@@ -124,7 +124,15 @@ fun FinishScreen(
             onResetInfoMessage = { infoMessage = "Cliquez sur Next pour voir les stats 📊" },
             imageViewModel = imageViewModel
         )
-        Spacer(modifier = Modifier.height(10.dp))
+
+        Spacer(modifier = Modifier.height(5.dp))
+        Text(
+            text = "Code : $roomCode",
+            fontSize = 20.sp,
+            color = Color.Black,
+            modifier = Modifier.padding(8.dp)
+        )
+        Spacer(modifier = Modifier.height(5.dp))
         ResultSection(
             playerName = sortedPlayers.firstOrNull()?.second?.pseudo ?: "Unknown",
             resultMessage = if (showSpeedState) "The fastest" else "Win this match")
@@ -418,7 +426,7 @@ fun PlayerRanking(
                             .padding(5.dp)
                     ) {
                         Text(
-                            text = if (showSpeed) "${player.pseudo} - ${player.distance.value.toInt()}km/h" else player.pseudo,
+                            text = if (showSpeed) "${player.pseudo} - ${player.distance.value.toInt()}m" else player.pseudo,
                             fontSize = 15.sp,
                             color = Color.Black,
                             modifier = Modifier.align(Alignment.Center)
