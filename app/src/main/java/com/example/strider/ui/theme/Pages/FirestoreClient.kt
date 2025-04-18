@@ -32,6 +32,14 @@ class FirestoreClient {
 
     }
 
+    fun setHostLaunchGame(roomCode: String, hostLaunchGame: Boolean ){
+
+        db.collection(collection)
+            .document(roomCode).collection("hostLaunchGame")
+            .document("hostLaunchGame").set(hostLaunchGame)
+
+    }
+
     fun insertRoom(room: Room): Flow<String?> {
         return callbackFlow {
             db.collection(collection)

@@ -90,6 +90,8 @@ fun GameScreen(
 
 
     LaunchedEffect(Unit) {
+        firestoreClient.setHostLaunchGame(roomCode, true)
+
         while (true) {
             elapsed.value = (System.currentTimeMillis() - startTime)
             Log.d("TIMER", "Temps écoulé : ${elapsed.value / 1000}s")

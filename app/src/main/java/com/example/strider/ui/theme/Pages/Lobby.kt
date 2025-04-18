@@ -61,6 +61,11 @@ fun LobbyScreen(
                 Log.d("Debug", "Player[$id] = ${player.pseudo}")
             }
         }
+        firestoreClient.getHostLaunchGame(roomCode).collect{
+            if(it == true){
+                onStartClicked(roomCode, playerId, System.currentTimeMillis())
+            }
+        }
     }
 
     Column(

@@ -85,6 +85,7 @@ fun StriderApp(navController: NavHostController = rememberNavController(), image
                     onBackClicked = { navController.navigate(StriderScreen.Accueil.name) },
                     onStartClicked = { roomCode: String, playerId: Int, startTime: Long ->
                         navController.navigate("Game/$roomCode/$playerId/$startTime")
+
                     }
                 )
             }
