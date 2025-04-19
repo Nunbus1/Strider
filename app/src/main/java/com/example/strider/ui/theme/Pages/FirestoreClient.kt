@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import com.example.strider.R
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.ListenerRegistration
+import com.google.firebase.firestore.Source
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.tasks.await
 
@@ -22,11 +23,11 @@ class FirestoreClient {
     private val db = FirebaseFirestore.getInstance()
     private val collection = "rooms"
 
+
     fun getHostLaunchGame(roomCode: String): Flow<Boolean?> {
 
         return callbackFlow {
-            db.collection(collection)
-                .document(roomCode).collection("hostLaunchGame")
+            db.collection(collection).document(roomCode).collection("hostLaunchGame").get()
 
         }
 
@@ -34,9 +35,7 @@ class FirestoreClient {
 
     fun setHostLaunchGame(roomCode: String, hostLaunchGame: Boolean ){
 
-        db.collection(collection)
-            .document(roomCode).collection("hostLaunchGame")
-            .document("hostLaunchGame").set(hostLaunchGame)
+        db.collection(collection).document(roomCode).update("hostLaunchGame", true)
 
     }
 
@@ -112,7 +111,7 @@ class FirestoreClient {
 
     fun insertRoomWithHost(roomCode: String, player: Player): Flow<String?> {
         return callbackFlow {
-            val room = Room(code = roomCode, hostId = "0", lastPlayerIndex = 0)
+            val room = Room(code = roomCode, hostId = "0", hostLaunchGame = false, lastPlayerIndex = 0)
             val roomRef = db.collection(collection).document(roomCode)
 
             val playerMap = mapOf(
@@ -285,6 +284,7 @@ class FirestoreClient {
         return hashMapOf(
             "code" to code,
             "hostId" to hostId,
+            "hostLaunchGame" to hostLaunchGame,
             "lastPlayerIndex" to lastPlayerIndex
         )
     }
