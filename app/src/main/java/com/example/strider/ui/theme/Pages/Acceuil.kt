@@ -9,8 +9,10 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.result.launch
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -29,6 +31,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
@@ -37,6 +40,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.strider.IdManager
 import com.example.strider.R
+import com.example.strider.ui.theme.BricolageGrotesque
+import com.example.strider.ui.theme.MartianMono
 import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
@@ -60,6 +65,8 @@ fun AccueilScreen(
 
     var joiningInProgress by remember { mutableStateOf(false) }
 
+    val isDarkTheme = isSystemInDarkTheme()
+    val backgroundRes = if (isDarkTheme) R.drawable.wavy_top_dark else R.drawable.wavy_top
 
     // Gérer le bouton retour du téléphone
     BackHandler(isJoining) {
@@ -67,151 +74,180 @@ fun AccueilScreen(
     }
 
 
-    Column(
+    Box(
         modifier = modifier
             .fillMaxSize()
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+            .background(MaterialTheme.colorScheme.background)
     ) {
-        Text(
-            modifier = Modifier.padding(8.dp),
-            text = stringResource(R.string.app_name),
-            fontSize = 100.sp,
-            lineHeight = 116.sp,
-            style = MaterialTheme.typography.headlineLarge,
-            color = MaterialTheme.colorScheme.primary
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
         Image(
-            painter = painterResource(R.drawable.logo),
-            contentDescription = "Logo",
-            modifier = Modifier.size(150.dp)
-        )
-
-        Spacer(modifier = Modifier.height(20.dp))
-
-        TakeProfilePicture(imageViewModel)
-
-        Spacer(modifier = Modifier.height(10.dp))
-
-        TextField(
-            value = pseudo,
-            onValueChange = { pseudo = it },
-            textStyle = TextStyle(fontSize = 18.sp, color = Color.Black),
-            keyboardOptions = KeyboardOptions.Default.copy(
-                keyboardType = KeyboardType.Text,
-                imeAction = ImeAction.Done
-            ),
-            placeholder = {
-                if (pseudo.text.isEmpty() ) {
-                Text(text = placeholderText)
-                }
-            },
+            painter = painterResource(id = backgroundRes),
+            contentDescription = null,
+            contentScale = ContentScale.FillWidth,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp)
+                .align(Alignment.BottomCenter)
         )
 
         Column(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            verticalArrangement = Arrangement.Center
         ) {
-            Button(
-                onClick = { onCreateClicked(pseudo.text) },
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
-                modifier = Modifier
-                    .background(
-                        Brush.horizontalGradient(
-                            colors = listOf(Color(0xFF22A6FF), Color(0xFF0044FF))
-                        ),
-                        shape = CircleShape
-                    )
-                    .width(150.dp)
+            Text(
+                text = "Strider",
+                fontSize = 100.sp,
+                lineHeight = 116.sp,
+                style = TextStyle(
+                    fontFamily = BricolageGrotesque,
+                    fontWeight = FontWeight.Bold
+                ),
+                color = MaterialTheme.colorScheme.onBackground,
+                modifier = Modifier.padding(8.dp)
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Image(
+                painter = painterResource(R.drawable.logo),
+                contentDescription = "Logo",
+                modifier = Modifier.size(150.dp)
+            )
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            TakeProfilePicture(imageViewModel)
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            OutlinedTextField(
+                value = pseudo,
+                onValueChange = { pseudo = it },
+                placeholder = {
+                    Text(text = placeholderText, fontFamily = MartianMono)
+                },
+                textStyle = TextStyle(fontFamily = MartianMono),
+                keyboardOptions = KeyboardOptions.Default.copy(
+                    keyboardType = KeyboardType.Text,
+                    imeAction = ImeAction.Done
+                ),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = MaterialTheme.colorScheme.secondary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.secondary,
+                    focusedTextColor = MaterialTheme.colorScheme.secondary,
+                    unfocusedTextColor = MaterialTheme.colorScheme.secondary,
+                    cursorColor = MaterialTheme.colorScheme.secondary,
+                    focusedContainerColor = Color.White,
+                    unfocusedContainerColor = Color.White
+                ),
+                modifier = Modifier.width(300.dp)
+            )
+            Spacer(modifier = Modifier.height(20.dp))
+
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Text("Create")
-            }
-
-            if (isJoining) {
-                OutlinedTextField(
-                    value = code,
-                    onValueChange = { code = it.uppercase().replace("\\s".toRegex(), "") },
-                    label = { Text("Enter your code") },
-                    keyboardOptions = KeyboardOptions.Default.copy(
-                        keyboardType = KeyboardType.Text,
-                        imeAction = ImeAction.Done
-                    ),
-                    modifier = Modifier.width(200.dp)
-                )
-
-                Spacer(modifier = Modifier.height(12.dp))
-
                 Button(
-                    onClick = {
-                        if (!joiningInProgress && pseudo.text.isNotBlank() && code.isNotBlank()) {
-                            joiningInProgress = true
+                    onClick = { onCreateClicked(pseudo.text) },
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary),
+                    border = BorderStroke(2.dp, Color.White),
+                    modifier = Modifier
+                        .width(300.dp)
+                        .height(56.dp)
+                ) {
+                    Text("Create", fontFamily = MartianMono, color = MaterialTheme.colorScheme.primary)
+                }
 
-                            coroutineScope.launch {
-                                firestoreClient.getRoom(code).collect { room ->
-                                    if (room != null) {
-                                        val player = Player(
-                                            pseudo = pseudo.text,
-                                            iconUrl = 1,
-                                            isHost = false
-                                        )
+                if (isJoining) {
+                    OutlinedTextField(
+                        value = code,
+                        onValueChange = { code = it.uppercase().replace("\\s".toRegex(), "") },
+                        label = { Text("Enter your code", fontFamily = MartianMono) },
+                        textStyle = TextStyle(fontFamily = MartianMono),
+                        keyboardOptions = KeyboardOptions.Default.copy(
+                            keyboardType = KeyboardType.Text,
+                            imeAction = ImeAction.Done
+                        ),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = MaterialTheme.colorScheme.secondary,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.secondary,
+                            focusedTextColor = MaterialTheme.colorScheme.secondary,
+                            unfocusedTextColor = MaterialTheme.colorScheme.secondary,
+                            cursorColor = MaterialTheme.colorScheme.secondary,
+                            focusedContainerColor = Color.White,
+                            unfocusedContainerColor = Color.White
+                        ),
+                        modifier = Modifier.width(300.dp)
+                    )
 
-                                        firestoreClient.joinRoomWithAutoId(code, player).collect { playerId ->
-                                            joiningInProgress = false
-                                            if (playerId != null) {
-                                                IdManager.currentPlayerId = playerId
-                                                IdManager.currentRoomId = code
-                                                onJoinClicked(code, playerId)
-                                            } else {
-                                                Log.e("Firebase", "Erreur lors de l'ajout du joueur")
+                    Spacer(modifier = Modifier.height(2.dp))
+
+                    Button(
+                        onClick = {
+                            if (!joiningInProgress && pseudo.text.isNotBlank() && code.isNotBlank()) {
+                                joiningInProgress = true
+
+                                coroutineScope.launch {
+                                    firestoreClient.getRoom(code).collect { room ->
+                                        if (room != null) {
+                                            val player = Player(
+                                                pseudo = pseudo.text,
+                                                iconUrl = 1,
+                                                isHost = false
+                                            )
+                                            firestoreClient.joinRoomWithAutoId(code, player).collect { playerId ->
+                                                joiningInProgress = false
+                                                if (playerId != null) {
+                                                    IdManager.currentPlayerId = playerId
+                                                    IdManager.currentRoomId = code
+                                                    onJoinClicked(code, playerId)
+                                                } else {
+                                                    Log.e("Firebase", "Erreur lors de l'ajout du joueur")
+                                                }
                                             }
+                                        } else {
+                                            joiningInProgress = false
+                                            Log.e("Firebase", "Aucune Room trouvée avec le code : $code")
                                         }
-                                    } else {
-                                        joiningInProgress = false
-                                        Log.e("Firebase", "Aucune Room trouvée avec le code : $code")
                                     }
                                 }
                             }
+                        },
+                        enabled = !joiningInProgress,
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary),
+                        border = BorderStroke(2.dp, Color.White),
+                        modifier = Modifier
+                            .width(300.dp)
+                            .height(56.dp)
+                    ) {
+                        if (joiningInProgress) {
+                            CircularProgressIndicator(
+                                color = Color.White,
+                                modifier = Modifier.size(20.dp),
+                                strokeWidth = 2.dp
+                            )
+                        } else {
+                            Text(
+                                "Join",
+                                fontFamily = MartianMono,
+                                color = MaterialTheme.colorScheme.primary
+                            )
                         }
-                    },
-                    enabled = !joiningInProgress,
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
-                    modifier = Modifier
-                        .background(
-                            Brush.horizontalGradient(colors = listOf(Color(0xFFFF4444), Color(0xFFFF2266))),
-                            shape = CircleShape
-                        )
-                        .width(150.dp)
-                ) {
-                    if (joiningInProgress) {
-                        CircularProgressIndicator(
-                            color = Color.White,
-                            modifier = Modifier.size(20.dp),
-                            strokeWidth = 2.dp
-                        )
-                    } else {
-                        Text("Join", color = Color.White)
                     }
-                }
-            } else {
-                Button(
-                    onClick = { isJoining = true },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
-                    modifier = Modifier
-                        .background(
-                            Brush.horizontalGradient(colors = listOf(Color(0xFFFF4444), Color(0xFFFF2266))),
-                            shape = CircleShape
-                        )
-                        .width(150.dp)
-                ) {
-                    Text("Join", color = Color.White)
+                } else {
+                    Button(
+                        onClick = { isJoining = true },
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary),
+                        border = BorderStroke(2.dp, Color.White),
+                        modifier = Modifier
+                            .width(300.dp)
+                            .height(56.dp)
+                    ) {
+                        Text("Join", fontFamily = MartianMono, color = MaterialTheme.colorScheme.primary)
+                    }
                 }
             }
         }
