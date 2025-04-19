@@ -39,6 +39,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -88,6 +89,16 @@ fun GameScreen(
 
     var distanceTotale = remember { mutableFloatStateOf(0f) }
 
+    val countdown = remember { mutableIntStateOf(5) } // 3,2,1,Go (Partez = 0)
+    val showCountdown = remember { mutableStateOf(true) }
+
+    LaunchedEffect(Unit) {
+        while (countdown.intValue > 0) {
+            delay(1000)
+            countdown.value -= 1
+        }
+        showCountdown.value = false
+    }
 
     LaunchedEffect(Unit) {
         firestoreClient.setHostLaunchGame(roomCode, true)
@@ -142,6 +153,26 @@ fun GameScreen(
             }
         }
     }*/
+    if (showCountdown.value) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black.copy(alpha = 0.6f))
+                .zIndex(10f),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = when (countdown.intValue) {
+                    4, 3, 2 -> (countdown.intValue-1).toString()
+                    1 -> "Partez !"
+                    else -> ""
+                },
+                fontSize = 64.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.White
+            )
+        }
+    }
 
     Column(
         modifier = modifier
@@ -204,14 +235,17 @@ fun GameScreen(
             //create the first item with the current player
 
 
-            itemsIndexed(players, key = { index, _ -> index }) { _, (id, player) ->
-                PlayerScoreStat(
-                    player.distance.value,
-                    imageViewModel = imageViewModel,
-                    distanceMax = distanceTotale.value + 10
-                )
-                Spacer(modifier = Modifier.weight(5f))
+            if (!showCountdown.value) {
+                itemsIndexed(players, key = { index, _ -> index }) { _, (id, player) ->
+                    PlayerScoreStat(
+                        player.distance.value,
+                        imageViewModel = imageViewModel,
+                        distanceMax = distanceTotale.value + 10
+                    )
+                    Spacer(modifier = Modifier.weight(5f))
+                }
             }
+
 
         }
 
