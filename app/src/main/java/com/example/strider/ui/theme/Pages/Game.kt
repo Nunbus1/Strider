@@ -68,6 +68,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.runBlocking
+import androidx.compose.animation.*
+import androidx.compose.animation.core.tween
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -161,18 +163,27 @@ fun GameScreen(
                 .zIndex(10f),
             contentAlignment = Alignment.Center
         ) {
-            Text(
-                text = when (countdown.intValue) {
-                    4, 3, 2 -> (countdown.intValue-1).toString()
-                    1 -> "Partez !"
-                    else -> ""
+            AnimatedContent(
+                targetState = countdown.value,
+                transitionSpec = {
+                    fadeIn(animationSpec = tween(300)) togetherWith fadeOut(animationSpec = tween(300))
                 },
-                fontSize = 64.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.White
-            )
+                label = "CountdownTransition"
+            ) { value ->
+                Text(
+                    text = when (value) {
+                        4, 3, 2 -> (value-1).toString()
+                        1 -> "Partez !"
+                        else -> ""
+                    },
+                    fontSize = 64.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
+                )
+            }
         }
     }
+
 
     Column(
         modifier = modifier

@@ -136,7 +136,7 @@ fun StriderApp(navController: NavHostController = rememberNavController(), image
                         navController.navigate("Game/$code/$id/$start")
                     },
                     onHomeClicked = {
-                        navController.navigate(StriderScreen.Accueil.name)
+                        navController.popBackStack(StriderScreen.Accueil.name, inclusive = false)
                     }
                 )
             }
