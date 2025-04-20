@@ -470,7 +470,7 @@ fun PlayerRanking(
                             .padding(5.dp)
                     ) {
                         Text(
-                            text = if (showSpeed) "${player.pseudo} - ${player.distance.value.toInt()}m" else player.pseudo,
+                            text = if (showSpeed) "${player.pseudo} - ${player.distance.value.toInt()} m" else player.pseudo,
                             fontSize = 15.sp,
                             fontFamily = MartianMono,
                             color = textColor,
@@ -620,7 +620,7 @@ fun SpeedGraph(players: List<Pair<Int, Player>>, selectedPlayers: Set<Int>) {
 
         // Titres des axes
         drawContext.canvas.nativeCanvas.apply {
-            drawText("Distance (km)", originX + graphWidth / 2, originY + 50f,
+            drawText("Distance (m)", originX + graphWidth / 2, originY + 50f,
                 android.graphics.Paint().apply {
                     textSize = 30f
                     textAlign = android.graphics.Paint.Align.CENTER

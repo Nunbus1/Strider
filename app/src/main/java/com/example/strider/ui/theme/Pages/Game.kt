@@ -97,22 +97,11 @@ fun GameScreen(
 
     var distanceTotale = remember { mutableFloatStateOf(0f) }
 
-    val countdown = remember { mutableIntStateOf(5) } // 3,2,1,Go (Partez = 0)
-    val showCountdown = remember { mutableStateOf(true) }
-
     val isDarkTheme = isSystemInDarkTheme()
     val backgroundImageRes = if (isDarkTheme) R.drawable.wavy_game_dark else R.drawable.wavy_game
     val backgroundColor = if (isDarkTheme) Color(0xFF252525) else Color.White
     val textColor = if (isDarkTheme) Color.White else Color.Black
 
-
-    LaunchedEffect(Unit) {
-        while (countdown.intValue > 0) {
-            delay(1000)
-            countdown.value -= 1
-        }
-        showCountdown.value = false
-    }
 
     LaunchedEffect(Unit) {
         firestoreClient.setHostLaunchGame(roomCode, true)
@@ -158,35 +147,6 @@ fun GameScreen(
         LocationScreen(
             context = LocalContext.current,
         )
-    }
-
-    if (showCountdown.value) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color.Black.copy(alpha = 0.6f))
-                .zIndex(10f),
-            contentAlignment = Alignment.Center
-        ) {
-            AnimatedContent(
-                targetState = countdown.value,
-                transitionSpec = {
-                    fadeIn(animationSpec = tween(300)) togetherWith fadeOut(animationSpec = tween(300))
-                },
-                label = "CountdownTransition"
-            ) { value ->
-                Text(
-                    text = when (value) {
-                        4, 3, 2 -> (value-1).toString()
-                        1 -> "Partez !"
-                        else -> ""
-                    },
-                    fontSize = 64.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White
-                )
-            }
-        }
     }
 
 
@@ -242,7 +202,7 @@ fun GameScreen(
                 verticalAlignment = Alignment.Bottom,
                 horizontalArrangement = Arrangement.spacedBy(24.dp),
             ) {
-                if (!showCountdown.value) {
+
                     itemsIndexed(players, key = { index, _ -> index }) { _, (id, player) ->
                         PlayerScoreStat(
                             player.distance.value,
@@ -251,7 +211,7 @@ fun GameScreen(
                         )
 
                     }
-                }
+
             }
         }
 
