@@ -98,10 +98,8 @@ fun LobbyScreen(
     }
 
 
-    LaunchedEffect(roomCode,hostLaunchGame) {
-        firestoreClient.getHostLaunchGame(roomCode).collectLatest { value ->
-            hostLaunchGame = value
-        }
+    LaunchedEffect(roomCode) {
+
         firestoreClient.getPlayersInRoom(roomCode).collect { newPlayers ->
             players.clear()
             players.addAll(newPlayers)
@@ -110,11 +108,10 @@ fun LobbyScreen(
                 Log.d("Debug", "Player[$id] = ${player.pseudo}")
             }
         }
-        firestoreClient.getHostLaunchGame(roomCode).collectLatest{launched ->
-            if (launched == true && !countdownStarted.value) {
-                shouldStartCountdown.value = true
-            }
+        firestoreClient.getHostLaunchGame(roomCode).collectLatest { value ->
+            hostLaunchGame = value
         }
+
     }
     if (hostLaunchGame == true && !countdownStarted.value) {
         shouldStartCountdown.value = true
