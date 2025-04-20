@@ -12,26 +12,47 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import com.example.strider.R
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.ValueEventListener
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Source
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.tasks.await
+import kotlin.collections.getValue
 
 class FirestoreClient {
     private val tag = "FirestoreClient: "
     private val db = FirebaseFirestore.getInstance()
     private val collection = "rooms"
 
+    fun getHostLaunchGame(roomCode: String): Flow<Boolean?> = callbackFlow {
+        val roomRef = db.collection("rooms").document(roomCode)
 
-    fun getHostLaunchGame(roomCode: String): Flow<Boolean?> {
+        val listener = roomRef.addSnapshotListener { snapshot, error ->
+            if (error != null) {
+                error.printStackTrace()
+                trySend(null) // Or handle the error differently, e.g., close the flow
+                return@addSnapshotListener
+            }
+
+            val hostLaunchGame = snapshot?.getBoolean("hostLaunchGame")
+            trySend(hostLaunchGame)
+        }
+
+        awaitClose { listener.remove() }
+    }.distinctUntilChanged()
+
+    /*fun getHostLaunchGame(roomCode: String): Flow<Boolean?> {
 
         return callbackFlow {
             db.collection(collection).document(roomCode).collection("hostLaunchGame").get()
 
         }
 
-    }
+    }*/
 
     fun setHostLaunchGame(roomCode: String, hostLaunchGame: Boolean ){
 

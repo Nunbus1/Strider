@@ -46,12 +46,16 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.zIndex
+import androidx.lifecycle.Lifecycle
 import com.example.strider.ui.theme.BricolageGrotesque
 import com.example.strider.ui.theme.MartianMono
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 
 
@@ -74,8 +78,8 @@ fun LobbyScreen(
     val countdown = remember { mutableIntStateOf(5) }
     val showCountdown = remember { mutableStateOf(true) }
     val countdownStarted = remember { mutableStateOf(false) }
-
     val shouldStartCountdown = remember { mutableStateOf(false) }
+    var hostLaunchGame by remember { mutableStateOf<Boolean?>(false) }
 
     LaunchedEffect(shouldStartCountdown.value) {
         if (shouldStartCountdown.value && !countdownStarted.value) {
@@ -94,7 +98,10 @@ fun LobbyScreen(
     }
 
 
-    LaunchedEffect(roomCode) {
+    LaunchedEffect(roomCode,hostLaunchGame) {
+        firestoreClient.getHostLaunchGame(roomCode).collectLatest { value ->
+            hostLaunchGame = value
+        }
         firestoreClient.getPlayersInRoom(roomCode).collect { newPlayers ->
             players.clear()
             players.addAll(newPlayers)
@@ -103,12 +110,16 @@ fun LobbyScreen(
                 Log.d("Debug", "Player[$id] = ${player.pseudo}")
             }
         }
-        firestoreClient.getHostLaunchGame(roomCode).collect{launched ->
+        firestoreClient.getHostLaunchGame(roomCode).collectLatest{launched ->
             if (launched == true && !countdownStarted.value) {
                 shouldStartCountdown.value = true
             }
         }
     }
+    if (hostLaunchGame == true && !countdownStarted.value) {
+        shouldStartCountdown.value = true
+    }
+
 
     Column(
         modifier = modifier
@@ -319,7 +330,8 @@ fun ButtonStart(
     isHost: Boolean,
     onStartClicked: (roomCode: String, playerId: Int, startTime: Long) -> Unit,
     roomCode: String,
-    playerId: Int,) {
+    playerId: Int,
+) {
 
     if(isHost){
         Button(
