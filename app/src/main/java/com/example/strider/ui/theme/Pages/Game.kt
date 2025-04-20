@@ -164,7 +164,7 @@ fun GameScreen(
             textAlign = TextAlign.Center,
             maxLines = 1,
             text = chronoText,
-            fontSize = 90.sp,
+            fontSize = 60.sp,
             lineHeight = 116.sp,
             style = TextStyle(
                 fontFamily = BricolageGrotesque,

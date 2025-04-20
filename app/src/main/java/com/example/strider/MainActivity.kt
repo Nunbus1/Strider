@@ -56,6 +56,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.core.content.ContextCompat
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.datastore.preferences.core.doublePreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.preferencesDataStore
@@ -95,21 +98,23 @@ class MainActivity :  ComponentActivity(), SensorEventListener {
         imageView = ViewModelProvider(this).get(ImageViewModel::class.java)
         player = DataClass.Player(2, "", false)
         PlayerManager.currentPlayer = player
+
+
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+        WindowInsetsControllerCompat(window, window.decorView).let { controller ->
+            controller.hide(WindowInsetsCompat.Type.systemBars())
+            controller.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        }
+
         enableEdgeToEdge()
+
         setContent {
-
-
-            /*StepTrackerApp(
-                stepCount = stepCount.intValue,
-                isSensorAvailable = stepSensor != null,
-                //currentPosition = player.listLocation.last()
-            )*/
-
             StriderTheme {
                 StriderApp(imageViewModel = imageView)
             }
         }
     }
+
 
     override fun onResume() {
         super.onResume()

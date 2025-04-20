@@ -50,6 +50,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
@@ -136,7 +137,7 @@ fun FinishScreen(
         )
         Text(
             text = "Statistics",
-            fontSize = 80.sp,
+            fontSize = 60.sp,
             lineHeight = 116.sp,
             style = TextStyle(
                 fontFamily = BricolageGrotesque,
@@ -160,11 +161,11 @@ fun FinishScreen(
             textColor = textColor
         )
 
-        Spacer(modifier = Modifier.height(10.dp))
+
         if (showSpeedState) {
             SpeedGraph(players = players, selectedPlayers = selectedPlayers)
         } else {
-            Podium()
+            Podium(players = sortedPlayers)
         }
         Spacer(modifier = Modifier.height(10.dp))
         PlayerRanking(
@@ -255,7 +256,6 @@ fun ResultSection(playerName: String, resultMessage: String, textColor: Color) {
             color = textColor,
             modifier = Modifier.padding(8.dp)
         )
-        Spacer(modifier = Modifier.height(8.dp))
         Text(
             text = resultMessage,
             fontSize = 20.sp,
@@ -267,24 +267,27 @@ fun ResultSection(playerName: String, resultMessage: String, textColor: Color) {
 }
 
 @Composable
-fun Podium() {
+fun Podium(players: List<Pair<Int, Player>>) {
     val primary = MaterialTheme.colorScheme.primary
     val secondary = MaterialTheme.colorScheme.secondary
 
-    // Dégradé plus sombre basé sur primary
-    val darkPrimaryShade = Brush.verticalGradient(
+    // Dégradé plus sombre basé sur secondary
+    val darkSecondaryShade = Brush.verticalGradient(
         colors = listOf(
-            primary.copy(alpha = 1f),
-            primary.copy(alpha = 0.6f)
+            secondary.copy(alpha = 1f),
+            secondary.copy(alpha = 0.6f)
         )
     )
 
-    val gradientPrimary = Brush.verticalGradient(
+    val gradientSecondary = Brush.verticalGradient(
         colors = listOf(
-            primary.copy(alpha = 1f),
-            primary.copy(alpha = 0.85f)
+            secondary.copy(alpha = 1f),
+            secondary.copy(alpha = 0.85f)
         )
     )
+
+    val isDark = isSystemInDarkTheme()
+    val textColor = if (isDark) Color.Black else Color.White
 
     Canvas(
         modifier = Modifier
@@ -293,7 +296,7 @@ fun Podium() {
             .padding(10.dp)
             .shadow(8.dp, shape = RoundedCornerShape(16.dp))
             .background(
-                color = secondary, // 👈 fond secondaire
+                color = primary, // 👈 fond passe à primary
                 shape = RoundedCornerShape(16.dp)
             )
             .padding(10.dp),
@@ -310,7 +313,7 @@ fun Podium() {
         val rightHeightOffset = 100f
         val iconSize = 200f
 
-        // ----- MIDDLE ----- //
+        // MIDDLE
         val middleFaceLeft = Path().apply {
             moveTo(middleX, topY)
             lineTo(middleX - depth, topY - depth)
@@ -318,7 +321,7 @@ fun Podium() {
             lineTo(middleX, topY + podiumHeight)
             close()
         }
-        drawPath(middleFaceLeft, darkPrimaryShade)
+        drawPath(middleFaceLeft, darkSecondaryShade)
 
         val middleFaceRight = Path().apply {
             moveTo(middleX + podiumWidth, topY)
@@ -327,7 +330,7 @@ fun Podium() {
             lineTo(middleX + podiumWidth, topY + podiumHeight)
             close()
         }
-        drawPath(middleFaceRight, darkPrimaryShade)
+        drawPath(middleFaceRight, darkSecondaryShade)
 
         val middleTop = Path().apply {
             moveTo(middleX, topY)
@@ -336,11 +339,11 @@ fun Podium() {
             lineTo(middleX - depth, topY - depth)
             close()
         }
-        drawPath(middleTop, gradientPrimary)
+        drawPath(middleTop, gradientSecondary)
 
-        drawRect(gradientPrimary, Offset(middleX, topY), Size(podiumWidth, podiumHeight))
+        drawRect(gradientSecondary, Offset(middleX, topY), Size(podiumWidth, podiumHeight))
 
-        // ----- RIGHT ----- //
+        // RIGHT
         val rightFace = Path().apply {
             moveTo(rightX + podiumWidth, topY + rightHeightOffset)
             lineTo(rightX + depth + podiumWidth, topY + rightHeightOffset - depth)
@@ -348,7 +351,7 @@ fun Podium() {
             lineTo(rightX + podiumWidth, topY + podiumHeight)
             close()
         }
-        drawPath(rightFace, darkPrimaryShade)
+        drawPath(rightFace, darkSecondaryShade)
 
         val rightTop = Path().apply {
             moveTo(rightX, topY + rightHeightOffset)
@@ -357,11 +360,11 @@ fun Podium() {
             lineTo(rightX + depth, topY + rightHeightOffset - depth)
             close()
         }
-        drawPath(rightTop, gradientPrimary)
+        drawPath(rightTop, gradientSecondary)
 
-        drawRect(gradientPrimary, Offset(rightX, topY + rightHeightOffset), Size(podiumWidth, podiumHeight - rightHeightOffset))
+        drawRect(gradientSecondary, Offset(rightX, topY + rightHeightOffset), Size(podiumWidth, podiumHeight - rightHeightOffset))
 
-        // ----- LEFT ----- //
+        // LEFT
         val leftFace = Path().apply {
             moveTo(leftX, topY + leftHeightOffset)
             lineTo(leftX - depth, topY + leftHeightOffset - depth)
@@ -369,7 +372,7 @@ fun Podium() {
             lineTo(leftX, topY + podiumHeight)
             close()
         }
-        drawPath(leftFace, darkPrimaryShade)
+        drawPath(leftFace, darkSecondaryShade)
 
         val leftTop = Path().apply {
             moveTo(leftX, topY + leftHeightOffset)
@@ -378,33 +381,76 @@ fun Podium() {
             lineTo(leftX - depth, topY + leftHeightOffset - depth)
             close()
         }
-        drawPath(leftTop, gradientPrimary)
+        drawPath(leftTop, gradientSecondary)
 
-        drawRect(gradientPrimary, Offset(leftX, topY + leftHeightOffset), Size(podiumWidth, podiumHeight - leftHeightOffset))
+        drawRect(gradientSecondary, Offset(leftX, topY + leftHeightOffset), Size(podiumWidth, podiumHeight - leftHeightOffset))
 
-        // ----- CERCLES ----- //
-        drawCircle(gradientPrimary, radius = iconSize / 2, center = Offset(middleX + podiumWidth / 2 , topY - iconSize ))
-        drawCircle(gradientPrimary, radius = iconSize / 2, center = Offset(rightX  + podiumWidth / 2  + depth / 2, topY + rightHeightOffset - iconSize ))
-        drawCircle(gradientPrimary, radius = iconSize / 2, center = Offset(leftX + podiumWidth / 2  - depth / 2, topY + leftHeightOffset - iconSize ))
+        // CERCLES
+        drawCircle(gradientSecondary, radius = iconSize / 2, center = Offset(middleX + podiumWidth / 2 , topY - iconSize ))
+        drawCircle(gradientSecondary, radius = iconSize / 2, center = Offset(rightX  + podiumWidth / 2  + depth / 2, topY + rightHeightOffset - iconSize ))
+        drawCircle(gradientSecondary, radius = iconSize / 2, center = Offset(leftX + podiumWidth / 2  - depth / 2, topY + leftHeightOffset - iconSize ))
 
-        // ----- OMBRES ----- //
+        drawContext.canvas.nativeCanvas.drawText(
+            "👑",
+            middleX + podiumWidth / 2 ,
+            topY - iconSize - 80f,
+            android.graphics.Paint().apply {
+                textSize = 60f
+                isAntiAlias = true
+                textAlign = android.graphics.Paint.Align.CENTER
+            }
+        )
+        // --- TEXTE : TOP 3 JOUEURS --- //
+        val paint = android.graphics.Paint().apply {
+            textAlign = android.graphics.Paint.Align.CENTER
+            textSize = 40f
+            color = textColor.toArgb()
+            isAntiAlias = true
+            this.typeface = typeface
+        }
+
+        val textOffsetY = (paint.descent() + paint.ascent()) / 2
+
+        drawContext.canvas.nativeCanvas.drawText(
+            players.getOrNull(0)?.second?.pseudo ?: "1st",
+            middleX + podiumWidth / 2,
+            topY - iconSize - textOffsetY,
+            paint
+        )
+
+        drawContext.canvas.nativeCanvas.drawText(
+            players.getOrNull(1)?.second?.pseudo ?: "2nd",
+            leftX + podiumWidth / 2 - depth / 2,
+            topY + leftHeightOffset - iconSize - textOffsetY,
+            paint
+        )
+
+        drawContext.canvas.nativeCanvas.drawText(
+            players.getOrNull(2)?.second?.pseudo ?: "3rd",
+            rightX + podiumWidth / 2 + depth / 2,
+            topY + rightHeightOffset - iconSize - textOffsetY,
+            paint
+        )
+
+        // OMBRES
         drawOval(
-            darkPrimaryShade,
+            darkSecondaryShade,
             topLeft = Offset(middleX + podiumWidth / 2 - iconSize * 0.7f / 2, topY - iconSize / 5),
             size = Size(iconSize * 0.7f, iconSize * 0.1f)
         )
         drawOval(
-            darkPrimaryShade,
+            darkSecondaryShade,
             topLeft = Offset(rightX  + podiumWidth / 2  + depth / 2 - iconSize * 0.7f / 2, topY + rightHeightOffset - iconSize / 5),
             size = Size(iconSize * 0.7f, iconSize * 0.1f)
         )
         drawOval(
-            darkPrimaryShade,
+            darkSecondaryShade,
             topLeft = Offset(leftX + podiumWidth / 2  - depth / 2 - iconSize * 0.7f / 2, topY + leftHeightOffset - iconSize / 5),
             size = Size(iconSize * 0.7f, iconSize * 0.1f)
         )
     }
 }
+
 
 @Composable
 fun PlayerRanking(
@@ -437,7 +483,7 @@ fun PlayerRanking(
             .horizontalScroll(rememberScrollState()),
         horizontalArrangement = Arrangement.Center
     ) {
-        players.chunked(4).forEach { group ->
+        players.chunked(3).forEach { group ->
             Column(
                 modifier = Modifier
                     .width(300.dp)
@@ -486,6 +532,13 @@ fun PlayerRanking(
 
 @Composable
 fun SpeedGraph(players: List<Pair<Int, Player>>, selectedPlayers: Set<Int>) {
+    val colorScheme = MaterialTheme.colorScheme
+    val isDark = isSystemInDarkTheme()
+    val lineColor = if (isDark) Color.White else Color.Black
+    val pointColor = colorScheme.secondary
+    val labelColor = colorScheme.secondary
+    val backgroundColor = colorScheme.primary
+
     val timeSteps = 15
 
     val interpolatedData = remember(players, selectedPlayers) {
@@ -539,9 +592,7 @@ fun SpeedGraph(players: List<Pair<Int, Player>>, selectedPlayers: Set<Int>) {
             .padding(10.dp)
             .shadow(8.dp, shape = RoundedCornerShape(16.dp))
             .background(
-                brush = Brush.verticalGradient(
-                    colors = listOf(Color(0xFFE8E8E8), Color(0xFFD0D0D0))
-                ),
+                color = backgroundColor,
                 shape = RoundedCornerShape(16.dp)
             )
             .padding(10.dp)
@@ -557,43 +608,42 @@ fun SpeedGraph(players: List<Pair<Int, Player>>, selectedPlayers: Set<Int>) {
         // Axe Y : Temps (s)
         yLabels.forEach { label ->
             val y = originY - (label / maxYLabel.toFloat()) * graphHeight
-            drawLine(Color.White, Offset(originX, y), Offset(originX + graphWidth, y), 2f)
+            drawLine(lineColor, Offset(originX, y), Offset(originX + graphWidth, y), 2f)
             drawContext.canvas.nativeCanvas.drawText(
                 "$label", originX - 35f, y + 10f,
                 android.graphics.Paint().apply {
                     textSize = 28f
-                    color = android.graphics.Color.BLACK
+                    color = labelColor.toArgb()
                 }
             )
         }
 
-        // Axe X : 15 distances exactes du premier joueur sélectionné
+        // Axe X : Distance
         val firstPoints = interpolatedData[selectedPlayers.firstOrNull()] ?: emptyList()
         val totalPoints = firstPoints.size
 
         if (totalPoints >= 1) {
-            val stepCount = 5 // Nombre souhaité de graduations
+            val stepCount = 5
             for (i in 0..stepCount) {
                 val fraction = i / stepCount.toFloat()
                 val distanceKm = fraction * maxDistance
                 val x = originX + fraction * graphWidth
 
-                drawLine(Color.White, Offset(x, originY), Offset(x, originY - graphHeight), 2f)
+                drawLine(lineColor, Offset(x, originY), Offset(x, originY - graphHeight), 2f)
                 drawContext.canvas.nativeCanvas.drawText(
-                    "%.1f".format(distanceKm), x - 15f, originY + 25f,
+                    "%.1f".format(distanceKm), x, originY + 25f,
                     android.graphics.Paint().apply {
                         textSize = 28f
                         textAlign = android.graphics.Paint.Align.CENTER
-                        color = android.graphics.Color.BLACK
+                        color = labelColor.toArgb()
                     }
                 )
             }
         }
 
-
         // Axes principaux
-        drawLine(Color.Black, Offset(originX, originY), Offset(originX, originY - graphHeight), strokeWidth = 2f)
-        drawLine(Color.Black, Offset(originX, originY), Offset(originX + graphWidth, originY), strokeWidth = 2f)
+        drawLine(lineColor, Offset(originX, originY), Offset(originX, originY - graphHeight), strokeWidth = 2f)
+        drawLine(lineColor, Offset(originX, originY), Offset(originX + graphWidth, originY), strokeWidth = 2f)
 
         // Tracés
         selectedPlayers.forEach { id ->
@@ -609,22 +659,22 @@ fun SpeedGraph(players: List<Pair<Int, Player>>, selectedPlayers: Set<Int>) {
                     lineTo(px, py)
                 }
             }
-            drawPath(path, gradientBrush, style = Stroke(width = 3f))
+            drawPath(path, Brush.linearGradient(listOf(labelColor, lineColor)), style = Stroke(width = 3f))
 
             points.forEach { (x, y) ->
                 val px = originX + (x / maxDistance) * graphWidth
                 val py = originY - y * stepY
-                drawCircle(Color.Black, radius = 4f, center = Offset(px, py))
+                drawCircle(pointColor, radius = 4f, center = Offset(px, py))
             }
         }
 
         // Titres des axes
         drawContext.canvas.nativeCanvas.apply {
-            drawText("Distance (m)", originX + graphWidth / 2, originY + 50f,
+            drawText("Distance (km)", originX + graphWidth / 2, originY + 50f,
                 android.graphics.Paint().apply {
                     textSize = 30f
                     textAlign = android.graphics.Paint.Align.CENTER
-                    color = android.graphics.Color.BLACK
+                    color = labelColor.toArgb()
                 })
             save()
             rotate(90f, originX + graphWidth + 40f, originY - graphHeight / 2)
@@ -632,12 +682,13 @@ fun SpeedGraph(players: List<Pair<Int, Player>>, selectedPlayers: Set<Int>) {
                 android.graphics.Paint().apply {
                     textSize = 30f
                     textAlign = android.graphics.Paint.Align.CENTER
-                    color = android.graphics.Color.BLACK
+                    color = labelColor.toArgb()
                 })
             restore()
         }
     }
 }
+
 
 
 
@@ -782,6 +833,8 @@ fun ActionButtons(
         }
     }
 }
+
+
 
 
 @Preview(showBackground = true)

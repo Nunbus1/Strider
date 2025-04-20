@@ -146,7 +146,7 @@ fun LobbyScreen(
         }
         Text(
             text = "Strider",
-            fontSize = 100.sp,
+            fontSize = 60.sp,
             lineHeight = 116.sp,
             style = TextStyle(
                 fontFamily = BricolageGrotesque,
@@ -185,7 +185,7 @@ fun LobbyScreen(
                             1 -> "Partez !"
                             else -> ""
                         },
-                        fontSize = 64.sp,
+                        fontSize = 50.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.Black
                     )
@@ -202,7 +202,7 @@ fun LobbyScreen(
         )
         Text(
             text = "Runners",
-            fontSize = 80.sp,
+            fontSize = 60.sp,
             lineHeight = 116.sp,
             style = TextStyle(
                 fontFamily = BricolageGrotesque,

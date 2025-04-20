@@ -108,7 +108,7 @@ fun CreateScreen(
             }
             Text(
                 text = "Strider",
-                fontSize = 100.sp,
+                fontSize = 60.sp,
                 lineHeight = 116.sp,
                 style = TextStyle(
                     fontFamily = BricolageGrotesque,
