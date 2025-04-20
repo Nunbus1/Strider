@@ -13,20 +13,29 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.strider.ui.theme.gradientPrimaryColors
 import kotlinx.coroutines.launch
 import DataClass.Player
 import ViewModels.ImageViewModel
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.zIndex
 import com.example.strider.IdManager
 import com.example.strider.PlayerManager
+import com.example.strider.R
+import com.example.strider.ui.theme.BricolageGrotesque
+import com.example.strider.ui.theme.MartianMono
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.tasks.await
@@ -45,240 +54,198 @@ fun CreateScreen(
     val context = LocalContext.current
     val firestoreClient = FirestoreClient()
 
-    Column(
+    val isDarkTheme = isSystemInDarkTheme()
+    val backgroundRes = if (isDarkTheme) R.drawable.wavy_bot_dark else R.drawable.wavy_bot
+    val backgroundColor = if (isDarkTheme) Color(0xFF252525) else Color.White
+
+    Box(
         modifier = modifier
             .fillMaxSize()
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.SpaceBetween
+            .background(backgroundColor)
     ) {
-        Spacer(modifier = Modifier.height(30.dp))
+        Image(
+            painter = painterResource(id = backgroundRes),
+            contentDescription = null,
+            contentScale = ContentScale.FillWidth,
+            modifier = Modifier
+                .fillMaxWidth()
+                .align(Alignment.BottomCenter)
+        )
 
-        // Header
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
-            IconButton(onClick = onBackClicked) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Back",
+            Spacer(modifier = Modifier.height(30.dp))
+
+            // Header
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                IconButton(onClick = onBackClicked) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Back",
+                        tint = MaterialTheme.colorScheme.onBackground,
+                        modifier = Modifier
+                            .size(32.dp)
+                            .clickable { onBackClicked() }
+                    )
+                }
+
+                ProfilePicture(
                     modifier = Modifier
-                        .size(32.dp)
-                        .clickable { onBackClicked() }
+                        .size(50.dp)
+                        .background(shape = CircleShape, color = Color.White),
+                    imageViewModel = imageViewModel,
+                    isHost = true
                 )
             }
             Text(
                 text = "Strider",
-                style = MaterialTheme.typography.headlineLarge,
-                fontSize = 60.sp,
-                fontWeight = FontWeight.Bold
-            )
-            ProfilePicture(
-                modifier = Modifier
-                    .size(50.dp)
-                    .background(shape = CircleShape, color = Color.White)
-                    ,
-                imageViewModel = imageViewModel,
-                isHost = true
-            )
-        }
-
-        Spacer(modifier = Modifier.height(32.dp))
-/*
-        // Titre
-        Card(
-            shape = RoundedCornerShape(8.dp),
-            border = BorderStroke(2.dp, Color.Blue),
-            modifier = Modifier.padding(horizontal = 32.dp)
-        ) {
-            Text(
-                text = "Menu",
-                fontSize = 40.sp,
-                color = Color.Blue,
+                fontSize = 100.sp,
+                lineHeight = 116.sp,
+                style = TextStyle(
+                    fontFamily = BricolageGrotesque,
+                    fontWeight = FontWeight.Bold
+                ),
+                color = MaterialTheme.colorScheme.onBackground,
                 modifier = Modifier.padding(8.dp)
             )
-        }
 
-        Spacer(modifier = Modifier.height(48.dp))
+            Spacer(modifier = Modifier.height(32.dp))
 
-        HorizontalDivider(color = Color.Gray, thickness = 1.dp)
-        Text(
-            text = "Settings",
-            fontSize = 50.sp,
-            fontWeight = FontWeight.Medium,
-            modifier = Modifier.padding(vertical = 8.dp)
-        )
-        HorizontalDivider(color = Color.Gray, thickness = 1.dp)
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        Text(text = "GameMode", fontSize = 20.sp, modifier = Modifier.padding(8.dp))
-
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Button(
-                onClick = { },
-                colors = ButtonDefaults.buttonColors(Color.Transparent),
-                contentPadding = PaddingValues(),
-                shape = RoundedCornerShape(23.dp)
-            ) {
-                Box(
-                    modifier = Modifier
-                        .background(Brush.linearGradient(gradientPrimaryColors))
-                        .padding(10.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text("<")
-                }
-            }
-
-            Card(
-                shape = RoundedCornerShape(8.dp),
-                border = BorderStroke(2.dp, Color.Blue),
-                modifier = Modifier.padding(horizontal = 32.dp)
-            ) {
-                Text(
-                    text = "mode de jeu",
-                    fontSize = 20.sp,
-                    modifier = Modifier.padding(8.dp)
-                )
-            }
-
-            Button(
-                onClick = { },
-                colors = ButtonDefaults.buttonColors(Color.Transparent),
-                contentPadding = PaddingValues(),
-                shape = RoundedCornerShape(23.dp)
-            ) {
-                Box(
-                    modifier = Modifier
-                        .background(Brush.linearGradient(gradientPrimaryColors))
-                        .padding(10.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(">")
-                }
-            }
-        }
-
-        Spacer(modifier = Modifier.height(24.dp))
-        Card(
-            modifier = Modifier
-                .padding(10.dp)
-                .fillMaxWidth(0.7f)
-        ) {
-            Text(
-                text = "description mode de jeu",
-                modifier = Modifier.padding(10.dp),
+            OutlinedTextField(
+                value = roomCode,
+                onValueChange = { roomCode = it.uppercase().replace(" ", "") },
+                label = { Text("Code") },
+                placeholder = { Text("At least 6 characters") },
+                singleLine = true,
+                textStyle = TextStyle(fontFamily = MartianMono),
+                keyboardOptions = KeyboardOptions.Default.copy(
+                    keyboardType = KeyboardType.Text,
+                    imeAction = ImeAction.Done
+                ),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = MaterialTheme.colorScheme.secondary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.secondary,
+                    focusedTextColor = MaterialTheme.colorScheme.secondary,
+                    unfocusedTextColor = MaterialTheme.colorScheme.secondary,
+                    cursorColor = MaterialTheme.colorScheme.secondary,
+                    focusedContainerColor = Color.White,
+                    unfocusedContainerColor = Color.White
+                ),
+                modifier = Modifier.width(300.dp)
             )
-        }
 
-        Spacer(modifier = Modifier.height(100.dp))
-*/
-        OutlinedTextField(
-            value = roomCode,
-            onValueChange = { roomCode = it.uppercase().replace(" ", "") },
-            label = { Text("Code") },
-            placeholder = { Text("At least 6 characters") },
-            singleLine = true,
-            modifier = Modifier
-                .fillMaxWidth(0.7f)
-                .padding(bottom = 16.dp)
-        )
+            Spacer(modifier = Modifier.height(20.dp))
 
-        Button(
-            onClick = {
-                val cleanedCode = roomCode.trim().replace("\\s".toRegex(), "")
+            Button(
+                onClick = {
+                    val cleanedCode = roomCode.trim().replace("\\s".toRegex(), "")
 
-                if (cleanedCode.length < 6) {
-                    Toast.makeText(context, "Code trop court 😅", Toast.LENGTH_SHORT).show()
-                } else {
-                    coroutineScope.launch {
-                        val exists = firestoreClient.checkIfRoomExists(cleanedCode)
+                    if (cleanedCode.length < 6) {
+                        Toast.makeText(context, "Code trop court 😅", Toast.LENGTH_SHORT).show()
+                    } else {
+                        coroutineScope.launch {
+                            val exists = firestoreClient.checkIfRoomExists(cleanedCode)
 
-                        if (exists) {
-                            Toast.makeText(context, "Code déjà existant ❌", Toast.LENGTH_SHORT).show()
-                        } else {
-                            val hostPlayer = Player(
-                                pseudo = pseudo,
-                                iconUrl = 1,
-                                isHost = true
-                            )
+                            if (exists) {
+                                Toast.makeText(context, "Code déjà existant ❌", Toast.LENGTH_SHORT)
+                                    .show()
+                            } else {
+                                val hostPlayer = Player(
+                                    pseudo = pseudo,
+                                    iconUrl = 1,
+                                    isHost = true
+                                )
 
-                            firestoreClient.insertRoomWithHost(cleanedCode, hostPlayer).collect { result ->
-                                if (result != null) {
-                                    Toast.makeText(context, "Room créée avec le code : $cleanedCode", Toast.LENGTH_SHORT).show()
-                                    IdManager.currentRoomId = cleanedCode
-                                    PlayerManager.currentPlayer?.firestoreClient = firestoreClient
-                                    onCreateClicked(cleanedCode, 0)
-                                } else {
-                                    Toast.makeText(context, "Erreur lors de la création", Toast.LENGTH_SHORT).show()
-                                }
+                                firestoreClient.insertRoomWithHost(cleanedCode, hostPlayer)
+                                    .collect { result ->
+                                        if (result != null) {
+                                            Toast.makeText(
+                                                context,
+                                                "Room créée avec le code : $cleanedCode",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                            IdManager.currentRoomId = cleanedCode
+                                            PlayerManager.currentPlayer?.firestoreClient =
+                                                firestoreClient
+                                            onCreateClicked(cleanedCode, 0)
+                                        } else {
+                                            Toast.makeText(
+                                                context,
+                                                "Erreur lors de la création",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                        }
+                                    }
                             }
                         }
                     }
-                }
-            },
-            modifier = Modifier
-                .fillMaxWidth(0.7f)
-                .shadow(8.dp, shape = RoundedCornerShape(23.dp)),
-            colors = ButtonDefaults.buttonColors(Color.Transparent),
-            contentPadding = PaddingValues(),
-            shape = RoundedCornerShape(23.dp)
-        ) {
-            Box(
+                },
+                contentPadding = PaddingValues(),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary),
+                border = BorderStroke(2.dp, Color.White),
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .background(Brush.linearGradient(gradientPrimaryColors))
-                    .padding(20.dp),
-                contentAlignment = Alignment.Center
+                    .width(300.dp)
+                    .height(56.dp),
+                shape = RoundedCornerShape(23.dp)
             ) {
-                Text("Créer la Room", color = Color.White)
+                Text(
+                    "Créer la Room",
+                    fontFamily = MartianMono,
+                    color = MaterialTheme.colorScheme.primary
+                )
             }
-        }
 
-        Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
-        Button(
-            onClick = {
-                coroutineScope.launch {
-                    var newCode: String
-                    do {
-                        newCode = generateUniqueRoomCode()
-                        val result = firestoreClient.insertRoomWithHost(
-                            newCode,
-                            Player(pseudo = pseudo, iconUrl = 1, isHost = true)
-                        ).first()
+            Button(
+                onClick = {
+                    coroutineScope.launch {
+                        var newCode: String
+                        do {
+                            newCode = generateUniqueRoomCode()
+                            val result = firestoreClient.insertRoomWithHost(
+                                newCode,
+                                Player(pseudo = pseudo, iconUrl = 1, isHost = true)
+                            ).first()
 
-                    } while (result == null)
+                        } while (result == null)
 
-                    roomCode = newCode
-                    Toast.makeText(context, "Room créée avec le code : $newCode", Toast.LENGTH_SHORT).show()
-                    IdManager.currentRoomId = newCode
-                    PlayerManager.currentPlayer?.firestoreClient = firestoreClient
-                    onCreateClicked(newCode, 0)
-                }
-            },
-            modifier = Modifier
-                .fillMaxWidth(0.7f)
-                .shadow(8.dp, shape = RoundedCornerShape(23.dp)),
-            colors = ButtonDefaults.buttonColors(Color.Transparent),
-            contentPadding = PaddingValues(),
-            shape = RoundedCornerShape(23.dp)
-        ) {
-            Box(
+                        roomCode = newCode
+                        Toast.makeText(
+                            context,
+                            "Room créée avec le code : $newCode",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        IdManager.currentRoomId = newCode
+                        PlayerManager.currentPlayer?.firestoreClient = firestoreClient
+                        onCreateClicked(newCode, 0)
+                    }
+                },
+                contentPadding = PaddingValues(),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary),
+                border = BorderStroke(2.dp, Color.White),
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .background(Brush.linearGradient(gradientPrimaryColors))
-                    .padding(20.dp),
-                contentAlignment = Alignment.Center
+                    .width(300.dp)
+                    .height(56.dp),
+                shape = RoundedCornerShape(23.dp)
             ) {
-                Text("Générer un code", color = Color.White)
+                Text(
+                    "Générer un code",
+                    fontFamily = MartianMono,
+                    color = MaterialTheme.colorScheme.primary
+                )
             }
-        }
 
-        Spacer(modifier = Modifier.height(2000.dp))
+        }
     }
 }
 

@@ -67,6 +67,7 @@ fun AccueilScreen(
 
     val isDarkTheme = isSystemInDarkTheme()
     val backgroundRes = if (isDarkTheme) R.drawable.wavy_top_dark else R.drawable.wavy_top
+    val backgroundColor = if (isDarkTheme) Color(0xFF252525) else Color.White
 
     // Gérer le bouton retour du téléphone
     BackHandler(isJoining) {
@@ -77,7 +78,7 @@ fun AccueilScreen(
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
+            .background(backgroundColor)
     ) {
         Image(
             painter = painterResource(id = backgroundRes),

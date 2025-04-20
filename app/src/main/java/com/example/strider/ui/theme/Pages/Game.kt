@@ -70,6 +70,12 @@ import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.runBlocking
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.width
+import androidx.compose.ui.layout.ContentScale
+import com.example.strider.ui.theme.BricolageGrotesque
+import com.example.strider.ui.theme.MartianMono
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -94,6 +100,14 @@ fun GameScreen(
     val countdown = remember { mutableIntStateOf(5) } // 3,2,1,Go (Partez = 0)
     val showCountdown = remember { mutableStateOf(true) }
 
+    val isDarkTheme = isSystemInDarkTheme()
+    val backgroundImageRes = if (isDarkTheme) R.drawable.wavy_game_dark else R.drawable.wavy_game
+    val backgroundColor = if (isDarkTheme) Color(0xFF252525) else Color.White
+    val textColor = if (isDarkTheme) Color.White else Color.Black
+
+
+
+
     LaunchedEffect(Unit) {
         while (countdown.intValue > 0) {
             delay(1000)
@@ -112,27 +126,29 @@ fun GameScreen(
         }
     }
 
-    //var playerFlow = firestoreClient.getPlayerById(roomCode, playerId)
-    //val myPlayer by playerFlow.collectAsState(initial = PlayerManager.currentPlayer)
     LaunchedEffect(roomCode) {
         firestoreClient.getPlayersInRoom(roomCode).collect { newPlayers ->
             players.clear()
             players.addAll(newPlayers)
 
             newPlayers.forEach { (id, player) ->
-                //Log.d("Debug", "Player[$id] = ${player.pseudo}")
                 if(player.distance.value> distanceTotale.value){distanceTotale.value= player.distance.value}
             }
         }
     }
-    //update distanceTotale based on the max distance in of every player in players
-    //LaunchedEffect(players) {
-    //    distanceTotale.value = players.maxOfOrNull { it.second.distance.value } ?: 0f
-    //    Log.d("Debug", "distanceTotale = $distanceTotale")
-    //}
 
+    LaunchedEffect(playerId, players) {
+        while (true) {
+            val player = players.find { it.first == playerId }?.second
+            val lastTimestamp = player?.timedDistance?.lastOrNull()?.second ?: System.currentTimeMillis()
+            elapsed.value = lastTimestamp - startTime
+            delay(1000)
+        }
+    }
 
-
+    val minutes = (elapsed.value / 60000).toInt()
+    val seconds = ((elapsed.value / 1000) % 60).toInt()
+    val chronoText = String.format("%02d:%02d", minutes, seconds)
 
     Box(
         modifier = Modifier
@@ -145,16 +161,7 @@ fun GameScreen(
             context = LocalContext.current,
         )
     }
-    /*LaunchedEffect(roomCode) {
-        firestoreClient.getPlayersInRoom(roomCode).collect { newPlayers ->
-            players.clear()
-            players.addAll(newPlayers)
 
-            newPlayers.forEach { (id, player) ->
-                Log.d("Debug", "Player[$id] = ${player.pseudo}")
-            }
-        }
-    }*/
     if (showCountdown.value) {
         Box(
             modifier = Modifier
@@ -188,79 +195,67 @@ fun GameScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(colorScheme.primary)
+            .background(backgroundColor)
             .zIndex(-2f),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.SpaceBetween
-    ) {
-        TopAppBar(modifier = Modifier
-            .background(brush = Brush.linearGradient(colors = gradientPrimaryColors))
-            ,
+    ){
+        Spacer(modifier = Modifier.height(24.dp))
 
-            title = {
-                Text(
-                    modifier = modifier.fillMaxWidth(),
-                    textAlign = TextAlign.Center,
-                    maxLines = 1,
-                    text = stringResource(R.string.app_name),
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold
-                )
-            },
-            navigationIcon = {
-
-                Icon(
-                    modifier = Modifier.size(50.dp),
-                    painter = painterResource(R.drawable.logo), // Use your desired icon
-                    contentDescription = "Menu Icon",
-
-                    )
-            }
-
-        )
-            Text(
-            text = "Code : $roomCode",
-            fontSize = 20.sp,
-            color = Color.Black,
+        Text(
+            textAlign = TextAlign.Center,
+            maxLines = 1,
+            text = chronoText,
+            fontSize = 90.sp,
+            lineHeight = 116.sp,
+            style = TextStyle(
+                fontFamily = BricolageGrotesque,
+                fontWeight = FontWeight.Bold
+            ),
+            color = MaterialTheme.colorScheme.onBackground,
             modifier = Modifier.padding(8.dp)
         )
 
-        LazyRow(
-            modifier = modifier
-                .fillMaxSize(0.8f)
+        Text(
+            text = "Code : $roomCode",
+            fontSize = 20.sp,
+            fontFamily = MartianMono,
+            color = textColor,
+            modifier = Modifier.padding(8.dp)
+        )
 
-                .border(10.dp, color = Color.Black, shape = RoundedCornerShape(20.dp))
-                .shadow(
-                    elevation = 10.dp,
-                    shape = RoundedCornerShape(20.dp)
-                )
-                .background(Color.Gray, shape = RoundedCornerShape(20.dp))
-
-                .padding(18.dp),
-
-            verticalAlignment = Alignment.Bottom, // Align children vertically to the center
-            horizontalArrangement = Arrangement.SpaceEvenly,
-
+        Box(
+            modifier = Modifier
+                .fillMaxWidth(0.9f)
+                .height(550.dp)
+        ) {
+            Image(
+                painter = painterResource(id = if (isSystemInDarkTheme()) R.drawable.wavy_game_dark else R.drawable.wavy_game),
+                contentDescription = "Fond vague",
+                contentScale = ContentScale.FillBounds,
+                modifier = Modifier
+                    .matchParentSize()
+                    .zIndex(-1f)
+            )
+            LazyRow(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(18.dp),
+                verticalAlignment = Alignment.Bottom,
+                horizontalArrangement = Arrangement.spacedBy(24.dp),
             ) {
-            //val distanceTotale by remember {  mutableStateOf(player.distance) }
-            //create the first item with the current player
+                if (!showCountdown.value) {
+                    itemsIndexed(players, key = { index, _ -> index }) { _, (id, player) ->
+                        PlayerScoreStat(
+                            player.distance.value,
+                            imageViewModel = imageViewModel,
+                            distanceMax = distanceTotale.value + 10
+                        )
 
-
-            if (!showCountdown.value) {
-                itemsIndexed(players, key = { index, _ -> index }) { _, (id, player) ->
-                    PlayerScoreStat(
-                        player.distance.value,
-                        imageViewModel = imageViewModel,
-                        distanceMax = distanceTotale.value + 10
-                    )
-                    Spacer(modifier = Modifier.weight(5f))
+                    }
                 }
             }
-
-
         }
-
-
 
         Box(
             modifier = Modifier
@@ -270,63 +265,51 @@ fun GameScreen(
         ) {
             Button(
                 onClick = {onPauseClicked(roomCode, playerId, startTime) },
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary),
+                border = BorderStroke(2.dp, Color.White),
                 modifier = Modifier
-                    .fillMaxWidth(0.7f)
-                    .shadow(8.dp, shape = RoundedCornerShape(23.dp)),
-                colors = ButtonDefaults.buttonColors(
-                    Color.Transparent
-                ),
-
+                    .width(300.dp)
+                    .height(56.dp),
                 contentPadding = PaddingValues(),
                 shape = RoundedCornerShape(23.dp),
             ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(
-                            brush = Brush.linearGradient(gradientPrimaryColors)
-                        )
-                        .padding(20.dp),
-                    contentAlignment = Alignment.BottomCenter
-                ) {
-                    Text("Stat")
-                }
-
+                Text("Statistics", fontFamily = MartianMono, color = MaterialTheme.colorScheme.primary)
             }
         }
     }
-
-    //PlayerHorizontalBar(players = ListePlayer, modifier = Modifier)
 }
 
 @SuppressLint("DefaultLocale")
 @Composable
-fun PlayerScoreStat(distance: Float, distanceMax: Float,imageViewModel: ImageViewModel?, modifier: Modifier = Modifier,isHost: Boolean = false) {
+fun PlayerScoreStat(
+    distance: Float,
+    distanceMax: Float,
+    imageViewModel: ImageViewModel?,
+    modifier: Modifier = Modifier,
+    isHost: Boolean = false
+) {
     Column(
         modifier = Modifier
             .fillMaxHeight()
             .height(600.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Bottom,
+    ) {
+        ProfilePicture(
+            modifier = Modifier
+                .padding(bottom = 10.dp)
+                .size(50.dp)
+                .clip(CircleShape),
+            imageViewModel = imageViewModel,
+            isHost = isHost
+        )
 
-        ) {
-
-        ProfilePicture(modifier= Modifier
-            .padding(bottom = 10.dp)
-            .size(50.dp)
-            .clip(CircleShape)
-            , imageViewModel = imageViewModel,isHost= isHost)
         Box(
             modifier = Modifier
                 .clip(RoundedCornerShape(10))
-
                 .fillMaxHeight(distance / distanceMax)
-                .background(
-                    brush = Brush.linearGradient(colors = gradientPrimaryColors),
-                ),
-            //contentAlignment = Alignment.BottomCenter,
+                .background(MaterialTheme.colorScheme.secondary)
         ) {
-
             Text(
                 text = String.format("%.1f", distance),
                 style = typography.bodySmall.copy(color = Color.Red),
@@ -336,10 +319,10 @@ fun PlayerScoreStat(distance: Float, distanceMax: Float,imageViewModel: ImageVie
                         rotationZ = 90f
                     }
             )
-
         }
     }
 }
+
 @Composable
 fun PlayerHorizontalBar(players: List<DataClass.Player>, modifier: Modifier) {
     Box(
@@ -350,10 +333,7 @@ fun PlayerHorizontalBar(players: List<DataClass.Player>, modifier: Modifier) {
     ) {
         Column(
             modifier = Modifier
-                //.background(color = colorScheme.secondary,
-                //    shape = MaterialTheme.shapes.medium)
                 .padding(5.dp),
-            //.shadow(10.dp,shape = MaterialTheme.shapes.medium))
             horizontalAlignment = Alignment.End,
         ) {
             for (player in players) {
