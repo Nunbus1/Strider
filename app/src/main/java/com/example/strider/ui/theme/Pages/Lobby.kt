@@ -33,16 +33,25 @@ import com.google.firebase.firestore.FirebaseFirestore
 import DataClass.Player
 import ViewModels.ImageViewModel
 import android.util.Log
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.zIndex
 import com.example.strider.ui.theme.BricolageGrotesque
 import com.example.strider.ui.theme.MartianMono
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 
 
@@ -62,6 +71,28 @@ fun LobbyScreen(
     val backgroundColor = if (isDarkTheme) Color(0xFF252525) else Color.White
     val backgroundRes = if (isDarkTheme) R.drawable.wave_dark else R.drawable.wave
     val textColor = if (isDarkTheme) Color.White else Color.Black
+    val countdown = remember { mutableIntStateOf(5) }
+    val showCountdown = remember { mutableStateOf(true) }
+    val countdownStarted = remember { mutableStateOf(false) }
+
+    val shouldStartCountdown = remember { mutableStateOf(false) }
+
+    LaunchedEffect(shouldStartCountdown.value) {
+        if (shouldStartCountdown.value && !countdownStarted.value) {
+            countdownStarted.value = true
+            showCountdown.value = true
+
+            while (countdown.value > 0) {
+                delay(1000)
+                countdown.value -= 1
+            }
+
+            showCountdown.value = false
+            val currentTime = System.currentTimeMillis()
+            onStartClicked(roomCode, playerId, currentTime)
+        }
+    }
+
 
     LaunchedEffect(roomCode) {
         firestoreClient.getPlayersInRoom(roomCode).collect { newPlayers ->
@@ -72,9 +103,9 @@ fun LobbyScreen(
                 Log.d("Debug", "Player[$id] = ${player.pseudo}")
             }
         }
-        firestoreClient.getHostLaunchGame(roomCode).collect{
-            if(it == true){
-                onStartClicked(roomCode, playerId, System.currentTimeMillis())
+        firestoreClient.getHostLaunchGame(roomCode).collect{launched ->
+            if (launched == true && !countdownStarted.value) {
+                shouldStartCountdown.value = true
             }
         }
     }
@@ -134,7 +165,33 @@ fun LobbyScreen(
             color = textColor,
             modifier = Modifier.padding(8.dp)
         )
-
+        if (showCountdown.value) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .zIndex(10f),
+                contentAlignment = Alignment.Center
+            ) {
+                AnimatedContent(
+                    targetState = countdown.value,
+                    transitionSpec = {
+                        fadeIn(animationSpec = tween(300)) togetherWith fadeOut(animationSpec = tween(300))
+                    },
+                    label = "CountdownTransition"
+                ) { value ->
+                    Text(
+                        text = when (value) {
+                            4, 3, 2 -> (value-1).toString()
+                            1 -> "Partez !"
+                            else -> ""
+                        },
+                        fontSize = 64.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.Black
+                    )
+                }
+            }
+        }
         Image(
             painter = painterResource(id = backgroundRes),
             contentDescription = "Séparateur décoratif",
@@ -187,8 +244,7 @@ fun LobbyScreen(
 
         Button(
             onClick = {
-                val currentTime = System.currentTimeMillis()
-                onStartClicked(roomCode, playerId, currentTime) // pour le host
+                shouldStartCountdown.value = true
             },
             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary),
             border = BorderStroke(2.dp, Color.White),
