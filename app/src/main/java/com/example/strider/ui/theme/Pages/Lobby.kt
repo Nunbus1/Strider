@@ -33,9 +33,16 @@ import com.google.firebase.firestore.FirebaseFirestore
 import DataClass.Player
 import ViewModels.ImageViewModel
 import android.util.Log
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.TextStyle
+import com.example.strider.ui.theme.BricolageGrotesque
+import com.example.strider.ui.theme.MartianMono
 import kotlinx.coroutines.flow.collectLatest
 
 
@@ -51,6 +58,10 @@ fun LobbyScreen(
     val firestoreClient = remember { FirestoreClient() }
     val players = remember { mutableStateListOf<Pair<Int, Player>>() }
 
+    val isDarkTheme = isSystemInDarkTheme()
+    val backgroundColor = if (isDarkTheme) Color(0xFF252525) else Color.White
+    val backgroundRes = if (isDarkTheme) R.drawable.wave_dark else R.drawable.wave
+    val textColor = if (isDarkTheme) Color.White else Color.Black
 
     LaunchedEffect(roomCode) {
         firestoreClient.getPlayersInRoom(roomCode).collect { newPlayers ->
@@ -71,12 +82,13 @@ fun LobbyScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
+            .background(backgroundColor)
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Spacer(modifier = Modifier.height(30.dp))
 
-        // Header avec retour + titre
+        // Header
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
@@ -84,53 +96,72 @@ fun LobbyScreen(
         ) {
             IconButton(onClick = onBackClicked) {
                 Icon(
-                    imageVector = androidx.compose.material.icons.Icons.Default.ArrowBack,
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "Back",
-                    modifier = Modifier.size(32.dp)
+                    tint = MaterialTheme.colorScheme.onBackground,
+                    modifier = Modifier
+                        .size(32.dp)
+                        .clickable { onBackClicked() }
                 )
             }
-            Text(
-                text = "Strider",
-                style = MaterialTheme.typography.headlineLarge,
-                fontSize = 60.sp,
+
+            ProfilePicture(
+                modifier = Modifier
+                    .size(50.dp)
+                    .background(shape = CircleShape, color = Color.White),
+                imageViewModel = imageViewModel,
+                isHost = true
+            )
+        }
+        Text(
+            text = "Strider",
+            fontSize = 100.sp,
+            lineHeight = 116.sp,
+            style = TextStyle(
+                fontFamily = BricolageGrotesque,
                 fontWeight = FontWeight.Bold
-            )
-            ProfilePicture(modifier = Modifier.size(75.dp)
-                .clip(CircleShape), imageViewModel = imageViewModel)
-        }
+            ),
+            color = MaterialTheme.colorScheme.onBackground,
+            modifier = Modifier.padding(8.dp)
+        )
 
-        Spacer(modifier = Modifier.height(32.dp))
 
-        Card(
-            shape = RoundedCornerShape(8.dp),
-            border = BorderStroke(2.dp, Color.Blue),
-            modifier = Modifier.padding(horizontal = 32.dp)
-        ) {
-            Text(
-                text = "Lobby",
-                fontSize = 40.sp,
-                color = Color.Blue,
-                modifier = Modifier.padding(8.dp)
-            )
-        }
-
-        Spacer(modifier = Modifier.height(8.dp))
 
         Text(
             text = "Code : $roomCode",
             fontSize = 20.sp,
-            color = Color.Black,
+            fontFamily = MartianMono,
+            color = textColor,
             modifier = Modifier.padding(8.dp)
         )
 
-        Divider(color = Color.Gray, thickness = 1.dp)
+        Image(
+            painter = painterResource(id = backgroundRes),
+            contentDescription = "Séparateur décoratif",
+            contentScale = ContentScale.FillWidth,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(30.dp)
+        )
         Text(
             text = "Runners",
-            fontSize = 40.sp,
-            fontWeight = FontWeight.Medium,
-            modifier = Modifier.padding(vertical = 8.dp)
+            fontSize = 80.sp,
+            lineHeight = 116.sp,
+            style = TextStyle(
+                fontFamily = BricolageGrotesque,
+                fontWeight = FontWeight.Bold
+            ),
+            color = MaterialTheme.colorScheme.onBackground,
+            modifier = Modifier.padding(8.dp)
         )
-        Divider(color = Color.Gray, thickness = 1.dp)
+        Image(
+            painter = painterResource(id = backgroundRes),
+            contentDescription = "Séparateur décoratif",
+            contentScale = ContentScale.FillWidth,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(30.dp)
+        )
 
         Spacer(modifier = Modifier.height(8.dp))
 
@@ -153,35 +184,19 @@ fun LobbyScreen(
         }
 
         Spacer(modifier = Modifier.height(16.dp))
-        /*
-        players.forEach { (id, player) ->
-            if (id == playerId) {
-                ButtonStart(
-                    isHost = player.isHost,
-                    onStartClicked = onStartClicked,
-                    roomCode = roomCode,
-                    playerId = playerId)
-            }
-        }*/
+
         Button(
             onClick = {
                 val currentTime = System.currentTimeMillis()
                 onStartClicked(roomCode, playerId, currentTime) // pour le host
             },
-            colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary),
+            border = BorderStroke(2.dp, Color.White),
             modifier = Modifier
-                .background(
-                    Brush.horizontalGradient(
-                        colors = listOf(
-                            Color(0xFF22A6FF),
-                            Color(0xFF0044FF)
-                        )
-                    ),
-                    shape = CircleShape
-                )
-                .width(150.dp)
+                .width(300.dp)
+                .height(56.dp)
         ) {
-            Text("Start")
+            Text("Start", fontFamily = MartianMono, color = MaterialTheme.colorScheme.primary)
         }
 
 

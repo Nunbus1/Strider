@@ -106,8 +106,6 @@ fun GameScreen(
     val textColor = if (isDarkTheme) Color.White else Color.Black
 
 
-
-
     LaunchedEffect(Unit) {
         while (countdown.intValue > 0) {
             delay(1000)
