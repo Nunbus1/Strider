@@ -9,6 +9,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -51,10 +52,14 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.strider.R
+import com.example.strider.ui.theme.BricolageGrotesque
+import com.example.strider.ui.theme.MartianMono
 import com.example.strider.ui.theme.StriderTheme
 import kotlin.random.Random
 import com.example.strider.ui.theme.StriderTheme
@@ -110,10 +115,15 @@ fun FinishScreen(
 
     var infoMessage by remember { mutableStateOf("Cliquez sur Next pour voir les stats 📊") }
 
+    val isDarkTheme = isSystemInDarkTheme()
+    val backgroundColor = if (isDarkTheme) Color(0xFF252525) else Color.White
+    val backgroundRes = if (isDarkTheme) R.drawable.wave_dark else R.drawable.wave
+    val textColor = if (isDarkTheme) Color.White else Color.Black
+
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background),
+            .background(backgroundColor),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Spacer(modifier = Modifier.height(30.dp))
@@ -124,18 +134,32 @@ fun FinishScreen(
             onResetInfoMessage = { infoMessage = "Cliquez sur Next pour voir les stats 📊" },
             imageViewModel = imageViewModel
         )
+        Text(
+            text = "Statistics",
+            fontSize = 80.sp,
+            lineHeight = 116.sp,
+            style = TextStyle(
+                fontFamily = BricolageGrotesque,
+                fontWeight = FontWeight.Bold
+            ),
+            color = MaterialTheme.colorScheme.onBackground,
+            modifier = Modifier.padding(8.dp)
+        )
 
-        Spacer(modifier = Modifier.height(5.dp))
         Text(
             text = "Code : $roomCode",
             fontSize = 20.sp,
-            color = Color.Black,
+            fontFamily = MartianMono,
+            color = textColor,
             modifier = Modifier.padding(8.dp)
         )
-        Spacer(modifier = Modifier.height(5.dp))
+
         ResultSection(
             playerName = sortedPlayers.firstOrNull()?.second?.pseudo ?: "Unknown",
-            resultMessage = if (showSpeedState) "The fastest" else "Win this match")
+            resultMessage = if (showSpeedState) "The fastest" else "Win this match",
+            textColor = textColor
+        )
+
         Spacer(modifier = Modifier.height(10.dp))
         if (showSpeedState) {
             SpeedGraph(players = players, selectedPlayers = selectedPlayers)
@@ -153,7 +177,8 @@ fun FinishScreen(
                 else
                     selectedPlayers + clickedId
             },
-            meId = playerId
+            meId = playerId,
+            backgroundColor = backgroundColor
         )
         Spacer(modifier = Modifier.height(10.dp))
         ActionButtons(
@@ -197,6 +222,7 @@ fun HeaderSection(
             else
                 androidx.compose.material.icons.Icons.Default.Home, // Home quand showSpeedState est false
             contentDescription = if (showSpeedState) "Back" else "Home",
+            tint = MaterialTheme.colorScheme.onBackground,
             modifier = Modifier
                 .size(32.dp)
                 .clickable { if (showSpeedState) {
@@ -207,50 +233,70 @@ fun HeaderSection(
                 }}
         )
 
-        Text(
-            text = stringResource(R.string.app_name),
-            fontSize = 50.sp,
-            color = Color.Black
+        ProfilePicture(
+            modifier = Modifier
+                .size(50.dp)
+                .background(shape = CircleShape, color = Color.White),
+            imageViewModel = imageViewModel
         )
-
-        ProfilePicture(modifier = Modifier.size(75.dp)
-            .clip(CircleShape), imageViewModel = imageViewModel)
     }
 }
 
 @Composable
-fun ResultSection(playerName: String, resultMessage: String) {
+fun ResultSection(playerName: String, resultMessage: String, textColor: Color) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text(
             text = playerName,
-            fontSize = 32.sp,
-            color = Color.Black
+            fontSize = 20.sp,
+            fontFamily = MartianMono,
+            fontWeight = FontWeight.Bold,
+            color = textColor,
+            modifier = Modifier.padding(8.dp)
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
             text = resultMessage,
-            fontSize = 32.sp,
-            color = Color.Black
+            fontSize = 20.sp,
+            fontFamily = MartianMono,
+            color = textColor,
+            modifier = Modifier.padding(8.dp)
         )
     }
 }
 
 @Composable
 fun Podium() {
-    Canvas(modifier = Modifier
-        .fillMaxWidth()
-        .height(250.dp)
-        .padding(10.dp)
-        .shadow(8.dp, shape = RoundedCornerShape(16.dp)) // Ajout de l'ombre pour un effet de relief
-        .background(
-            brush = Brush.verticalGradient(
-                colors = listOf(Color(0xFFE8E8E8), Color(0xFFD0D0D0))
-            ),
-            shape = RoundedCornerShape(16.dp)
+    val primary = MaterialTheme.colorScheme.primary
+    val secondary = MaterialTheme.colorScheme.secondary
+
+    // Dégradé plus sombre basé sur primary
+    val darkPrimaryShade = Brush.verticalGradient(
+        colors = listOf(
+            primary.copy(alpha = 1f),
+            primary.copy(alpha = 0.6f)
         )
-        .padding(10.dp),
+    )
+
+    val gradientPrimary = Brush.verticalGradient(
+        colors = listOf(
+            primary.copy(alpha = 1f),
+            primary.copy(alpha = 0.85f)
+        )
+    )
+
+    Canvas(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(250.dp)
+            .padding(10.dp)
+            .shadow(8.dp, shape = RoundedCornerShape(16.dp))
+            .background(
+                color = secondary, // 👈 fond secondaire
+                shape = RoundedCornerShape(16.dp)
+            )
+            .padding(10.dp),
     ) {
         val centerX = size.width / 2
         val podiumWidth = 220f
@@ -264,8 +310,7 @@ fun Podium() {
         val rightHeightOffset = 100f
         val iconSize = 200f
 
-        val darkShade = Brush.verticalGradient(colors = listOf(Color(0xFF22DCD9), Color(0xFF4398AF)))
-        //-------- Middle --------//
+        // ----- MIDDLE ----- //
         val middleFaceLeft = Path().apply {
             moveTo(middleX, topY)
             lineTo(middleX - depth, topY - depth)
@@ -273,8 +318,7 @@ fun Podium() {
             lineTo(middleX, topY + podiumHeight)
             close()
         }
-        drawPath(middleFaceLeft, darkShade)
-        //drawPath(middleFaceLeft, Color.Black, style = Stroke(width = 4f))
+        drawPath(middleFaceLeft, darkPrimaryShade)
 
         val middleFaceRight = Path().apply {
             moveTo(middleX + podiumWidth, topY)
@@ -283,8 +327,7 @@ fun Podium() {
             lineTo(middleX + podiumWidth, topY + podiumHeight)
             close()
         }
-        drawPath(middleFaceRight, darkShade)
-        //drawPath(middleFaceRight, Color.Black, style = Stroke(width = 4f))
+        drawPath(middleFaceRight, darkPrimaryShade)
 
         val middleTop = Path().apply {
             moveTo(middleX, topY)
@@ -293,13 +336,11 @@ fun Podium() {
             lineTo(middleX - depth, topY - depth)
             close()
         }
-        drawPath(middleTop, gradientBrush)
-        //drawPath(middleTop, Color.Black, style = Stroke(width = 4f))
+        drawPath(middleTop, gradientPrimary)
 
-        drawRect(gradientBrush, topLeft = Offset(middleX, topY), size = androidx.compose.ui.geometry.Size(podiumWidth, podiumHeight))
-        //drawRect(Color.Black, topLeft = Offset(middleX, topY), size = androidx.compose.ui.geometry.Size(podiumWidth, podiumHeight), style = Stroke(width = 4f))
+        drawRect(gradientPrimary, Offset(middleX, topY), Size(podiumWidth, podiumHeight))
 
-        //-------- Right --------//
+        // ----- RIGHT ----- //
         val rightFace = Path().apply {
             moveTo(rightX + podiumWidth, topY + rightHeightOffset)
             lineTo(rightX + depth + podiumWidth, topY + rightHeightOffset - depth)
@@ -307,8 +348,7 @@ fun Podium() {
             lineTo(rightX + podiumWidth, topY + podiumHeight)
             close()
         }
-        drawPath(rightFace, darkShade)
-        //drawPath(rightFace, Color.Black, style = Stroke(width = 4f))
+        drawPath(rightFace, darkPrimaryShade)
 
         val rightTop = Path().apply {
             moveTo(rightX, topY + rightHeightOffset)
@@ -317,13 +357,11 @@ fun Podium() {
             lineTo(rightX + depth, topY + rightHeightOffset - depth)
             close()
         }
-        drawPath(rightTop, gradientBrush)
-        //drawPath(rightTop, Color.Black, style = Stroke(width = 4f))
+        drawPath(rightTop, gradientPrimary)
 
-        drawRect(gradientBrush, topLeft = Offset(rightX, topY + rightHeightOffset), size = androidx.compose.ui.geometry.Size(podiumWidth, podiumHeight - rightHeightOffset))
-        //drawRect(Color.Black, topLeft = Offset(rightX, topY + rightHeightOffset), size = androidx.compose.ui.geometry.Size(podiumWidth, podiumHeight - rightHeightOffset), style = Stroke(width = 4f))
+        drawRect(gradientPrimary, Offset(rightX, topY + rightHeightOffset), Size(podiumWidth, podiumHeight - rightHeightOffset))
 
-        //-------- Left --------//
+        // ----- LEFT ----- //
         val leftFace = Path().apply {
             moveTo(leftX, topY + leftHeightOffset)
             lineTo(leftX - depth, topY + leftHeightOffset - depth)
@@ -331,8 +369,7 @@ fun Podium() {
             lineTo(leftX, topY + podiumHeight)
             close()
         }
-        drawPath(leftFace, darkShade)
-        //drawPath(leftFace, Color.Black, style = Stroke(width = 4f))
+        drawPath(leftFace, darkPrimaryShade)
 
         val leftTop = Path().apply {
             moveTo(leftX, topY + leftHeightOffset)
@@ -341,30 +378,28 @@ fun Podium() {
             lineTo(leftX - depth, topY + leftHeightOffset - depth)
             close()
         }
-        drawPath(leftTop, gradientBrush)
-        //drawPath(leftTop, Color.Black, style = Stroke(width = 4f))
+        drawPath(leftTop, gradientPrimary)
 
-        drawRect(gradientBrush, topLeft = Offset(leftX, topY + leftHeightOffset), size = androidx.compose.ui.geometry.Size(podiumWidth, podiumHeight - leftHeightOffset))
-        //drawRect(Color.Black, topLeft = Offset(leftX, topY + leftHeightOffset), size = androidx.compose.ui.geometry.Size(podiumWidth, podiumHeight - leftHeightOffset), style = Stroke(width = 4f))
+        drawRect(gradientPrimary, Offset(leftX, topY + leftHeightOffset), Size(podiumWidth, podiumHeight - leftHeightOffset))
 
-        //-------- Icone --------//
-        drawCircle(gradientBrush, radius = iconSize / 2, center = Offset(middleX + podiumWidth / 2 , topY - iconSize ))
-        drawCircle(gradientBrush, radius = iconSize / 2, center = Offset(rightX  + podiumWidth / 2  + depth / 2, topY + rightHeightOffset - iconSize ))
-        drawCircle(gradientBrush, radius = iconSize / 2, center = Offset(leftX + podiumWidth / 2  - depth / 2, topY + leftHeightOffset - iconSize ))
+        // ----- CERCLES ----- //
+        drawCircle(gradientPrimary, radius = iconSize / 2, center = Offset(middleX + podiumWidth / 2 , topY - iconSize ))
+        drawCircle(gradientPrimary, radius = iconSize / 2, center = Offset(rightX  + podiumWidth / 2  + depth / 2, topY + rightHeightOffset - iconSize ))
+        drawCircle(gradientPrimary, radius = iconSize / 2, center = Offset(leftX + podiumWidth / 2  - depth / 2, topY + leftHeightOffset - iconSize ))
 
-        //-------- Ombre sous icônes --------//
+        // ----- OMBRES ----- //
         drawOval(
-            darkShade,
+            darkPrimaryShade,
             topLeft = Offset(middleX + podiumWidth / 2 - iconSize * 0.7f / 2, topY - iconSize / 5),
             size = Size(iconSize * 0.7f, iconSize * 0.1f)
         )
         drawOval(
-            darkShade,
+            darkPrimaryShade,
             topLeft = Offset(rightX  + podiumWidth / 2  + depth / 2 - iconSize * 0.7f / 2, topY + rightHeightOffset - iconSize / 5),
             size = Size(iconSize * 0.7f, iconSize * 0.1f)
         )
         drawOval(
-            darkShade,
+            darkPrimaryShade,
             topLeft = Offset(leftX + podiumWidth / 2  - depth / 2 - iconSize * 0.7f / 2, topY + leftHeightOffset - iconSize / 5),
             size = Size(iconSize * 0.7f, iconSize * 0.1f)
         )
@@ -377,7 +412,8 @@ fun PlayerRanking(
     showSpeed: Boolean,
     selectedPlayers: Set<Int>,
     onPlayerClick: (Int) -> Unit,
-    meId: Int
+    meId: Int,
+    backgroundColor: Color
 ) {
     val gradients = listOf(
         Brush.verticalGradient(colors = listOf(Color(0xFFFFD700), Color(0xFFFFE066))), // Or
@@ -385,7 +421,15 @@ fun PlayerRanking(
         Brush.verticalGradient(colors = listOf(Color(0xFFCD7F32), Color(0xFFD8A47F)))  // Bronze
     )
 
-    val meGradient = Brush.verticalGradient(colors = listOf(Color(0xFF22FFFB), Color(0xFF48AAC5)))
+    val meGradient = Brush.verticalGradient(
+        colors = listOf(
+            MaterialTheme.colorScheme.primary,
+            MaterialTheme.colorScheme.primaryContainer
+        )
+    )
+
+    val isDarkTheme = isSystemInDarkTheme()
+    val textColor = if (isDarkTheme) Color.White else Color.Black
 
     Row(
         modifier = Modifier
@@ -393,7 +437,7 @@ fun PlayerRanking(
             .horizontalScroll(rememberScrollState()),
         horizontalArrangement = Arrangement.Center
     ) {
-        players.chunked(5).forEach { group ->
+        players.chunked(4).forEach { group ->
             Column(
                 modifier = Modifier
                     .width(300.dp)
@@ -408,7 +452,7 @@ fun PlayerRanking(
                         rank == 0 -> gradients[0]
                         rank == 1 -> gradients[1]
                         rank == 2 -> gradients[2]
-                        else -> Brush.verticalGradient(colors = listOf(Color.White, Color.White))
+                        else -> Brush.verticalGradient(colors = listOf(backgroundColor, backgroundColor))
                     }
 
                     Box(
@@ -420,7 +464,7 @@ fun PlayerRanking(
                             .background(backgroundBrush, shape = CircleShape)
                             .border(
                                 2.dp,
-                                if (selectedPlayers.contains(id)) Color.Black else Color.Transparent,
+                                if (selectedPlayers.contains(id)) MaterialTheme.colorScheme.secondary else Color.Transparent,
                                 CircleShape
                             )
                             .padding(5.dp)
@@ -428,7 +472,8 @@ fun PlayerRanking(
                         Text(
                             text = if (showSpeed) "${player.pseudo} - ${player.distance.value.toInt()}m" else player.pseudo,
                             fontSize = 15.sp,
-                            color = Color.Black,
+                            fontFamily = MartianMono,
+                            color = textColor,
                             modifier = Modifier.align(Alignment.Center)
                         )
                     }
@@ -686,6 +731,9 @@ fun ActionButtons(
     infoMessage: String,
     onResetInfoMessage: () -> Unit
 ) {
+    val isDark = isSystemInDarkTheme()
+    val textColor = if (isDark) Color.White else Color.Black
+
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier.fillMaxWidth()
@@ -703,34 +751,38 @@ fun ActionButtons(
         ) {
             Button(
                 onClick = { onContinueClicked(roomCode, playerId, startTime) },
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                 modifier = Modifier
-                    .background(
-                        Brush.horizontalGradient(colors = listOf(Color(0xFF22A6FF), Color(0xFF0044FF))),
-                        shape = CircleShape
-                    )
                     .width(150.dp)
+                    .height(56.dp),
             ) {
-                Text(text = "Game", fontSize = 20.sp, color = Color.White)
+                Text(
+                    text = "Game",
+                    fontSize = 20.sp,
+                    fontFamily = MartianMono,
+                    color = textColor
+                )
             }
 
             Button(
-                onClick = {
-                    onNextClicked()
-                },
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
+                onClick = { onNextClicked() },
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary),
                 modifier = Modifier
-                    .background(
-                        Brush.horizontalGradient(colors = listOf(Color(0xFFFF4444), Color(0xFFFF2266))),
-                        shape = CircleShape
-                    )
                     .width(150.dp)
+                    .height(56.dp),
+
             ) {
-                Text(text = "Next", fontSize = 20.sp, color = Color.White)
+                Text(
+                    text = "Next",
+                    fontSize = 20.sp,
+                    fontFamily = MartianMono,
+                    color = textColor
+                )
             }
         }
     }
 }
+
 
 @Preview(showBackground = true)
 @Composable
