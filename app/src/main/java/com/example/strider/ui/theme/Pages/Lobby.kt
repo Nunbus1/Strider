@@ -51,6 +51,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.Lifecycle
+import com.example.strider.PlayerManager
 import com.example.strider.ui.theme.BricolageGrotesque
 import com.example.strider.ui.theme.MartianMono
 import kotlinx.coroutines.delay
@@ -98,9 +99,10 @@ fun LobbyScreen(
     }
 
 
-    LaunchedEffect(roomCode,hostLaunchGame) {
+    LaunchedEffect(roomCode) {
 
         firestoreClient.getPlayersInRoom(roomCode).collect { newPlayers ->
+
             players.clear()
             players.addAll(newPlayers)
 
@@ -108,12 +110,15 @@ fun LobbyScreen(
                 Log.d("Debug", "Player[$id] = ${player.pseudo}")
             }
 
-            firestoreClient.getHostLaunchGame(roomCode).collectLatest { value ->
-                hostLaunchGame = value
-            }
+
         }
 
 
+    }
+    LaunchedEffect(hostLaunchGame ) {
+        firestoreClient.getHostLaunchGame(roomCode).collectLatest { value ->
+        hostLaunchGame = value
+        }
     }
     if (hostLaunchGame == true && !countdownStarted.value) {
         shouldStartCountdown.value = true
@@ -185,13 +190,17 @@ fun LobbyScreen(
                 AnimatedContent(
                     targetState = countdown.value,
                     transitionSpec = {
-                        fadeIn(animationSpec = tween(300)) togetherWith fadeOut(animationSpec = tween(300))
+                        fadeIn(animationSpec = tween(300)) togetherWith fadeOut(
+                            animationSpec = tween(
+                                300
+                            )
+                        )
                     },
                     label = "CountdownTransition"
                 ) { value ->
                     Text(
                         text = when (value) {
-                            4, 3, 2 -> (value-1).toString()
+                            4, 3, 2 -> (value - 1).toString()
                             1 -> "Partez !"
                             else -> ""
                         },
@@ -251,7 +260,7 @@ fun LobbyScreen(
         }
 
         Spacer(modifier = Modifier.height(16.dp))
-
+        if(PlayerManager.currentPlayer?.isHost == true){
         Button(
             onClick = {
                 shouldStartCountdown.value = true
@@ -264,6 +273,7 @@ fun LobbyScreen(
         ) {
             Text("Start", fontFamily = MartianMono, color = MaterialTheme.colorScheme.primary)
         }
+    }
 
 
             Spacer(modifier = Modifier.height(16.dp))
