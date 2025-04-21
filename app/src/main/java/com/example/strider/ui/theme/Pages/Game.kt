@@ -107,7 +107,7 @@ fun GameScreen(
     // -------------------------
 
     LaunchedEffect(Unit) {
-        firestoreClient.setHostLaunchGame(roomCode, true)
+        firestoreClient.setHostLaunchGame(roomCode)
 
         while (true) {
             elapsed.longValue = (System.currentTimeMillis() - startTime)

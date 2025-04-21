@@ -7,6 +7,11 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 
+// -------------------------
+// Palette claire
+// -------------------------
+
+
 private val LightColors = lightColorScheme(
     primary = primaryLight,
     onPrimary = onPrimaryLight,
@@ -21,6 +26,10 @@ private val LightColors = lightColorScheme(
     surface = surfaceLight,
     onSurface = onSurfaceLight,
 )
+
+// -------------------------
+// Palette sombre
+// -------------------------
 
 private val DarkColors = darkColorScheme(
     primary = primaryDark,
@@ -37,9 +46,13 @@ private val DarkColors = darkColorScheme(
     onSurface = onSurfaceDark,
 )
 
-val gradientPrimaryColors = gradientPrimaryColor
-val gradientSecondaryColors = gradientSecondaryColor
-
+/**
+ * Applique le thème global de l'application Strider.
+ * Utilise automatiquement le thème sombre selon le système, sauf si spécifié.
+ *
+ * @param darkTheme Forcer le thème sombre si nécessaire (par défaut : dépend du système).
+ * @param content Composables enfants auxquels le thème sera appliqué.
+ */
 @Composable
 fun StriderTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
