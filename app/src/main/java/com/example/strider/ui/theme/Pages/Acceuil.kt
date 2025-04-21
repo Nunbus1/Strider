@@ -23,13 +23,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -54,23 +52,32 @@ fun AccueilScreen(
     onJoinClicked: (roomCode: String, playerId: Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    // -------------------------
+    // État utilisateur
+    // -------------------------
+
     var pseudo by remember { mutableStateOf(TextFieldValue("")) }
-
     val placeholderText = "Enter your pseudo"
-
     var code by remember { mutableStateOf("") }
     var isJoining by remember { mutableStateOf(false) }
+    var joiningInProgress by remember { mutableStateOf(false) }
+
+    // -------------------------
+    // Gestion asynchrone et accès Firestore
+    // -------------------------
 
     val coroutineScope = rememberCoroutineScope()
     val firestoreClient = FirestoreClient()
 
-    var joiningInProgress by remember { mutableStateOf(false) }
+    // -------------------------
+    // Gestion du thème et de l'affichage
+    // -------------------------
 
     val isDarkTheme = isSystemInDarkTheme()
     val backgroundRes = if (isDarkTheme) R.drawable.wavy_top_dark else R.drawable.wavy_top
     val backgroundColor = if (isDarkTheme) Color(0xFF252525) else Color.White
+    val textColor = if (isDarkTheme) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary
 
-    // Gérer le bouton retour du téléphone
     BackHandler(isJoining) {
         isJoining = false
     }
@@ -137,8 +144,8 @@ fun AccueilScreen(
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = MaterialTheme.colorScheme.secondary,
                     unfocusedBorderColor = MaterialTheme.colorScheme.secondary,
-                    focusedTextColor = MaterialTheme.colorScheme.secondary,
-                    unfocusedTextColor = MaterialTheme.colorScheme.secondary,
+                    focusedTextColor = textColor,
+                    unfocusedTextColor = textColor,
                     cursorColor = MaterialTheme.colorScheme.secondary,
                     focusedContainerColor = Color.White,
                     unfocusedContainerColor = Color.White
@@ -176,8 +183,8 @@ fun AccueilScreen(
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = MaterialTheme.colorScheme.secondary,
                             unfocusedBorderColor = MaterialTheme.colorScheme.secondary,
-                            focusedTextColor = MaterialTheme.colorScheme.secondary,
-                            unfocusedTextColor = MaterialTheme.colorScheme.secondary,
+                            focusedTextColor = textColor,
+                            unfocusedTextColor = textColor,
                             cursorColor = MaterialTheme.colorScheme.secondary,
                             focusedContainerColor = Color.White,
                             unfocusedContainerColor = Color.White
@@ -258,94 +265,124 @@ fun AccueilScreen(
     }
 }
 
+/**
+ * Composable qui permet à l'utilisateur de prendre une photo de profil
+ * en utilisant la caméra, puis l'affiche et la sauvegarde localement.
+ */
 @Composable
-fun TakeProfilePicture(imageViewModel : ImageViewModel?) {
+fun TakeProfilePicture(imageViewModel: ImageViewModel?) {
+
+    // -------------------------
+    // État de la photo capturée
+    // -------------------------
+
     var bitmap by remember { mutableStateOf<Bitmap?>(null) }
+
+    // -------------------------
+    // Gestion du launcher de prise de photo
+    // -------------------------
+
     val takePictureLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.TakePicturePreview()
     ) { result: Bitmap? ->
         bitmap = result
     }
-    Box(
-        //modifier = modifier.size(120.dp)
-    ) {
+
+    // -------------------------
+    // Références nécessaires pour sauvegarder l’image
+    // -------------------------
+
+    val context = LocalContext.current
+    val internalDir = context.filesDir
+    val photoFile = File(internalDir, "temp_photo.jpg")
+
+
+    Box {
         Image(
             painter = painterResource(R.drawable.beaute),
             contentDescription = "Profile Picture",
             modifier = Modifier
                 .size(120.dp)
-                //.clip(RoundedCornerShape(25.dp))
                 .shadow(8.dp, shape = CircleShape)
                 .background(shape = CircleShape, color = Color.White),
         )
+
         bitmap?.let {
-            Image(bitmap = it.asImageBitmap(), contentDescription = "Captured photo",modifier = Modifier
-                .size(120.dp)
-                .background(shape = CircleShape, color = Color.White)
-                .shadow(8.dp, shape = CircleShape)
-                ,
+            Image(
+                bitmap = it.asImageBitmap(),
+                contentDescription = "Captured photo",
+                modifier = Modifier
+                    .size(120.dp)
+                    .background(shape = CircleShape, color = Color.White)
+                    .shadow(8.dp, shape = CircleShape),
                 contentScale = ContentScale.Crop,
             )
-            // Save the image to a file
-            val context = LocalContext.current
-            val internalDir = context.filesDir
-            val photoFile = File(internalDir,"temp_photo.jpg")
-            bitmap?.compress(Bitmap.CompressFormat.JPEG, 100, FileOutputStream(photoFile))
+
+            it.compress(Bitmap.CompressFormat.JPEG, 100, FileOutputStream(photoFile))
             imageViewModel?.updateImagePath(photoFile.absolutePath)
         }
-        IconButton(modifier = Modifier
-            .size(36.dp)
-            .background(Color.White, shape = CircleShape)
-            .align(Alignment.BottomEnd),
-            onClick = { takePictureLauncher.launch()
-            }) {
+
+        IconButton(
+            modifier = Modifier
+                .size(36.dp)
+                .background(Color.White, shape = CircleShape)
+                .align(Alignment.BottomEnd),
+            onClick = { takePictureLauncher.launch() }
+        ) {
             Icon(
                 imageVector = androidx.compose.material.icons.Icons.Default.Add,
                 contentDescription = "Add",
                 tint = Color.Black,
                 modifier = Modifier.size(14.dp)
             )
-            //Text("Take Photo")
         }
+
         Spacer(modifier = Modifier.height(16.dp))
     }
 }
 
+
+
+/**
+ * Composable qui affiche la photo de profil d’un joueur.
+ * Si une image a été prise (et stockée), elle est affichée, sinon une image par défaut est utilisée.
+ */
 @Composable
-fun ProfilePicture(modifier: Modifier, imageViewModel : ImageViewModel?,isHost: Boolean = false) {
-    //var bitmap by remember { mutableStateOf<Bitmap?>(null) }
-    Box(
-        modifier = modifier
-    ) {
+fun ProfilePicture(
+    modifier: Modifier,
+    imageViewModel: ImageViewModel?,
+    isHost: Boolean = false
+) {
+    // -------------------------
+    // Récupération de l'image de profil si existante
+    // -------------------------
 
+    val imagePath = imageViewModel?.imagePath
+    val bitmap = imagePath?.let { BitmapFactory.decodeFile(it) }
+
+    Box(modifier = modifier) {
         Image(
-
             painter = painterResource(R.drawable.beaute),
             contentDescription = "Profile Picture",
             modifier = Modifier
-                .background(shape = CircleShape, color = Color.White),
-        )
-        imageViewModel?.imagePath?.let {
-                path ->
-            val bitmap = BitmapFactory.decodeFile(path)
-
-            // val context = LocalContext.current
-            //val internalDir = context.filesDir
-            //val photoFile = File(internalDir,imageViewModel?.imagePath?)
-
-            Image(bitmap = bitmap.asImageBitmap(), contentDescription = "Captured photo",modifier = Modifier
-                .size(120.dp)
                 .background(shape = CircleShape, color = Color.White)
-                .clip(CircleShape)
-                .shadow(8.dp, shape = CircleShape)
-                ,
-                contentScale = ContentScale.Crop,
+        )
+
+        bitmap?.let {
+            Image(
+                bitmap = it.asImageBitmap(),
+                contentDescription = "Captured photo",
+                modifier = Modifier
+                    .size(120.dp)
+                    .background(shape = CircleShape, color = Color.White)
+                    .clip(CircleShape)
+                    .shadow(8.dp, shape = CircleShape),
+                contentScale = ContentScale.Crop
             )
-
-
         }
     }
 }
+
 
 @Preview(showBackground = true)
 @Composable
