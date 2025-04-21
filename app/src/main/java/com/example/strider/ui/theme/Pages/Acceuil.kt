@@ -352,13 +352,11 @@ fun TakeProfilePicture(imageViewModel: ImageViewModel?) {
  *
  * @param modifier Modificateur utilisé pour appliquer des dimensions, des paddings ou autre.
  * @param imageViewModel ViewModel contenant le chemin de l’image à afficher.
- * @param isHost Indique si le joueur est l’hôte (non utilisé ici mais peut servir à styliser différemment).
  */
 @Composable
 fun ProfilePicture(
     modifier: Modifier,
-    imageViewModel: ImageViewModel?,
-    isHost: Boolean = false
+    imageViewModel: ImageViewModel?
 ) {
     // -------------------------
     // Récupération de l'image de profil si existante

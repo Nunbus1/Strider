@@ -51,7 +51,6 @@ fun CreateScreen(
     // État local
     // -------------------------
 
-    var description by remember { mutableStateOf("dada") }
     var roomCode by remember { mutableStateOf("") }
 
     // -------------------------
@@ -121,8 +120,7 @@ fun CreateScreen(
                     modifier = Modifier
                         .size(50.dp)
                         .background(shape = CircleShape, color = Color.White),
-                    imageViewModel = imageViewModel,
-                    isHost = true
+                    imageViewModel = imageViewModel
                 )
             }
 
