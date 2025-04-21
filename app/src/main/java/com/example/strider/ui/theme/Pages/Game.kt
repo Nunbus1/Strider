@@ -71,9 +71,13 @@ import kotlinx.coroutines.runBlocking
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.absoluteOffset
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.width
 import androidx.compose.ui.layout.ContentScale
+import com.example.strider.IdManager
 import com.example.strider.ui.theme.BricolageGrotesque
 import com.example.strider.ui.theme.MartianMono
 
@@ -87,7 +91,7 @@ fun GameScreen(
     startTime: Long,
     modifier:Modifier = Modifier,
     onPauseClicked: (roomCode: String, playerId: Int, startTime: Long) -> Unit,
-    pictureProfil : Bitmap?) {
+    ) {
 
     val elapsed = remember { mutableStateOf(0L) }
 
@@ -204,11 +208,24 @@ fun GameScreen(
             ) {
 
                     itemsIndexed(players, key = { index, _ -> index }) { _, (id, player) ->
-                        PlayerScoreStat(
-                            player.distance.value,
-                            imageViewModel = imageViewModel,
-                            distanceMax = distanceTotale.value + 10
-                        )
+                        if(id== IdManager.currentPlayerId) {
+                            PlayerScoreStat(
+                                player.distance.value,
+                                imageViewModel = imageViewModel,
+                                distanceMax = distanceTotale.value + 10,
+                                isCurrentPlayer=true,
+                                pseudo = "you",
+
+                            )
+                        }
+                        else{
+                            PlayerScoreStat(
+                                player.distance.value,
+                                imageViewModel = null,
+                                distanceMax = distanceTotale.value + 10,
+                                pseudo = player.pseudo,
+                            )
+                        }
 
                     }
 
@@ -244,7 +261,9 @@ fun PlayerScoreStat(
     distanceMax: Float,
     imageViewModel: ImageViewModel?,
     modifier: Modifier = Modifier,
-    isHost: Boolean = false
+    isHost: Boolean = false,
+    pseudo : String = "",
+    isCurrentPlayer : Boolean = false
 ) {
     Column(
         modifier = Modifier
@@ -253,14 +272,46 @@ fun PlayerScoreStat(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Bottom,
     ) {
-        ProfilePicture(
+        //make a white circle with a black border for the current player
+        Box(
             modifier = Modifier
-                .padding(bottom = 10.dp)
                 .size(50.dp)
-                .clip(CircleShape),
-            imageViewModel = imageViewModel,
-            isHost = isHost
-        )
+        ) {
+            if (isCurrentPlayer) {
+                Canvas(modifier = modifier.size(60.dp)
+                    .align(Alignment.Center)
+                    .absoluteOffset(x = -3.dp,y=-3.dp)) {
+                    drawCircle(
+                        color = Color.Black,
+                        radius = size.minDimension / 1.9f,
+                        center = center
+                    )
+                    drawCircle(
+                        color = Color.White,
+                        radius = size.minDimension / 2,
+                        center = center
+                    )
+
+                }
+            }
+            ProfilePicture(
+                modifier = Modifier
+                    .padding(bottom = 10.dp)
+                    .size(50.dp)
+                    .clip(CircleShape)
+                    .align(Alignment.Center),
+                imageViewModel = imageViewModel,
+                isHost = isHost
+            )
+        }
+
+            Text(
+                text = pseudo.take(5),
+                style = typography.bodySmall.copy(color = Color.Red),
+                modifier = Modifier
+                    .padding(8.dp)
+
+            )
 
         Box(
             modifier = Modifier
@@ -331,30 +382,16 @@ fun PlayerIconWithPseudo(player: DataClass.Player) {
 @Preview(showBackground = true)
 @Composable
 fun PreviewMainScreen(){
-    val testplayer = DataClass.Player( 1,"fec",  false,mutableListOf<Location>(
-        Location("provider").apply {
-            latitude = 40.7128 // Example: New York City
-            longitude = -74.0060
-            accuracy = 10f
-        },
-        Location("provider").apply {
-            latitude = 34.0522 // Example: Los Angeles
-            longitude = -118.2437
-            accuracy = 15f
-        },
-        Location("provider").apply {
-            latitude = 51.5074 // Example: London
-            longitude = -0.1278
-            accuracy = 12f
-        }))
+    
     StriderTheme {
         GameScreen(
             imageViewModel = null,
-            roomCode = "",
+            roomCode = "chg",
             playerId = 0,
             startTime = System.currentTimeMillis(),
             onPauseClicked = { _, _, _ -> },
-            pictureProfil = null
+
+
         )
     }
 }

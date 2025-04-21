@@ -109,8 +109,8 @@ fun StriderApp(navController: NavHostController = rememberNavController(), image
                     startTime = startTime,
                     onPauseClicked = { code, id, start ->
                         navController.navigate("Finish/$code/$id/$start")
-                    },
-                    pictureProfil = null
+                    }
+
                 )
             }
 
