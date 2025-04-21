@@ -1,6 +1,6 @@
 package com.example.strider.ui.theme.Pages
 
-import DataClass.Player
+import com.example.strider.DataClass.Player
 import android.location.Location
 import androidx.compose.runtime.mutableFloatStateOf
 import com.example.strider.PlayerManager

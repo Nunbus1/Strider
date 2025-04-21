@@ -20,7 +20,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
-import DataClass.Player
+import com.example.strider.DataClass.Player
 import ViewModels.ImageViewModel
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.isSystemInDarkTheme

@@ -1,6 +1,6 @@
 package com.example.strider
 
-import DataClass.Player
+import com.example.strider.DataClass.Player
 import android.content.pm.PackageManager
 import android.hardware.Sensor
 import android.hardware.SensorEvent

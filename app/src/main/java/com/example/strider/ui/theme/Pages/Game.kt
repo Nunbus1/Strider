@@ -1,6 +1,6 @@
 package com.example.strider.ui.theme.Pages
 
-import DataClass.Player
+import com.example.strider.DataClass.Player
 import ViewModels.ImageViewModel
 import android.annotation.SuppressLint
 import android.util.Log

@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -13,37 +12,42 @@ import androidx.navigation.compose.*
 import androidx.navigation.navArgument
 import com.example.strider.ui.theme.Pages.*
 
-enum class StriderScreen {
-    Accueil,
-    Create,
-    Game,
-    Lobby,
-    Finish
+/**
+ * Contient les routes disponibles dans l'application.
+ */
+object StriderDestinations {
+    const val ACCUEIL = "Accueil"
+    const val CREATE = "Create/{pseudo}"
+    const val LOBBY = "Lobby/{roomCode}/{playerId}"
+    const val GAME = "Game/{roomCode}/{playerId}/{startTime}"
+    const val FINISH = "Finish/{roomCode}/{playerId}/{startTime}"
 }
 
-
+/**
+ * Composable racine qui gère la navigation entre les différentes pages de l’application Strider.
+ *
+ * @param navController Le contrôleur de navigation utilisé (par défaut : créé automatiquement).
+ * @param imageViewModel Le ViewModel partagé entre les écrans pour gérer la photo de profil.
+ */
 @Composable
-fun StriderApp(navController: NavHostController = rememberNavController(), imageViewModel : ImageViewModel) {
-    val backStackEntry by navController.currentBackStackEntryAsState()
-
-    val currentScreen = StriderScreen.valueOf(
-        backStackEntry?.destination?.route?.substringBefore("/") ?: StriderScreen.Accueil.name
-    )
-
+fun StriderApp(
+    navController: NavHostController = rememberNavController(),
+    imageViewModel: ImageViewModel
+) {
     Box(modifier = Modifier.fillMaxSize()) {
         NavHost(
             navController = navController,
-            startDestination = StriderScreen.Accueil.name,
+            startDestination = StriderDestinations.ACCUEIL,
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
         ) {
 
             // Accueil
-            composable(route = StriderScreen.Accueil.name) {
+            composable(route = StriderDestinations.ACCUEIL) {
                 AccueilScreen(
                     imageViewModel = imageViewModel,
-                    onJoinClicked = { roomCode: String, playerId: Int ->
+                    onJoinClicked = { roomCode, playerId ->
                         navController.navigate("Lobby/$roomCode/$playerId")
                     },
                     onCreateClicked = { pseudo ->
@@ -52,17 +56,19 @@ fun StriderApp(navController: NavHostController = rememberNavController(), image
                 )
             }
 
-            // Create
+            // Création de room
             composable(
-                route = "Create/{pseudo}",
+                route = StriderDestinations.CREATE,
                 arguments = listOf(navArgument("pseudo") { type = NavType.StringType })
             ) { backStackEntry ->
                 val pseudo = backStackEntry.arguments?.getString("pseudo") ?: "Invité"
                 CreateScreen(
                     imageViewModel = imageViewModel,
                     pseudo = pseudo,
-                    onBackClicked = { navController.navigate(StriderScreen.Accueil.name) },
-                    onCreateClicked = { roomCode: String, playerId: Int ->
+                    onBackClicked = {
+                        navController.navigate(StriderDestinations.ACCUEIL)
+                    },
+                    onCreateClicked = { roomCode, playerId ->
                         navController.navigate("Lobby/$roomCode/$playerId")
                     }
                 )
@@ -70,7 +76,7 @@ fun StriderApp(navController: NavHostController = rememberNavController(), image
 
             // Lobby
             composable(
-                route = "Lobby/{roomCode}/{playerId}",
+                route = StriderDestinations.LOBBY,
                 arguments = listOf(
                     navArgument("roomCode") { type = NavType.StringType },
                     navArgument("playerId") { type = NavType.IntType }
@@ -78,20 +84,23 @@ fun StriderApp(navController: NavHostController = rememberNavController(), image
             ) { backStackEntry ->
                 val roomCode = backStackEntry.arguments?.getString("roomCode") ?: ""
                 val playerId = backStackEntry.arguments?.getInt("playerId") ?: -1
+
                 LobbyScreen(
                     imageViewModel = imageViewModel,
                     roomCode = roomCode,
                     playerId = playerId,
-                    onBackClicked = { navController.navigate(StriderScreen.Accueil.name) },
-                    onStartClicked = { roomCode: String, playerId: Int, startTime: Long ->
-                        navController.navigate("Game/$roomCode/$playerId/$startTime")
-
+                    onBackClicked = {
+                        navController.navigate(StriderDestinations.ACCUEIL)
+                    },
+                    onStartClicked = { code, id, startTime ->
+                        navController.navigate("Game/$code/$id/$startTime")
                     }
                 )
             }
 
+            // Partie en cours
             composable(
-                route = "Game/{roomCode}/{playerId}/{startTime}",
+                route = StriderDestinations.GAME,
                 arguments = listOf(
                     navArgument("roomCode") { type = NavType.StringType },
                     navArgument("playerId") { type = NavType.IntType },
@@ -110,13 +119,12 @@ fun StriderApp(navController: NavHostController = rememberNavController(), image
                     onPauseClicked = { code, id, start ->
                         navController.navigate("Finish/$code/$id/$start")
                     }
-
                 )
             }
 
-            // Finish
+            // Résultats
             composable(
-                route = "Finish/{roomCode}/{playerId}/{startTime}",
+                route = StriderDestinations.FINISH,
                 arguments = listOf(
                     navArgument("roomCode") { type = NavType.StringType },
                     navArgument("playerId") { type = NavType.IntType },
@@ -136,7 +144,7 @@ fun StriderApp(navController: NavHostController = rememberNavController(), image
                         navController.navigate("Game/$code/$id/$start")
                     },
                     onHomeClicked = {
-                        navController.popBackStack(StriderScreen.Accueil.name, inclusive = false)
+                        navController.popBackStack(StriderDestinations.ACCUEIL, inclusive = false)
                     }
                 )
             }
