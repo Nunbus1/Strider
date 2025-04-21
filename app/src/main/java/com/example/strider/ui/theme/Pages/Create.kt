@@ -57,7 +57,7 @@ fun CreateScreen(
     val isDarkTheme = isSystemInDarkTheme()
     val backgroundRes = if (isDarkTheme) R.drawable.wavy_bot_dark else R.drawable.wavy_bot
     val backgroundColor = if (isDarkTheme) Color(0xFF252525) else Color.White
-
+    PlayerManager.currentPlayer?.isHost = true
     Box(
         modifier = modifier
             .fillMaxSize()

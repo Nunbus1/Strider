@@ -39,6 +39,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.strider.IdManager
+import com.example.strider.PlayerManager
 import com.example.strider.R
 import com.example.strider.ui.theme.BricolageGrotesque
 import com.example.strider.ui.theme.MartianMono
@@ -190,6 +191,8 @@ fun AccueilScreen(
                         onClick = {
                             if (!joiningInProgress && pseudo.text.isNotBlank() && code.isNotBlank()) {
                                 joiningInProgress = true
+                                PlayerManager.currentPlayer?.isHost = false
+
 
                                 coroutineScope.launch {
                                     firestoreClient.getRoom(code).collect { room ->
