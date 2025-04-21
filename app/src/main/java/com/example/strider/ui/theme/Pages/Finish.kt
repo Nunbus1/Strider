@@ -23,7 +23,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -34,6 +35,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -54,31 +56,54 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.strider.R
 import com.example.strider.ui.theme.BricolageGrotesque
 import com.example.strider.ui.theme.MartianMono
 import com.example.strider.ui.theme.StriderTheme
 import kotlinx.coroutines.delay
 
+/**
+ * Composable qui affiche l'écran de fin de partie.
+ * Affiche un podium des joueurs, des statistiques de course (temps, courbes de vitesse),
+ * et permet de naviguer vers l'accueil ou de rejouer avec les mêmes données.
+ *
+ * @param imageViewModel ViewModel contenant la photo du joueur local.
+ * @param roomCode Code de la room Firebase.
+ * @param playerId Identifiant du joueur courant.
+ * @param startTime Heure de début de la partie (timestamp).
+ * @param onContinueClicked Fonction appelée pour revenir en jeu ou rejouer.
+ * @param onHomeClicked Fonction appelée pour revenir à l'écran d'accueil.
+ */
 @Composable
 fun FinishScreen(
-    imageViewModel : ImageViewModel?,
+    imageViewModel: ImageViewModel?,
     roomCode: String,
     playerId: Int,
     startTime: Long,
     onContinueClicked: (roomCode: String, playerId: Int, startTime: Long) -> Unit,
     onHomeClicked: () -> Unit
 ) {
+    // -------------------------
+    // État local
+    // -------------------------
+
+    var hasClickedNext by remember { mutableStateOf(false) }
+
+    // -------------------------
+    // Firestore et joueurs
+    // -------------------------
 
     val firestoreClient = remember { FirestoreClient() }
     val players = remember { mutableStateListOf<Pair<Int, Player>>() }
 
-    val elapsed = remember { mutableStateOf(0L) }
+    // -------------------------
+    // Temps écoulé
+    // -------------------------
+
+    val elapsed = remember { mutableLongStateOf(0L) }
 
     LaunchedEffect(Unit) {
         while (true) {
-            elapsed.value = (System.currentTimeMillis() - startTime)
-            //Log.d("TIMER", "Temps écoulé : ${elapsed.value / 1000}s")
+            elapsed.longValue = System.currentTimeMillis() - startTime
             delay(1000)
         }
     }
@@ -92,23 +117,28 @@ fun FinishScreen(
                 Log.d("Debug", "Player[$id] = ${player.pseudo}")
             }
         }
-
     }
+
+    // -------------------------
+    // Classement et sélection
+    // -------------------------
+
     val sortedPlayers by remember {
         derivedStateOf {
-            players.sortedByDescending { it.second.distance.value }
+            players.sortedByDescending { it.second.distance.floatValue }
         }
     }
 
-    var showSpeedState by remember { mutableStateOf(false) }
-    //val meIndex = 4
     var selectedPlayers by remember { mutableStateOf(setOf(playerId)) }
-
+    var showSpeedState by remember { mutableStateOf(false) }
     var infoMessage by remember { mutableStateOf("Cliquez sur Next pour voir les stats 📊") }
+
+    // -------------------------
+    // Thème et apparence
+    // -------------------------
 
     val isDarkTheme = isSystemInDarkTheme()
     val backgroundColor = if (isDarkTheme) Color(0xFF252525) else Color.White
-    val backgroundRes = if (isDarkTheme) R.drawable.wave_dark else R.drawable.wave
     val textColor = if (isDarkTheme) Color.White else Color.Black
 
     Column(
@@ -118,13 +148,16 @@ fun FinishScreen(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Spacer(modifier = Modifier.height(30.dp))
+
         HeaderSection(
             showSpeedState = showSpeedState,
             onBackClicked = { showSpeedState = false },
             onHomeClicked = onHomeClicked,
             onResetInfoMessage = { infoMessage = "Cliquez sur Next pour voir les stats 📊" },
-            imageViewModel = imageViewModel
+            imageViewModel = imageViewModel,
+            onResetNextState = { hasClickedNext = false },
         )
+
         Text(
             text = "Statistics",
             fontSize = 60.sp,
@@ -151,13 +184,14 @@ fun FinishScreen(
             textColor = textColor
         )
 
-
         if (showSpeedState) {
             SpeedGraph(players = players, selectedPlayers = selectedPlayers)
         } else {
             Podium(players = sortedPlayers)
         }
+
         Spacer(modifier = Modifier.height(10.dp))
+
         PlayerRanking(
             players = sortedPlayers,
             showSpeed = showSpeedState,
@@ -171,35 +205,49 @@ fun FinishScreen(
             meId = playerId,
             backgroundColor = backgroundColor
         )
+
         Spacer(modifier = Modifier.height(10.dp))
+
         ActionButtons(
             onNextClicked = {
                 showSpeedState = true
                 infoMessage = "Sélectionnez un joueur pour voir sa courbe 📈"
+                hasClickedNext = true
             },
             onContinueClicked = onContinueClicked,
             roomCode = roomCode,
             playerId = playerId,
             startTime = startTime,
             infoMessage = infoMessage,
-            onResetInfoMessage = { infoMessage = "Cliquez sur Next pour voir les stats 📊" }
+            hasClickedNext = hasClickedNext,
+            onResetClickedNext = {
+                onHomeClicked()
+            }
         )
     }
 }
 
-val gradientBrush = Brush.verticalGradient(
-    colors = listOf(Color(0xFF22FFFB), Color(0xFF48AAC5))
-)
-
+/**
+ * Composable qui affiche l'en-tête en haut de l'écran des statistiques.
+ * Affiche soit un bouton retour (si on visualise les courbes), soit un bouton accueil.
+ * Affiche également la photo de profil du joueur courant.
+ *
+ * @param showSpeedState État indiquant si les courbes de vitesse sont affichées.
+ * @param onBackClicked Fonction appelée lorsque l'utilisateur clique sur le bouton retour.
+ * @param onHomeClicked Fonction appelée lorsque l'utilisateur clique sur le bouton accueil.
+ * @param onResetInfoMessage Fonction utilisée pour réinitialiser le message d'information.
+ * @param onResetNextState Fonction utilisée pour réinitialiser le texte du bouton "Next".
+ * @param imageViewModel ViewModel contenant la photo du joueur courant.
+ */
 @Composable
 fun HeaderSection(
     showSpeedState: Boolean,
     onBackClicked: () -> Unit,
     onHomeClicked: () -> Unit,
     onResetInfoMessage: () -> Unit,
-    imageViewModel : ImageViewModel?
-)
-{
+    onResetNextState: () -> Unit,
+    imageViewModel: ImageViewModel?
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -209,19 +257,22 @@ fun HeaderSection(
     ) {
         Icon(
             imageVector = if (showSpeedState)
-                androidx.compose.material.icons.Icons.Default.ArrowBack
+                Icons.AutoMirrored.Filled.ArrowBack
             else
-                androidx.compose.material.icons.Icons.Default.Home, // Home quand showSpeedState est false
+                Icons.Default.Home,
             contentDescription = if (showSpeedState) "Back" else "Home",
             tint = MaterialTheme.colorScheme.onBackground,
             modifier = Modifier
                 .size(32.dp)
-                .clickable { if (showSpeedState) {
-                    onResetInfoMessage()
-                    onBackClicked()
-                } else {
-                    onHomeClicked()
-                }}
+                .clickable {
+                    if (showSpeedState) {
+                        onResetInfoMessage()
+                        onResetNextState()
+                        onBackClicked()
+                    } else {
+                        onHomeClicked()
+                    }
+                }
         )
 
         ProfilePicture(
@@ -233,10 +284,24 @@ fun HeaderSection(
     }
 }
 
+
+
+/**
+ * Composable qui affiche le nom du joueur gagnant ou le joueur le plus rapide,
+ * ainsi qu’un message de résultat lié à sa performance.
+ *
+ * @param playerName Nom du joueur affiché en haut.
+ * @param resultMessage Message associé au résultat (ex : "Win this match" ou "The fastest").
+ * @param textColor Couleur du texte (adaptée au thème).
+ */
 @Composable
-fun ResultSection(playerName: String, resultMessage: String, textColor: Color) {
+fun ResultSection(
+    playerName: String,
+    resultMessage: String,
+    textColor: Color
+) {
     Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
             text = playerName,
@@ -256,28 +321,34 @@ fun ResultSection(playerName: String, resultMessage: String, textColor: Color) {
     }
 }
 
+
+/**
+ * Composable qui dessine un podium en 3D avec les trois meilleurs joueurs.
+ * Affiche les plateformes gauche (2e), centre (1er), droite (3e),
+ * avec leur pseudo respectif et une icône 👑 pour le joueur en 1re position.
+ *
+ * @param players Liste des joueurs triés par score (Pair<id, Player>), les 3 premiers sont affichés.
+ */
 @Composable
 fun Podium(players: List<Pair<Int, Player>>) {
     val primary = MaterialTheme.colorScheme.primary
     val secondary = MaterialTheme.colorScheme.secondary
 
-    // Dégradé plus sombre basé sur secondary
+    // -------------------------
+    // Dégradés & thème
+    // -------------------------
+
     val darkSecondaryShade = Brush.verticalGradient(
-        colors = listOf(
-            secondary.copy(alpha = 1f),
-            secondary.copy(alpha = 0.6f)
-        )
+        colors = listOf(secondary.copy(alpha = 1f), secondary.copy(alpha = 0.6f))
     )
 
     val gradientSecondary = Brush.verticalGradient(
-        colors = listOf(
-            secondary.copy(alpha = 1f),
-            secondary.copy(alpha = 0.85f)
-        )
+        colors = listOf(secondary.copy(alpha = 1f), secondary.copy(alpha = 0.85f))
     )
 
     val isDark = isSystemInDarkTheme()
     val textColor = if (isDark) Color.Black else Color.White
+
 
     Canvas(
         modifier = Modifier
@@ -285,11 +356,8 @@ fun Podium(players: List<Pair<Int, Player>>) {
             .height(250.dp)
             .padding(10.dp)
             .shadow(8.dp, shape = RoundedCornerShape(16.dp))
-            .background(
-                color = primary, // 👈 fond passe à primary
-                shape = RoundedCornerShape(16.dp)
-            )
-            .padding(10.dp),
+            .background(color = primary, shape = RoundedCornerShape(16.dp))
+            .padding(10.dp)
     ) {
         val centerX = size.width / 2
         val podiumWidth = 220f
@@ -303,86 +371,80 @@ fun Podium(players: List<Pair<Int, Player>>) {
         val rightHeightOffset = 100f
         val iconSize = 200f
 
-        // MIDDLE
-        val middleFaceLeft = Path().apply {
+        // 1er - Centre
+        drawPath(Path().apply {
             moveTo(middleX, topY)
             lineTo(middleX - depth, topY - depth)
             lineTo(middleX - depth, topY + podiumHeight - depth)
             lineTo(middleX, topY + podiumHeight)
             close()
-        }
-        drawPath(middleFaceLeft, darkSecondaryShade)
+        }, darkSecondaryShade)
 
-        val middleFaceRight = Path().apply {
+        drawPath(Path().apply {
             moveTo(middleX + podiumWidth, topY)
             lineTo(middleX + depth + podiumWidth, topY - depth)
             lineTo(middleX + depth + podiumWidth, topY + podiumHeight - depth)
             lineTo(middleX + podiumWidth, topY + podiumHeight)
             close()
-        }
-        drawPath(middleFaceRight, darkSecondaryShade)
+        }, darkSecondaryShade)
 
-        val middleTop = Path().apply {
+        drawPath(Path().apply {
             moveTo(middleX, topY)
             lineTo(middleX + podiumWidth, topY)
             lineTo(middleX + podiumWidth + depth, topY - depth)
             lineTo(middleX - depth, topY - depth)
             close()
-        }
-        drawPath(middleTop, gradientSecondary)
+        }, gradientSecondary)
 
         drawRect(gradientSecondary, Offset(middleX, topY), Size(podiumWidth, podiumHeight))
 
-        // RIGHT
-        val rightFace = Path().apply {
+        // 3e - Droite
+        drawPath(Path().apply {
             moveTo(rightX + podiumWidth, topY + rightHeightOffset)
             lineTo(rightX + depth + podiumWidth, topY + rightHeightOffset - depth)
             lineTo(rightX + depth + podiumWidth, topY + podiumHeight - depth)
             lineTo(rightX + podiumWidth, topY + podiumHeight)
             close()
-        }
-        drawPath(rightFace, darkSecondaryShade)
+        }, darkSecondaryShade)
 
-        val rightTop = Path().apply {
+        drawPath(Path().apply {
             moveTo(rightX, topY + rightHeightOffset)
             lineTo(rightX + podiumWidth, topY + rightHeightOffset)
             lineTo(rightX + podiumWidth + depth, topY + rightHeightOffset - depth)
             lineTo(rightX + depth, topY + rightHeightOffset - depth)
             close()
-        }
-        drawPath(rightTop, gradientSecondary)
+        }, gradientSecondary)
 
         drawRect(gradientSecondary, Offset(rightX, topY + rightHeightOffset), Size(podiumWidth, podiumHeight - rightHeightOffset))
 
-        // LEFT
-        val leftFace = Path().apply {
+        // 2e - Gauche
+        drawPath(Path().apply {
             moveTo(leftX, topY + leftHeightOffset)
             lineTo(leftX - depth, topY + leftHeightOffset - depth)
             lineTo(leftX - depth, topY + podiumHeight - depth)
             lineTo(leftX, topY + podiumHeight)
             close()
-        }
-        drawPath(leftFace, darkSecondaryShade)
+        }, darkSecondaryShade)
 
-        val leftTop = Path().apply {
+        drawPath(Path().apply {
             moveTo(leftX, topY + leftHeightOffset)
             lineTo(leftX + podiumWidth, topY + leftHeightOffset)
             lineTo(leftX + podiumWidth - depth, topY + leftHeightOffset - depth)
             lineTo(leftX - depth, topY + leftHeightOffset - depth)
             close()
-        }
-        drawPath(leftTop, gradientSecondary)
+        }, gradientSecondary)
 
         drawRect(gradientSecondary, Offset(leftX, topY + leftHeightOffset), Size(podiumWidth, podiumHeight - leftHeightOffset))
 
-        // CERCLES
-        drawCircle(gradientSecondary, radius = iconSize / 2, center = Offset(middleX + podiumWidth / 2 , topY - iconSize ))
-        drawCircle(gradientSecondary, radius = iconSize / 2, center = Offset(rightX  + podiumWidth / 2  + depth / 2, topY + rightHeightOffset - iconSize ))
-        drawCircle(gradientSecondary, radius = iconSize / 2, center = Offset(leftX + podiumWidth / 2  - depth / 2, topY + leftHeightOffset - iconSize ))
+        // Cercles des joueurs
+        drawCircle(gradientSecondary, iconSize / 2, Offset(middleX + podiumWidth / 2, topY - iconSize))
+        drawCircle(gradientSecondary, iconSize / 2, Offset(rightX + podiumWidth / 2 + depth / 2, topY + rightHeightOffset - iconSize))
+        drawCircle(gradientSecondary, iconSize / 2, Offset(leftX + podiumWidth / 2 - depth / 2, topY + leftHeightOffset - iconSize))
 
+        // 👑 Couronne
         drawContext.canvas.nativeCanvas.drawText(
             "👑",
-            middleX + podiumWidth / 2 ,
+            middleX + podiumWidth / 2,
             topY - iconSize - 80f,
             android.graphics.Paint().apply {
                 textSize = 60f
@@ -390,13 +452,14 @@ fun Podium(players: List<Pair<Int, Player>>) {
                 textAlign = android.graphics.Paint.Align.CENTER
             }
         )
-        // --- TEXTE : TOP 3 JOUEURS --- //
+
+        // Noms des joueurs (Top 3)
         val paint = android.graphics.Paint().apply {
             textAlign = android.graphics.Paint.Align.CENTER
             textSize = 40f
             color = textColor.toArgb()
             isAntiAlias = true
-            this.typeface = typeface
+            typeface = typeface
         }
 
         val textOffsetY = (paint.descent() + paint.ascent()) / 2
@@ -409,39 +472,40 @@ fun Podium(players: List<Pair<Int, Player>>) {
         )
 
         drawContext.canvas.nativeCanvas.drawText(
-            players.getOrNull(1)?.second?.pseudo ?: "2nd",
-            leftX + podiumWidth / 2 - depth / 2,
-            topY + leftHeightOffset - iconSize - textOffsetY,
-            paint
-        )
-
-        drawContext.canvas.nativeCanvas.drawText(
-            players.getOrNull(2)?.second?.pseudo ?: "3rd",
+            players.getOrNull(1)?.second?.pseudo ?: "2rd",
             rightX + podiumWidth / 2 + depth / 2,
             topY + rightHeightOffset - iconSize - textOffsetY,
             paint
         )
 
-        // OMBRES
-        drawOval(
-            darkSecondaryShade,
-            topLeft = Offset(middleX + podiumWidth / 2 - iconSize * 0.7f / 2, topY - iconSize / 5),
-            size = Size(iconSize * 0.7f, iconSize * 0.1f)
+        drawContext.canvas.nativeCanvas.drawText(
+            players.getOrNull(2)?.second?.pseudo ?: "3nd",
+            leftX + podiumWidth / 2 - depth / 2,
+            topY + leftHeightOffset - iconSize - textOffsetY,
+            paint
         )
-        drawOval(
-            darkSecondaryShade,
-            topLeft = Offset(rightX  + podiumWidth / 2  + depth / 2 - iconSize * 0.7f / 2, topY + rightHeightOffset - iconSize / 5),
-            size = Size(iconSize * 0.7f, iconSize * 0.1f)
-        )
-        drawOval(
-            darkSecondaryShade,
-            topLeft = Offset(leftX + podiumWidth / 2  - depth / 2 - iconSize * 0.7f / 2, topY + leftHeightOffset - iconSize / 5),
-            size = Size(iconSize * 0.7f, iconSize * 0.1f)
-        )
+
+        // Ombres sous les icônes
+        drawOval(darkSecondaryShade, Offset(middleX + podiumWidth / 2 - iconSize * 0.35f, topY - iconSize / 5), Size(iconSize * 0.7f, iconSize * 0.1f))
+        drawOval(darkSecondaryShade, Offset(rightX + podiumWidth / 2 + depth / 2 - iconSize * 0.35f, topY + rightHeightOffset - iconSize / 5), Size(iconSize * 0.7f, iconSize * 0.1f))
+        drawOval(darkSecondaryShade, Offset(leftX + podiumWidth / 2 - depth / 2 - iconSize * 0.35f, topY + leftHeightOffset - iconSize / 5), Size(iconSize * 0.7f, iconSize * 0.1f))
     }
 }
 
 
+
+/**
+ * Composable qui affiche le classement des joueurs sous forme de bulles scrollables.
+ * Applique un fond spécial pour les 3 premiers (or, argent, bronze) et pour le joueur local.
+ * Le joueur courant peut être sélectionné pour afficher des courbes ou des détails.
+ *
+ * @param players Liste des joueurs triés par distance (Pair<id, Player>).
+ * @param showSpeed Booléen indiquant si les distances doivent être affichées avec le pseudo.
+ * @param selectedPlayers Ensemble des identifiants de joueurs sélectionnés.
+ * @param onPlayerClick Fonction appelée quand un joueur est cliqué (sélection).
+ * @param meId Identifiant du joueur courant (pour appliquer un style spécial).
+ * @param backgroundColor Couleur de fond par défaut des bulles.
+ */
 @Composable
 fun PlayerRanking(
     players: List<Pair<Int, Player>>,
@@ -451,6 +515,10 @@ fun PlayerRanking(
     meId: Int,
     backgroundColor: Color
 ) {
+    // -------------------------
+    // Styles de fond
+    // -------------------------
+
     val gradients = listOf(
         Brush.verticalGradient(colors = listOf(Color(0xFFFFD700), Color(0xFFFFE066))), // Or
         Brush.verticalGradient(colors = listOf(Color(0xFFC0C0C0), Color(0xFFD9D9D9))), // Argent
@@ -480,9 +548,10 @@ fun PlayerRanking(
                     .padding(horizontal = 15.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                group.forEachIndexed { index, (id, player) ->
+                group.forEachIndexed { _, (id, player) ->
                     val isMe = id == meId
                     val rank = players.indexOfFirst { it.first == id }
+
                     val backgroundBrush = when {
                         isMe -> meGradient
                         rank == 0 -> gradients[0]
@@ -499,14 +568,17 @@ fun PlayerRanking(
                             .clickable { onPlayerClick(id) }
                             .background(backgroundBrush, shape = CircleShape)
                             .border(
-                                2.dp,
-                                if (selectedPlayers.contains(id)) MaterialTheme.colorScheme.secondary else Color.Transparent,
-                                CircleShape
+                                width = 2.dp,
+                                color = if (selectedPlayers.contains(id)) MaterialTheme.colorScheme.secondary else Color.Transparent,
+                                shape = CircleShape
                             )
                             .padding(5.dp)
                     ) {
                         Text(
-                            text = if (showSpeed) "${player.pseudo} - ${player.distance.value.toInt()} m" else player.pseudo,
+                            text = if (showSpeed)
+                                "${player.pseudo} - ${player.distance.floatValue.toInt()} m"
+                            else
+                                player.pseudo,
                             fontSize = 15.sp,
                             fontFamily = MartianMono,
                             color = textColor,
@@ -520,14 +592,33 @@ fun PlayerRanking(
 }
 
 
+
+/**
+ * Composable qui trace un graphique Distance (X) / Temps (Y) pour les joueurs sélectionnés.
+ * Les distances sont interpolées pour lisser les courbes. Chaque joueur est affiché avec des points et une ligne.
+ *
+ * @param players Liste des joueurs avec leurs distances dans le temps (timedDistance).
+ * @param selectedPlayers Ensemble des identifiants de joueurs à afficher dans le graphique.
+ */
 @Composable
-fun SpeedGraph(players: List<Pair<Int, Player>>, selectedPlayers: Set<Int>) {
+fun SpeedGraph(
+    players: List<Pair<Int, Player>>,
+    selectedPlayers: Set<Int>
+) {
+    // -------------------------
+    // Couleurs et thème
+    // -------------------------
+
     val colorScheme = MaterialTheme.colorScheme
     val isDark = isSystemInDarkTheme()
     val lineColor = if (isDark) Color.White else Color.Black
     val pointColor = colorScheme.secondary
     val labelColor = colorScheme.secondary
     val backgroundColor = colorScheme.primary
+
+    // -------------------------
+    // Interpolation des données
+    // -------------------------
 
     val timeSteps = 15
 
@@ -565,6 +656,10 @@ fun SpeedGraph(players: List<Pair<Int, Player>>, selectedPlayers: Set<Int>) {
         }
     }
 
+    // -------------------------
+    // Échelle max pour les axes
+    // -------------------------
+
     val allPoints = selectedPlayers.flatMap { interpolatedData[it] ?: emptyList() }
     val maxTime = allPoints.maxOfOrNull { it.second }?.coerceAtLeast(1f) ?: 1f
     val maxDistance = allPoints.maxOfOrNull { it.first }?.coerceAtLeast(0.1f) ?: 0.1f
@@ -581,10 +676,7 @@ fun SpeedGraph(players: List<Pair<Int, Player>>, selectedPlayers: Set<Int>) {
             .height(250.dp)
             .padding(10.dp)
             .shadow(8.dp, shape = RoundedCornerShape(16.dp))
-            .background(
-                color = backgroundColor,
-                shape = RoundedCornerShape(16.dp)
-            )
+            .background(color = backgroundColor, shape = RoundedCornerShape(16.dp))
             .padding(10.dp)
     ) {
         val graphWidth = size.width - 60f
@@ -592,10 +684,8 @@ fun SpeedGraph(players: List<Pair<Int, Player>>, selectedPlayers: Set<Int>) {
         val originX = 40f
         val originY = size.height - 30f
 
-        val stepX = graphWidth / (timeSteps - 1)
         val stepY = graphHeight / maxYLabel
 
-        // Axe Y : Temps (s)
         yLabels.forEach { label ->
             val y = originY - (label / maxYLabel.toFloat()) * graphHeight
             drawLine(lineColor, Offset(originX, y), Offset(originX + graphWidth, y), 2f)
@@ -608,7 +698,6 @@ fun SpeedGraph(players: List<Pair<Int, Player>>, selectedPlayers: Set<Int>) {
             )
         }
 
-        // Axe X : Distance
         val firstPoints = interpolatedData[selectedPlayers.firstOrNull()] ?: emptyList()
         val totalPoints = firstPoints.size
 
@@ -631,11 +720,9 @@ fun SpeedGraph(players: List<Pair<Int, Player>>, selectedPlayers: Set<Int>) {
             }
         }
 
-        // Axes principaux
         drawLine(lineColor, Offset(originX, originY), Offset(originX, originY - graphHeight), strokeWidth = 2f)
         drawLine(lineColor, Offset(originX, originY), Offset(originX + graphWidth, originY), strokeWidth = 2f)
 
-        // Tracés
         selectedPlayers.forEach { id ->
             val points = interpolatedData[id] ?: return@forEach
             if (points.size < 2) return@forEach
@@ -649,6 +736,7 @@ fun SpeedGraph(players: List<Pair<Int, Player>>, selectedPlayers: Set<Int>) {
                     lineTo(px, py)
                 }
             }
+
             drawPath(path, Brush.linearGradient(listOf(labelColor, lineColor)), style = Stroke(width = 3f))
 
             points.forEach { (x, y) ->
@@ -658,7 +746,6 @@ fun SpeedGraph(players: List<Pair<Int, Player>>, selectedPlayers: Set<Int>) {
             }
         }
 
-        // Titres des axes
         drawContext.canvas.nativeCanvas.apply {
             drawText("Distance (km)", originX + graphWidth / 2, originY + 50f,
                 android.graphics.Paint().apply {
@@ -680,88 +767,20 @@ fun SpeedGraph(players: List<Pair<Int, Player>>, selectedPlayers: Set<Int>) {
 }
 
 
-
-
-
-
-fun getInterpolatedDistanceAndTimePoints(
-    timedDistance: List<Pair<Float, Long>>,
-    steps: Int = 15
-): List<Pair<Float, Float>> {
-    if (timedDistance.size < 2) return List(steps) { 0f to 0f }
-
-    val sorted = timedDistance.sortedBy { it.second }
-    val startTime = sorted.first().second
-    val endTime = sorted.last().second
-    val totalDuration = endTime - startTime
-    val stepDuration = totalDuration / (steps - 1)
-
-    val result = mutableListOf<Pair<Float, Float>>()
-    var currentIndex = 0
-
-    for (i in 0 until steps) {
-        val targetTime = startTime + i * stepDuration
-
-        while (currentIndex < sorted.size - 2 && sorted[currentIndex + 1].second < targetTime) {
-            currentIndex++
-        }
-
-        val (d1, t1) = sorted[currentIndex]
-        val (d2, t2) = sorted[currentIndex + 1]
-
-        val tFraction = (targetTime - t1).toFloat() / (t2 - t1).toFloat()
-        val interpolatedDistance = d1 + (d2 - d1) * tFraction
-        val relativeTimeSec = (targetTime - startTime).toFloat() / 1000f
-
-        result.add(interpolatedDistance / 1000f to relativeTimeSec)
-    }
-
-    return result
-}
-
-
-
-fun getInterpolatedSpeedPoints(
-    timedDistance: List<Pair<Float, Long>>,
-    steps: Int = 15,
-    inKmPerHour: Boolean = true // sinon c’est en km/min
-): List<Float> {
-    if (timedDistance.size < 2) return List(steps) { 0f }
-
-    val sorted = timedDistance.sortedBy { it.second }
-    val startTime = sorted.first().second
-    val endTime = sorted.last().second
-    val totalDuration = endTime - startTime
-
-    val stepDuration = totalDuration / (steps - 1)
-
-    val result = mutableListOf<Float>()
-    var currentIndex = 0
-
-    for (i in 0 until steps) {
-        val targetTime = startTime + i * stepDuration
-
-        // Avancer dans la liste pour trouver les 2 points autour du temps voulu
-        while (currentIndex < sorted.size - 2 && sorted[currentIndex + 1].second < targetTime) {
-            currentIndex++
-        }
-
-        val (d1, t1) = sorted[currentIndex]
-        val (d2, t2) = sorted[currentIndex + 1]
-
-        val deltaDistance = d2 - d1
-        val deltaTime = (t2 - t1).toFloat() / 60000f // en minutes
-        val baseSpeed = if (deltaTime > 0f) deltaDistance / deltaTime else 0f
-
-        // Optionnel : convertir en km/h
-        val speed = if (inKmPerHour) baseSpeed * 60f else baseSpeed
-
-        result.add(speed)
-    }
-
-    return result
-}
-
+/**
+ * Composable qui affiche deux boutons d’action à la fin de la partie :
+ * un bouton "Game" pour rejouer ou voir les statistiques de jeu,
+ * et un bouton dynamique "Next" → "Home" selon l’état d’avancement.
+ *
+ * @param onNextClicked Fonction appelée au premier clic sur le bouton "Next".
+ * @param onContinueClicked Fonction appelée pour rejouer avec les infos joueur/room.
+ * @param roomCode Code de la room actuelle.
+ * @param playerId Identifiant du joueur courant.
+ * @param startTime Timestamp du début de la partie.
+ * @param infoMessage Message informatif affiché au-dessus des boutons.
+ * @param hasClickedNext État indiquant si le bouton "Next" a été cliqué.
+ * @param onResetClickedNext Fonction appelée quand "Home" est cliqué.
+ */
 @Composable
 fun ActionButtons(
     onNextClicked: () -> Unit,
@@ -770,10 +789,9 @@ fun ActionButtons(
     playerId: Int,
     startTime: Long,
     infoMessage: String,
-    onResetInfoMessage: () -> Unit
+    hasClickedNext: Boolean,
+    onResetClickedNext: () -> Unit
 ) {
-    val isDark = isSystemInDarkTheme()
-    val textColor = if (isDark) Color.White else Color.Black
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -795,35 +813,39 @@ fun ActionButtons(
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                 modifier = Modifier
                     .width(150.dp)
-                    .height(56.dp),
+                    .height(56.dp)
             ) {
                 Text(
                     text = "Game",
                     fontSize = 20.sp,
                     fontFamily = MartianMono,
-                    color = textColor
+                    color = Color.White
                 )
             }
 
             Button(
-                onClick = { onNextClicked() },
+                onClick = {
+                    if (!hasClickedNext) {
+                        onNextClicked()
+                    } else {
+                        onResetClickedNext()
+                    }
+                },
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary),
                 modifier = Modifier
                     .width(150.dp)
-                    .height(56.dp),
-
+                    .height(56.dp)
             ) {
                 Text(
-                    text = "Next",
+                    text = if (hasClickedNext) "Home" else "Next",
                     fontSize = 20.sp,
                     fontFamily = MartianMono,
-                    color = textColor
+                    color = Color.White
                 )
             }
         }
     }
 }
-
 
 
 
