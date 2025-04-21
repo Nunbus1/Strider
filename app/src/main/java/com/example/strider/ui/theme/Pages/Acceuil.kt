@@ -45,6 +45,15 @@ import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
 
+/**
+ * Composable qui affiche l'écran d'accueil de l'application.
+ * Permet à l'utilisateur de créer une nouvelle room ou de rejoindre une room existante.
+ *
+ * @param imageViewModel ViewModel contenant la photo de profil de l'utilisateur.
+ * @param onCreateClicked Fonction appelée lorsqu'on clique sur "Créer", avec le pseudo en paramètre.
+ * @param onJoinClicked Fonction appelée lorsqu'on clique sur "Rejoindre", avec le code de room et l'identifiant du joueur.
+ * @param modifier Modificateur optionnel pour personnaliser la mise en page de l'écran.
+ */
 @Composable
 fun AccueilScreen(
     imageViewModel : ImageViewModel?,

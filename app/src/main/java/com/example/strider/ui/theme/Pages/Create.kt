@@ -39,6 +39,17 @@ import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.tasks.await
 
+/**
+ * Composable qui affiche l'écran de création de room.
+ * L'utilisateur peut y entrer un code personnalisé ou générer un code aléatoire,
+ * puis créer une nouvelle room dans laquelle il sera automatiquement l'hôte.
+ *
+ * @param imageViewModel ViewModel contenant la photo de profil de l'utilisateur.
+ * @param pseudo Pseudo du joueur courant, utilisé lors de la création de la room.
+ * @param onBackClicked Fonction appelée lorsqu'on clique sur le bouton de retour.
+ * @param onCreateClicked Fonction appelée une fois la room créée, avec le code de room et l'identifiant joueur.
+ * @param modifier Modificateur optionnel pour personnaliser la mise en page de l'écran.
+ */
 @Composable
 fun CreateScreen(
     imageViewModel: ImageViewModel?,
