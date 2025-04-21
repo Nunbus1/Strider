@@ -268,6 +268,8 @@ fun AccueilScreen(
 /**
  * Composable qui permet à l'utilisateur de prendre une photo de profil
  * en utilisant la caméra, puis l'affiche et la sauvegarde localement.
+ *
+ * @param imageViewModel ViewModel contenant le chemin de l'image prise pour la sauvegarder ou l'afficher.
  */
 @Composable
 fun TakeProfilePicture(imageViewModel: ImageViewModel?) {
@@ -345,7 +347,12 @@ fun TakeProfilePicture(imageViewModel: ImageViewModel?) {
 
 /**
  * Composable qui affiche la photo de profil d’un joueur.
- * Si une image a été prise (et stockée), elle est affichée, sinon une image par défaut est utilisée.
+ * Si une image a été prise et stockée via le [imageViewModel], elle est affichée
+ * par-dessus une image par défaut.
+ *
+ * @param modifier Modificateur utilisé pour appliquer des dimensions, des paddings ou autre.
+ * @param imageViewModel ViewModel contenant le chemin de l’image à afficher.
+ * @param isHost Indique si le joueur est l’hôte (non utilisé ici mais peut servir à styliser différemment).
  */
 @Composable
 fun ProfilePicture(

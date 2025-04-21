@@ -30,7 +30,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.zIndex
 import com.example.strider.IdManager
 import com.example.strider.PlayerManager
 import com.example.strider.R
@@ -42,22 +41,43 @@ import kotlinx.coroutines.tasks.await
 
 @Composable
 fun CreateScreen(
-    imageViewModel : ImageViewModel?,
+    imageViewModel: ImageViewModel?,
     pseudo: String,
     onBackClicked: () -> Unit,
     onCreateClicked: (roomCode: String, playerId: Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    // -------------------------
+    // État local
+    // -------------------------
+
     var description by remember { mutableStateOf("dada") }
     var roomCode by remember { mutableStateOf("") }
+
+    // -------------------------
+    // Contexte et Firebase
+    // -------------------------
+
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
     val firestoreClient = FirestoreClient()
 
+    // -------------------------
+    // Gestion du thème
+    // -------------------------
+
     val isDarkTheme = isSystemInDarkTheme()
     val backgroundRes = if (isDarkTheme) R.drawable.wavy_bot_dark else R.drawable.wavy_bot
     val backgroundColor = if (isDarkTheme) Color(0xFF252525) else Color.White
+    val textColor = if (isDarkTheme) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary
+
+
+    // -------------------------
+    // Marquage du joueur actuel comme hôte
+    // -------------------------
+
     PlayerManager.currentPlayer?.isHost = true
+
     Box(
         modifier = modifier
             .fillMaxSize()
@@ -81,7 +101,6 @@ fun CreateScreen(
         ) {
             Spacer(modifier = Modifier.height(30.dp))
 
-            // Header
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
@@ -106,6 +125,7 @@ fun CreateScreen(
                     isHost = true
                 )
             }
+
             Text(
                 text = "Strider",
                 fontSize = 60.sp,
@@ -134,8 +154,8 @@ fun CreateScreen(
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = MaterialTheme.colorScheme.secondary,
                     unfocusedBorderColor = MaterialTheme.colorScheme.secondary,
-                    focusedTextColor = MaterialTheme.colorScheme.secondary,
-                    unfocusedTextColor = MaterialTheme.colorScheme.secondary,
+                    focusedTextColor = textColor,
+                    unfocusedTextColor = textColor,
                     cursorColor = MaterialTheme.colorScheme.secondary,
                     focusedContainerColor = Color.White,
                     unfocusedContainerColor = Color.White
@@ -148,43 +168,25 @@ fun CreateScreen(
             Button(
                 onClick = {
                     val cleanedCode = roomCode.trim().replace("\\s".toRegex(), "")
-
                     if (cleanedCode.length < 6) {
                         Toast.makeText(context, "Code trop court 😅", Toast.LENGTH_SHORT).show()
                     } else {
                         coroutineScope.launch {
                             val exists = firestoreClient.checkIfRoomExists(cleanedCode)
-
                             if (exists) {
-                                Toast.makeText(context, "Code déjà existant ❌", Toast.LENGTH_SHORT)
-                                    .show()
+                                Toast.makeText(context, "Code déjà existant ❌", Toast.LENGTH_SHORT).show()
                             } else {
-                                val hostPlayer = Player(
-                                    pseudo = pseudo,
-                                    iconUrl = 1,
-                                    isHost = true
-                                )
-
-                                firestoreClient.insertRoomWithHost(cleanedCode, hostPlayer)
-                                    .collect { result ->
-                                        if (result != null) {
-                                            Toast.makeText(
-                                                context,
-                                                "Room créée avec le code : $cleanedCode",
-                                                Toast.LENGTH_SHORT
-                                            ).show()
-                                            IdManager.currentRoomId = cleanedCode
-                                            PlayerManager.currentPlayer?.firestoreClient =
-                                                firestoreClient
-                                            onCreateClicked(cleanedCode, 0)
-                                        } else {
-                                            Toast.makeText(
-                                                context,
-                                                "Erreur lors de la création",
-                                                Toast.LENGTH_SHORT
-                                            ).show()
-                                        }
+                                val hostPlayer = Player(pseudo = pseudo, iconUrl = 1, isHost = true)
+                                firestoreClient.insertRoomWithHost(cleanedCode, hostPlayer).collect { result ->
+                                    if (result != null) {
+                                        Toast.makeText(context, "Room créée avec le code : $cleanedCode", Toast.LENGTH_SHORT).show()
+                                        IdManager.currentRoomId = cleanedCode
+                                        PlayerManager.currentPlayer?.firestoreClient = firestoreClient
+                                        onCreateClicked(cleanedCode, 0)
+                                    } else {
+                                        Toast.makeText(context, "Erreur lors de la création", Toast.LENGTH_SHORT).show()
                                     }
+                                }
                             }
                         }
                     }
@@ -216,15 +218,10 @@ fun CreateScreen(
                                 newCode,
                                 Player(pseudo = pseudo, iconUrl = 1, isHost = true)
                             ).first()
-
                         } while (result == null)
 
                         roomCode = newCode
-                        Toast.makeText(
-                            context,
-                            "Room créée avec le code : $newCode",
-                            Toast.LENGTH_SHORT
-                        ).show()
+                        Toast.makeText(context, "Room créée avec le code : $newCode", Toast.LENGTH_SHORT).show()
                         IdManager.currentRoomId = newCode
                         PlayerManager.currentPlayer?.firestoreClient = firestoreClient
                         onCreateClicked(newCode, 0)
@@ -244,12 +241,21 @@ fun CreateScreen(
                     color = MaterialTheme.colorScheme.primary
                 )
             }
-
         }
     }
 }
 
+
+/**
+ * Génère un code de room unique de 6 caractères,
+ * en s'assurant qu'aucune room existante dans Firestore ne possède déjà ce code.
+ */
 suspend fun generateUniqueRoomCode(): String {
+
+    // -------------------------
+    // Références Firestore et état
+    // -------------------------
+
     val db = FirebaseFirestore.getInstance()
     var roomCode: String
     var isUnique: Boolean
@@ -266,9 +272,20 @@ suspend fun generateUniqueRoomCode(): String {
     return roomCode
 }
 
-// 🔧 Génère un code de room aléatoire
+/**
+ * Génère un code de room aléatoire composé de lettres majuscules et de chiffres.
+ *
+ * @param length La longueur du code à générer.
+ * @return Un code aléatoire de la longueur spécifiée.
+ */
 fun generateRandomCode(length: Int): String {
+
+    // -------------------------
+    // Liste des caractères possibles
+    // -------------------------
+
     val chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+
     return (1..length)
         .map { chars.random() }
         .joinToString("")
