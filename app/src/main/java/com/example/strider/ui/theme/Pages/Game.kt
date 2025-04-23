@@ -222,7 +222,7 @@ fun GameScreen(
                             distanceMax = distanceTotale.floatValue + 10,
                             isCurrentPlayer = true,
                             pseudo = "you",
-                            textColor = colorScheme.secondary
+                            textColor = textColor
                         )
                     } else {
                         PlayerScoreStat(
@@ -341,11 +341,11 @@ fun PlayerScoreStat(
                 .background(colorScheme.secondary)
         ) {
             Text(
-                text = String.format("%.1f", distance),
+                text = String.format("%05.0f m", distance),
                 color = textColor,
                 fontFamily = MartianMono,
                 modifier = Modifier
-                    .padding(8.dp)
+                    .padding(top=40.dp)
                     .graphicsLayer { rotationZ = 90f }
             )
         }
