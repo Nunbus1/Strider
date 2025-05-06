@@ -361,7 +361,7 @@ fun PlayerScoreStat(
         ) {
             Text(
                 text = String.format("%.0fm", distance),
-                color = textColor,
+                color = colorScheme.primary,
                 fontFamily = MartianMono,
                 modifier = Modifier
                     .padding(top=40.dp)
