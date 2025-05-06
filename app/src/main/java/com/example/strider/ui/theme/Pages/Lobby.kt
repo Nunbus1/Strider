@@ -247,7 +247,24 @@ fun LobbyScreen(
                 .fillMaxWidth()
                 .height(30.dp)
         )
+        Spacer(modifier = Modifier.height(16.dp))
 
+        if (PlayerManager.currentPlayer?.isHost == true) {
+            Button(
+                onClick = { shouldStartCountdown.value = true },
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary),
+                border = BorderStroke(2.dp, Color.White),
+                modifier = Modifier
+                    .width(300.dp)
+                    .height(56.dp)
+            ) {
+                Text(
+                    "Start",
+                    fontFamily = MartianMono,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
+        }
         Spacer(modifier = Modifier.height(8.dp))
 
         LazyColumn(
@@ -267,24 +284,7 @@ fun LobbyScreen(
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
 
-        if (PlayerManager.currentPlayer?.isHost == true) {
-            Button(
-                onClick = { shouldStartCountdown.value = true },
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary),
-                border = BorderStroke(2.dp, Color.White),
-                modifier = Modifier
-                    .width(300.dp)
-                    .height(56.dp)
-            ) {
-                Text(
-                    "Start",
-                    fontFamily = MartianMono,
-                    color = MaterialTheme.colorScheme.primary
-                )
-            }
-        }
 
         Spacer(modifier = Modifier.height(16.dp))
     }

@@ -2,6 +2,7 @@ package com.example.strider.ui.theme.Pages
 
 import com.example.strider.DataClass.Player
 import ViewModels.ImageViewModel
+import android.annotation.SuppressLint
 import android.util.Log
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -329,6 +330,7 @@ fun ResultSection(
  *
  * @param players Liste des joueurs triés par score (Pair<id, Player>), les 3 premiers sont affichés.
  */
+@SuppressLint("DefaultLocale")
 @Composable
 fun Podium(players: List<Pair<Int, Player>>) {
     val primary = MaterialTheme.colorScheme.primary
@@ -466,8 +468,14 @@ fun Podium(players: List<Pair<Int, Player>>) {
 
         drawContext.canvas.nativeCanvas.drawText(
             players.getOrNull(0)?.second?.pseudo ?: "1st",
-            middleX + podiumWidth / 2,
+            (middleX + podiumWidth / 2),
             topY - iconSize - textOffsetY,
+            paint
+        )
+        drawContext.canvas.nativeCanvas.drawText(
+            players.getOrNull(0)?.second?.distance?.floatValue?.toInt()?.toString() ?: "",
+            middleX + podiumWidth / 2,
+            (topY - iconSize - textOffsetY)+50,
             paint
         )
 
@@ -479,9 +487,23 @@ fun Podium(players: List<Pair<Int, Player>>) {
         )
 
         drawContext.canvas.nativeCanvas.drawText(
+            players.getOrNull(1)?.second?.distance?.floatValue?.toInt()?.toString()?: "",
+            rightX + podiumWidth / 2 + depth / 2,
+            (topY + rightHeightOffset - iconSize - textOffsetY)+50,
+            paint
+        )
+
+        drawContext.canvas.nativeCanvas.drawText(
             players.getOrNull(2)?.second?.pseudo ?: "3nd",
             leftX + podiumWidth / 2 - depth / 2,
             topY + leftHeightOffset - iconSize - textOffsetY,
+            paint
+        )
+
+        drawContext.canvas.nativeCanvas.drawText(
+            players.getOrNull(2)?.second?.distance?.floatValue?.toInt()?.toString()?: "",
+            leftX + podiumWidth / 2 - depth / 2,
+            (topY + leftHeightOffset - iconSize - textOffsetY)+50,
             paint
         )
 

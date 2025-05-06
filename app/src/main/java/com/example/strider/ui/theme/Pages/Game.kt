@@ -51,10 +51,15 @@ import com.example.strider.ui.theme.StriderTheme
 import kotlinx.coroutines.delay
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.absoluteOffset
 import androidx.compose.foundation.layout.width
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.layout.ContentScale
 import com.example.strider.IdManager
 import com.example.strider.ui.theme.BricolageGrotesque
@@ -149,10 +154,10 @@ fun GameScreen(
     // -------------------------
     // Formatage du chrono
     // -------------------------
-
+    val heures = (elapsed.longValue / 1440000).toInt()
     val minutes = (elapsed.longValue / 60000).toInt()
     val seconds = ((elapsed.longValue / 1000) % 60).toInt()
-    val chronoText = String.format("%02d:%02d", minutes, seconds)
+    val chronoText = String.format("%02d:%02d:%02d",heures, minutes, seconds)
 
 
     Box(
@@ -192,6 +197,20 @@ fun GameScreen(
             color = textColor,
             modifier = Modifier.padding(8.dp)
         )
+        players.chunked(1).forEach { group ->
+            group.forEachIndexed { _, (id, player) ->
+
+                if (id == IdManager.currentPlayerId) {
+                    Text(
+                        text = String.format("%.0fm", player.distance.floatValue),
+                        fontSize = 20.sp,
+                        fontFamily = MartianMono,
+                        color = textColor,
+                        modifier = Modifier.padding(8.dp)
+                    )
+                }
+            }
+        }
 
         Box(
             modifier = Modifier
@@ -341,7 +360,7 @@ fun PlayerScoreStat(
                 .background(colorScheme.secondary)
         ) {
             Text(
-                text = String.format("%05.0f m", distance),
+                text = String.format("%.0fm", distance),
                 color = textColor,
                 fontFamily = MartianMono,
                 modifier = Modifier
