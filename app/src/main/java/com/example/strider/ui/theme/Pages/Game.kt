@@ -141,7 +141,7 @@ fun GameScreen(
     // -------------------------
     // Mise à jour du timer basé sur la dernière activité du joueur
     // -------------------------
-
+/*
     LaunchedEffect(playerId, players) {
         while (true) {
             val player = players.find { it.first == playerId }?.second
@@ -149,13 +149,13 @@ fun GameScreen(
             elapsed.longValue = lastTimestamp - startTime
             delay(1000)
         }
-    }
+    }*/
 
     // -------------------------
     // Formatage du chrono
     // -------------------------
-    val heures = (elapsed.longValue / 1440000).toInt()
-    val minutes = (elapsed.longValue / 60000).toInt()
+    val heures = (elapsed.longValue / 3600000).toInt()
+    val minutes = ((elapsed.longValue / 60000)% 60).toInt()
     val seconds = ((elapsed.longValue / 1000) % 60).toInt()
     val chronoText = String.format("%02d:%02d:%02d",heures, minutes, seconds)
 
